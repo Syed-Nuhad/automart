@@ -18,7 +18,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # ---------- PayPal (SDK-free REST) ----------
 # Use Sandbox for testing; switch to "https://api-m.paypal.com" for live.
-PAYPAL_API_BASE = "https://api-m.sandbox.paypal.com"
+PAYPAL_API_BASE = getattr(settings, "PAYPAL_API_BASE", "https://api-m.sandbox.paypal.com")
 
 
 def _paypal_access_token() -> str:

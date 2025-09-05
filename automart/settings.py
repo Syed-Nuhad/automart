@@ -22,7 +22,7 @@ INSTALLED_APPS = [
     # app
     "models",
     'marketplace',
-    "payments"
+    "payment"
 ]
 
 MIDDLEWARE = [
