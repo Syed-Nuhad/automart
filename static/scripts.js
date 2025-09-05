@@ -829,27 +829,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
+
+
+
+
+
+
+
+(function(){
   function getCSRF(){
-    const m = document.cookie.match(/(?:^|;\\s*)csrftoken=([^;]+)/);
+    const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
     return m ? decodeURIComponent(m[1]) : "";
   }
-  document.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.js-add-to-cart');
-    if (!btn) return;
-    const pid = btn.dataset.pid;
-    const qty = btn.dataset.qty || 1;
-    const res = await fetch(`/cart/add/${pid}/`, {
+  document.addEventListener('click', async function(e){
+    const form = e.target.closest('.js-add-cart');
+    if (!form) return;
+    e.preventDefault();
+    const pid = form.getAttribute('data-pid');
+    const res = await fetch(form.getAttribute('action'), {
       method: 'POST',
-      headers: { 'X-CSRFToken': getCSRF(), 'X-Requested-With': 'XMLHttpRequest' },
-      body: new URLSearchParams({ qty })
+      headers: { 'X-CSRFToken': getCSRF(), 'X-Requested-With': 'XMLHttpRequest' }
     });
     const data = await res.json();
-    if (data.ok) {
-      const badge = document.querySelector('#cart-count');
-      if (badge) badge.textContent = data.cart_count;
+    if (data && data.ok) {
+      // flip button
+      form.innerHTML = '<button class="btn btn-success btn-sm" disabled>Added to cart</button>';
+      // update badge
+      const badge = document.getElementById('cart-count');
+      if (badge && typeof data.cart_count === 'number') {
+        badge.textContent = data.cart_count;
+      }
     } else {
-      alert(data.error || 'Failed to add to cart');
+      alert('Could not add to cart');
     }
   });
+})();
+</script>
 
 

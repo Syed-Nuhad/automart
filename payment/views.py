@@ -22,7 +22,8 @@ from django.conf import settings
 
 from .models import Order, OrderItem
 from .utils import collect_checkout_items, _to_cents
-from .cart import add_item as cart_add_item, remove_item as cart_remove_item, clear as cart_clear, in_cart as cart_in_cart, total_cents as cart_total_cents, count as cart_count
+from .cart import add_item as cart_add_item, remove_item as cart_remove_item, clear as cart_clear, \
+    in_cart as cart_in_cart, total_cents as cart_total_cents, count as cart_count, _car_to_session_row
 
 from models.models import  Car
 
@@ -35,7 +36,6 @@ PAYPAL_API_BASE = getattr(settings, "PAYPAL_API_BASE", "https://api-m.sandbox.pa
 # Import your Car (or Product) model here. Adjust app/model names to match your project.
 # Example assumes a Car model with fields: id, title (or name), price
 try:
-    from models.models import Car  # change to your real app/model
     def _get_product(pk):
         obj = get_object_or_404(Car, pk=pk)
         name = getattr(obj, "title", None) or getattr(obj, "name", None) or f"Item {obj.pk}"
@@ -349,3 +349,75 @@ def api_paypal_capture_order(request):
 
     return JsonResponse({"status": "ok"})
 # ===================== END: payments/views.py =====================
+
+
+
+
+
+
+@login_required
+def cart_page(request):
+    cart = list(request.session.get("cart", []))
+    # enrich with per-row subtotal and keep only essential fields
+    rows = []
+    for r in cart:
+        unit = int(r.get("unit_cents", 0) or 0)
+        rows.append({
+            "id": str(r.get("id")),
+            "title": r.get("title", "Car"),
+            "make": r.get("make", ""),
+            "model_name": r.get("model_name", ""),
+            "unit_cents": unit,
+            "subtotal_cents": unit,   # qty is 1
+            "cover_url": r.get("cover_url"),
+        })
+    total = sum(row["subtotal_cents"] for row in rows)
+    currency = (getattr(settings, "PAYMENT_CURRENCY", "usd") or "usd").upper()
+    return render(request, "payment/cart.html", {"rows": rows, "total_cents": total, "currency": currency})
+
+@require_POST
+@login_required
+def cart_add(request, pid):
+    # single-click add: ignore qty, force single item per car
+    car = get_object_or_404(Car, pk=pid)
+    data = _car_to_session_row(car)
+    added = cart_add_item(
+        request,
+        pid=data["pid"],
+        title=data["title"],
+        make=data["make"],
+        model_name=data["model_name"],
+        unit_cents=data["unit_cents"],
+        cover_url=data["cover_url"],
+    )
+    # AJAX support to flip button and badge
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({
+            "ok": True,
+            "added": added,
+            "already": (not added),
+            "cart_count": cart_count(request),
+            "cart_total_cents": cart_total_cents(request),
+        })
+    # non-AJAX: just go back
+    return redirect(request.META.get("HTTP_REFERER") or "cart_page")
+
+@require_POST
+@login_required
+def cart_remove(request, pid):
+    cart_remove_item(request, pid=str(pid))
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({
+            "ok": True,
+            "cart_count": cart_count(request),
+            "cart_total_cents": cart_total_cents(request),
+        })
+    return redirect("cart_page")
+
+@require_POST
+@login_required
+def cart_clear_all(request):
+    cart_clear(request)
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({"ok": True})
+    return redirect("cart_page")

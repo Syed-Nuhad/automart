@@ -1,6 +1,7 @@
 # payment/cart.py
 from typing import Dict, List
 
+from models.models import Car
 from payment.utils import _to_cents
 
 SESSION_KEY = "cart"

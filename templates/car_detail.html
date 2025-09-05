@@ -326,9 +326,15 @@
                   aria-pressed="false">
             <i class="bi bi-arrows-angle-expand"></i><span>Start 360° View</span>
           </button>
-          <button class="btn btn-outline-primary d-inline-flex align-items-center justify-content-center gap-2 mt-2 js-add-to-cart" data-pid="{{ car.id }}" data-qty="1">
-            <i class="bi bi-cart-plus"></i> Add to Cart
-          </button>
+          {% comment %} Template context has cart_ids from context processor {% endcomment %}
+          {% if car.id|stringformat:"s" in cart_ids %}
+            <button class="btn btn-success btn-sm" disabled>Added to cart</button>
+          {% else %}
+            <form class="d-inline js-add-cart" data-pid="{{ car.id }}" method="post" action="{% url 'cart_add' car.id %}">
+              {% csrf_token %}
+              <button class="btn btn-primary btn-sm">Add to cart</button>
+            </form>
+          {% endif %}
         </div>
       </div>
     </div>
