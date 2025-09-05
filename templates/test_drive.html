@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Test drive — {{ car.title }}{% endblock %}
+{% load static %}
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card card-neo">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <img src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
+                 alt="{{ car.title }}" class="rounded me-3"
+                 style="width:72px;height:72px;object-fit:cover">
+            <div>
+              <h4 class="mb-1">{{ car.title }}</h4>
+              <div class="text-secondary small">
+                {% if car.price %}${{ car.price|floatformat:0 }}{% else %}—{% endif %}
+                {% if car.mileage %} • {{ car.mileage|floatformat:0 }} mi{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Full name</label>
+                {{ form.full_name }}
+                {% if form.full_name.errors %}<div class="text-danger small">{{ form.full_name.errors|join:", " }}</div>{% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors|join:", " }}</div>{% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Phone (optional)</label>
+                {{ form.phone }}
+                {% if form.phone.errors %}<div class="text-danger small">{{ form.phone.errors|join:", " }}</div>{% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Preferred date</label>
+                {{ form.preferred_date }}
+                {% if form.preferred_date.errors %}<div class="text-danger small">{{ form.preferred_date.errors|join:", " }}</div>{% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Preferred time (optional)</label>
+                {{ form.preferred_time }}
+                {% if form.preferred_time.errors %}<div class="text-danger small">{{ form.preferred_time.errors|join:", " }}</div>{% endif %}
+              </div>
+              <div class="col-12">
+                <label class="form-label">Notes (optional)</label>
+                {{ form.message }}
+                {% if form.message.errors %}<div class="text-danger small">{{ form.message.errors|join:", " }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              <a href="{% url 'car_detail' car.id %}" class="btn btn-soft btn-pill">Back to car</a>
+              <button class="btn btn-soft btn-pill btn-soft-primary" type="submit">
+                <i class="bi bi-steering-wheel me-1"></i> Request test drive
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

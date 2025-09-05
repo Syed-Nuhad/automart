@@ -1,0 +1,631 @@
+{% extends "base.html" %}
+{% load static %}
+{% load seller_badge %}
+{% block title %}{{ car.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="row g-4 align-items-md-center mb-3">
+    <div class="col-md-9">
+      <div class="d-flex align-items-center gap-3">
+        <img src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
+             width="80" height="80" class="rounded object-fit-cover" alt="{{ car.title }}">
+        <div class="flex-grow-1">
+          <h1 class="h4 mb-1">{{ car.title }}</h1>
+          <div class="d-flex align-items-center gap-2 mt-1">
+            {# Rating Display under the title #}
+            {% with avg=average_review|default:rating_avg %}
+            <div class="rating-display" aria-label="{{ avg }} out of 5">
+              {% for _ in "12345"|make_list %}
+                {% if avg >= forloop.counter %}
+                  <i class="fa-solid fa-star"></i>
+                {% elif avg|add:"0.5" >= forloop.counter %}
+                  <i class="fa-solid fa-star-half-stroke"></i>
+                {% else %}
+                  <i class="fa-regular fa-star"></i>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <div class="small text-muted">({{ avg }} out of 5)</div>
+            {% endwith %}
+          </div>
+          <div class="text-muted small">
+            {% if car.price %}${{ car.price|floatformat:0 }}{% else %}—{% endif %}
+            {% if car.mileage %} • {{ car.mileage|floatformat:0 }} mi{% endif %}
+            {% if car.transmission %} • {{ car.transmission }}{% endif %}
+            {% if car.fuel %} • {{ car.fuel }}{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 d-none d-md-flex justify-content-end align-items-center gap-2">
+      <form method="post" action="{% url 'toggle_wishlist' car.id %}">{% csrf_token %}
+        <button class="btn btn-outline-primary" type="submit" title="Add to Wishlist"><i class="bi bi-heart"></i></button>
+      </form>
+      <form method="post" action="{% url 'toggle_compare' car.id %}">{% csrf_token %}
+        <button class="btn btn-outline-primary" type="submit" title="Compare"><i class="bi bi-arrow-left-right"></i></button>
+      </form>
+      <a class="btn btn-primary" href="{% url 'test_drive' car.id %}">
+        <i class="bi bi-steering-wheel"></i> Test drive
+      </a>
+      <a href="https://www.addtoany.com/share" class="a2a_dd btn btn-outline-primary"
+         data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Share link"
+         data-a2a-title="{{ car.title|default:'AutoMart' }}"
+         data-a2a-url="{{ request.scheme }}://{{ request.get_host }}{% url 'car_detail' car.id %}">
+         <i class="bi bi-share"></i>
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+    <!-- Carousel -->
+    <div id="carSpin" class="carousel slide">
+      <div class="carousel-inner">
+        {% with imgs=car.images.all %}
+          {% if car.cover %}
+            <div class="carousel-item active">
+              <div class="ratio ratio-16x9">
+                <img src="{{ car.cover.url }}" class="w-100 h-100 object-fit-cover" alt="{{ car.title }}">
+              </div>
+            </div>
+          {% else %}
+            {% if imgs|length == 0 %}
+              <div class="carousel-item active">
+                <div class="ratio ratio-16x9">
+                  <img src="{% static 'img/sample1.jpg' %}" class="w-100 h-100 object-fit-cover" alt="{{ car.title }}">
+                </div>
+              </div>
+            {% endif %}
+          {% endif %}
+
+          {% for img in imgs %}
+            <div class="carousel-item {% if not car.cover and forloop.first %}active{% endif %}">
+              <div class="ratio ratio-16x9">
+                <img src="{{ img.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ car.title }} {{ forloop.counter }}">
+              </div>
+            </div>
+          {% endfor %}
+        {% endwith %}
+      </div>
+
+      <button class="carousel-control-prev" type="button" data-bs-target="#carSpin" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span><span class="visually-hidden">Prev</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carSpin" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span><span class="visually-hidden">Next</span>
+      </button>
+    </div>
+
+      <ul class="nav nav-tabs mt-3 pb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabOverview" type="button" role="tab">Overview</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabSpecs" type="button" role="tab">Specs</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabHistory" type="button" role="tab">History</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabSeller" type="button" role="tab">Seller</button>
+        </li>
+      </ul>
+
+      <div class="tab-content am-tab-content p-3 rounded-3 border-top-0">
+        <!-- Overview -->
+        <div class="tab-pane am-pane show active" id="tabOverview" role="tabpanel" aria-labelledby="tabOverview-tab">
+          {% if car.overview %}
+            <div class="am-muted small">{{ car.overview|linebreaks }}</div>
+          {% else %}
+            <div class="am-muted small">No overview provided.</div>
+          {% endif %}
+          <ul class="small am-muted mb-0" id="carHighlights"></ul>
+        </div>
+
+        <!-- Specs -->
+        <div class="tab-pane am-pane" id="tabSpecs" role="tabpanel" aria-labelledby="tabSpecs-tab">
+          <div class="row small g-2" id="carSpecs">
+            <div class="col-6"><strong>Make:</strong> {{ car.make.name|default:"—" }}</div>
+            <div class="col-6"><strong>Model:</strong> {{ car.model_name|default:"—" }}</div>
+            <div class="col-6"><strong>Body:</strong> {{ car.body_type.name|default:"—" }}</div>
+            <div class="col-6"><strong>Mileage:</strong> {% if car.mileage %}{{ car.mileage|floatformat:0 }} mi{% else %}—{% endif %}</div>
+            <div class="col-6"><strong>Transmission:</strong> {{ car.transmission|default:"—" }}</div>
+            <div class="col-6"><strong>Fuel:</strong> {{ car.fuel|default:"—" }}</div>
+            {% if car.color %}<div class="col-6"><strong>Color:</strong> {{ car.color }}</div>{% endif %}
+            {% if car.vin %}<div class="col-6"><strong>VIN:</strong> {{ car.vin }}</div>{% endif %}
+          </div>
+        </div>
+
+        <!-- History -->
+        <div class="tab-pane am-pane" id="tabHistory" role="tabpanel" aria-labelledby="tabHistory-tab">
+          {% if car.history %}
+            <div class="small am-muted">{{ car.history|linebreaks }}</div>
+          {% else %}
+            <div class="small am-muted">No history available.</div>
+          {% endif %}
+        </div>
+
+        <!-- Seller -->
+        <div class="tab-pane am-pane" id="tabSeller" role="tabpanel" aria-labelledby="tabSeller-tab">
+          <div class="d-flex align-items-center gap-3">
+            <!-- Avatar -->
+            <div class="rounded-circle overflow-hidden border" style="width:56px;height:56px;">
+              {% if userprofile and userprofile.profile_picture %}
+                <img src="{{ userprofile.profile_picture.url }}" alt="User Profile Picture"
+                     class="img-fluid rounded-circle" style="width:56px;height:56px;object-fit:cover;">
+              {% else %}
+                <img src="{% static 'profiles/default_profile.png' %}" alt="Default Profile Picture"
+                     class="img-fluid rounded-circle" style="width:56px;height:56px;object-fit:cover;">
+              {% endif %}
+            </div>
+
+            <!-- Name + badge -->
+            <div>
+              <div class="fw-semibold d-flex align-items-center gap-2" id="sellerName">
+                {{ car.seller_name|default:"Seller" }}
+
+                {# Replace the custom tag with a plain conditional #}
+                {% if seller_verified %}
+                  <i class="fa-solid fa-circle-check text-primary align-text-top ms-1"
+                     data-bs-toggle="tooltip" data-bs-title="Trusted" aria-label="Trusted" role="img"></i>
+                {% endif %}
+              </div>
+              <div class="small am-muted" id="sellerMeta">{{ car.seller_meta|default:"" }}</div>
+            </div>
+          </div>
+
+
+
+
+
+          {# Inline-sanitize the number everywhere we use it (digits only for wa.me) #}
+          <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
+            {% if car.seller_phone|default:car.seller_meta|default_if_none:''|cut:' '|cut:'('|cut:')'|cut:'-'|cut:'.'|cut:'+'|cut:':'|length > 6 %}
+
+              <!-- WhatsApp (opens in new tab) -->
+              <a class="btn btn-primary am-btn" id="sellerMsgBtn-{{ car.id }}"
+                 href="https://wa.me/{{ car.seller_phone|default:car.seller_meta|default_if_none:''|cut:' '|cut:'('|cut:')'|cut:'-'|cut:'.'|cut:'+'|cut:':' }}?text={{ 'Hi! I am interested in '|add:car.title|urlencode }}"
+                 target="_blank" rel="noopener">
+                <i class="bi bi-whatsapp am-icon" aria-hidden="true"></i><span>Message</span>
+              </a>
+              <button type="button"
+                class="btn btn-outline-primary am-btn"
+                data-phone="+{{ car.seller_phone|default:car.seller_meta|default_if_none:''|cut:' '|cut:'('|cut:')'|cut:'-'|cut:'.'|cut:'+'|cut:':' }}"
+                onclick="(function(b){
+                  var n=b.dataset.phone; if(!n) return;
+
+                  function toSolid(){
+                    b.classList.remove('btn-outline-primary');
+                    b.classList.add('btn-primary','text-white');
+                  }
+                  function toOutline(){
+                    b.classList.remove('btn-primary','text-white');
+                    b.classList.add('btn-outline-primary');
+                  }
+                  function done(){
+                    toSolid();
+                    b.innerHTML='<i class=&quot;bi bi-clipboard-check am-icon&quot;></i><span>Copied</span>';
+                    setTimeout(function(){
+                      toOutline();
+                      b.innerHTML='<i class=&quot;bi bi-clipboard am-icon&quot;></i><span>Copy number</span>';
+                    },1400);
+                  }
+
+                  if(navigator.clipboard && navigator.clipboard.writeText){
+                    navigator.clipboard.writeText(n).then(done,done);
+                  }else{
+                    var i=document.createElement('input'); i.value=n;
+                    document.body.appendChild(i); i.select();
+                    try{ document.execCommand('copy'); }catch(e){}
+                    document.body.removeChild(i);
+                    done();
+                  }
+                })(this)">
+                <i class="bi bi-clipboard am-icon" aria-hidden="true"></i><span>Copy number</span>
+              </button>
+              <span class="small am-muted ms-1">
+                +{{ car.seller_phone|default:car.seller_meta|default_if_none:''|cut:' '|cut:'('|cut:')'|cut:'-'|cut:'.'|cut:'+'|cut:':' }}
+              </span>
+
+            {% else %}
+              <span class="small am-muted">No phone number provided.</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="p-3 p-md-4  cd-shadow rounded-3 cd-sticky">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <div class="cd-muted small">Price</div>
+            <div class="h3 mb-0" id="detailPrice" data-price="{{ car.price|default:0 }}">
+              {% if car.price %}${{ car.price|floatformat:0 }}{% else %}—{% endif %}
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <form method="post" action="{% url 'toggle_wishlist' car.id %}">{% csrf_token %}
+              <button class="btn btn-outline-primary cd-btn" type="submit" title="Wishlist"><i class="bi bi-heart cd-icon"></i></button>
+            </form>
+            <form method="post" action="{% url 'toggle_compare' car.id %}">{% csrf_token %}
+              <button class="btn btn-outline-primary cd-btn" type="submit" title="Compare"><i class="bi bi-arrow-left-right cd-icon"></i></button>
+            </form>
+          </div>
+        </div>
+        <hr class="my-3">
+        <form id="calcForm" class="small" method="get" action="">
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label">Down Payment</label>
+              <input
+                class="form-control"
+                id="downPayment"
+                name="down"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="3000"
+                value="{{ calc_input.down|default:3000 }}"
+              >
+            </div>
+            <div class="col-6">
+              <label class="form-label">APR %</label>
+              <input
+                class="form-control"
+                id="apr"
+                name="apr"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="6"
+                value="{{ calc_input.apr|default:6 }}"
+              >
+            </div>
+            <div class="col-12">
+              <label class="form-label">Term (months)</label>
+              <input
+                class="form-range"
+                id="term"
+                name="term"
+                type="range"
+                min="12"
+                max="84"
+                step="1"
+                value="{{ calc_input.term|default:60 }}"
+                oninput="this.nextElementSibling.querySelector('strong').textContent = this.value"
+              >
+              <div class="d-flex justify-content-between">
+                <small>12</small><small><strong>{{ calc_input.term|default:60 }}</strong></small><small>84</small>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="alert alert-light border small mb-2">
+                Estimated monthly:
+                <span class="fw-bold" id="monthly">
+                  ${{ calc_monthly|default:0|floatformat:0 }}
+                </span>
+              </div>
+
+              <button class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2" type="submit">
+                <i class="bi bi-calculator"></i>
+                <span>See finance estimate</span>
+              </button>
+            </div>
+          </div>
+        </form>
+        <hr class="my-3">
+
+        <div class="d-grid gap-2">
+          <!-- 360° button (new ID) -->
+          <button id="spinBtn" type="button"
+                  class="btn btn-outline-primary d-inline-flex align-items-center justify-content-center gap-2 mt-2"
+                  aria-pressed="false">
+            <i class="bi bi-arrows-angle-expand"></i><span>Start 360° View</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-md-none mt-3 d-flex flex-wrap gap-2">
+    <form method="post" action="{% url 'toggle_wishlist' car.id %}">{% csrf_token %}
+      <button class="btn btn-outline-primary w-100 cd-btn" type="submit"><i class="bi bi-heart cd-icon"></i><span>Wishlist</span></button>
+    </form>
+    <form method="post" action="{% url 'toggle_compare' car.id %}">{% csrf_token %}
+      <button class="btn btn-outline-primary w-100 cd-btn" type="submit"><i class="bi bi-arrow-left-right cd-icon"></i><span>Compare</span></button>
+    </form>
+    <a class="btn btn-primary w-100 cd-btn" href="{% url 'test_drive' car.id %}">
+      <i class="bi bi-steering-wheel cd-icon"></i><span>Test drive</span>
+    </a>
+    <button class="btn btn-outline-primary w-100 cd-btn" id="shareBtn3" type="button">
+      <i class="bi bi-share cd-icon"></i><span>Share</span>
+    </button>
+  </div>
+
+  <!-- ===== Modernized Reviews Block ===== -->
+  <details id="reviews" class="reviews mt-4">
+    <summary class="h5 fw-semibold mb-3 d-flex align-items-center gap-2">
+      <i class="bi bi-chat-dots text-primary"></i>
+      Reviews <span class="text-muted small">({{ rating_count|default:0 }})</span>
+    </summary>
+
+    {% if rating_count %}
+      <!-- Overall rating summary -->
+      <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body">
+          <div class="row g-4 align-items-center">
+            <!-- Left: average score -->
+            <div class="col-md-4 text-center text-md-start">
+              <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3">
+                <div class="display-5 fw-bold text-dark mb-0">{{ rating_avg }}</div>
+                <div class="text-start">
+                  <div class="rb-stars" style="--w: calc({{ rating_avg|default:0 }}/5 * 100%);">
+                    <span class="fill">★★★★★</span>
+                    <span class="base">★★★★★</span>
+                  </div>
+                  <div class="text-muted small">Based on {{ rating_count }} review{{ rating_count|pluralize }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: distribution (safe defaults, no custom filters) -->
+            <div class="col-md-8"
+                 style="--total:{% if rating_count and rating_count > 0 %}{{ rating_count }}{% else %}1{% endif %};">
+              <div class="vstack gap-2">
+
+                <!-- ★5 -->
+                <div class="d-flex align-items-center gap-2">
+                  <div class="small fw-semibold" style="width:2rem">★5</div>
+                  <div class="progress flex-grow-1" style="height:6px;">
+                    <div class="progress-bar bg-primary"
+                         style="--a: {{ rating_dist.5|default:0 }}; width: calc((var(--a)/var(--total)) * 100%);"></div>
+                  </div>
+                  <div class="small text-muted" style="width:2rem; text-align:right;">
+                    {{ rating_dist.5|default:0 }}
+                  </div>
+                </div>
+
+                <!-- ★4 -->
+                <div class="d-flex align-items-center gap-2">
+                  <div class="small fw-semibold" style="width:2rem">★4</div>
+                  <div class="progress flex-grow-1" style="height:6px;">
+                    <div class="progress-bar bg-primary
+                         " style="--a: {{ rating_dist.4|default:0 }}; width: calc((var(--a)/var(--total)) * 100%);"></div>
+                  </div>
+                  <div class="small text-muted" style="width:2rem; text-align:right;">
+                    {{ rating_dist.4|default:0 }}
+                  </div>
+                </div>
+
+                <!-- ★3 -->
+                <div class="d-flex align-items-center gap-2">
+                  <div class="small fw-semibold" style="width:2rem">★3</div>
+                  <div class="progress flex-grow-1" style="height:6px;">
+                    <div class="progress-bar bg-primary"
+                         style="--a: {{ rating_dist.3|default:0 }}; width: calc((var(--a)/var(--total)) * 100%);"></div>
+                  </div>
+                  <div class="small text-muted" style="width:2rem; text-align:right;">
+                    {{ rating_dist.3|default:0 }}
+                  </div>
+                </div>
+
+                <!-- ★2 -->
+                <div class="d-flex align-items-center gap-2">
+                  <div class="small fw-semibold" style="width:2rem">★2</div>
+                  <div class="progress flex-grow-1" style="height:6px;">
+                    <div class="progress-bar bg-primary"
+                         style="--a: {{ rating_dist.2|default:0 }}; width: calc((var(--a)/var(--total)) * 100%);"></div>
+                  </div>
+                  <div class="small text-muted" style="width:2rem; text-align:right;">
+                    {{ rating_dist.2|default:0 }}
+                  </div>
+                </div>
+
+                <!-- ★1 -->
+                <div class="d-flex align-items-center gap-2">
+                  <div class="small fw-semibold" style="width:2rem">★1</div>
+                  <div class="progress flex-grow-1" style="height:6px;">
+                    <div class="progress-bar bg-primary"
+                         style="--a: {{ rating_dist.1|default:0 }}; width: calc((var(--a)/var(--total)) * 100%);"></div>
+                  </div>
+                  <div class="small text-muted" style="width:2rem; text-align:right;">
+                    {{ rating_dist.1|default:0 }}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Highlighted reviews -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+              <div class="fw-semibold mb-2 text-success"><i class="bi bi-hand-thumbs-up"></i> Top positive</div>
+              {% if top_positive %}
+                <div class="small text-muted mb-1">
+                  {{ top_positive.user.get_username }} • {{ top_positive.created|date:"M d, Y" }}
+                </div>
+                <div class="mb-1 text-warning">
+                  {% for _ in "12345"|make_list %}
+                    {% if forloop.counter <= top_positive.rating %}
+                      <i class="bi bi-star-fill"></i>
+                    {% else %}
+                      <i class="bi bi-star"></i>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                {% if top_positive.title %}<div class="fw-semibold">{{ top_positive.title }}</div>{% endif %}
+                {% if top_positive.body %}<div class="small text-secondary">{{ top_positive.body|truncatechars:160 }}</div>{% endif %}
+              {% else %}
+                <div class="text-muted small">—</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+              <div class="fw-semibold mb-2 text-danger"><i class="bi bi-hand-thumbs-down"></i> Top critical</div>
+              {% if top_critical %}
+                <div class="small text-muted mb-1">
+                  {{ top_critical.user.get_username }} • {{ top_critical.created|date:"M d, Y" }}
+                </div>
+                <div class="mb-1 text-warning">
+                  {% for _ in "12345"|make_list %}
+                    {% if forloop.counter <= top_critical.rating %}
+                      <i class="bi bi-star-fill"></i>
+                    {% else %}
+                      <i class="bi bi-star"></i>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                {% if top_critical.title %}<div class="fw-semibold">{{ top_critical.title }}</div>{% endif %}
+                {% if top_critical.body %}<div class="small text-secondary">{{ top_critical.body|truncatechars:160 }}</div>{% endif %}
+              {% else %}
+                <div class="text-muted small">—</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Reviews list (shows subject + review text; like/report buttons with no reload) -->
+    <div class="vstack gap-3 mt-3">
+      {% if reviews %}
+        {% for r in reviews %}
+          <div class="card border-0 shadow-sm">
+            <div class="card-body p-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <strong>{{ r.user.get_username }}</strong>
+                <span class="text-muted small">{{ r.created_at|date:"M d, Y" }}</span>
+              </div>
+
+              <!-- Stars -->
+              <div class="mb-1 text-warning">
+                {% for _ in "12345"|make_list %}
+                  {% if forloop.counter <= r.rating %}
+                    <i class="bi bi-star-fill"></i>
+                  {% else %}
+                    <i class="bi bi-star"></i>
+                  {% endif %}
+                {% endfor %}
+                {% if r.subject %}
+                <br>
+                  <span class="ms-2 fw-semibold text-dark">{{ r.subject }}</span>
+                {% endif %}
+              </div>
+
+              <!-- Review text (this was missing because template used r.body/r.title) -->
+              {% if r.review %}
+                <div class="small text-secondary">{{ r.review }}</div>
+              {% endif %}
+
+              <!-- Helpful / Report (AJAX, no refresh) -->
+              <div class="mt-2 d-flex gap-2 align-items-center">
+                {% if request.user.is_authenticated %}
+                  <!-- Helpful -->
+                  <form method="post"
+                        action="{% url 'review_mark_helpful' r.id %}"
+                        class="d-inline js-review-action"
+                        data-kind="helpful"
+                        data-review-id="{{ r.id }}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="btn btn-sm {% if r.i_liked %}btn-success{% else %}btn-outline-success{% endif %}"
+                            aria-pressed="{{ r.i_liked|yesno:'true,false' }}"
+                            data-role="btn">
+                      <i class="bi {% if r.i_liked %}bi-hand-thumbs-up-fill{% else %}bi-hand-thumbs-up{% endif %}" data-role="icon"></i>
+                      <span data-role="label">Helpful</span>
+                      <span class="badge rounded-pill bg-light text-dark ms-1" data-role="count">
+                        {{ r.helpful_count|default:0 }}
+                      </span>
+                    </button>
+                  </form>
+
+                  <!-- Report -->
+                  <form method="post"
+                        action="{% url 'review_report' r.id %}"
+                        class="d-inline js-review-action"
+                        data-kind="report"
+                        data-review-id="{{ r.id }}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="btn btn-sm {% if r.i_reported %}btn-danger{% else %}btn-outline-danger{% endif %}"
+                            aria-pressed="{{ r.i_reported|yesno:'true,false' }}"
+                            data-role="btn">
+                      <i class="bi {% if r.i_reported %}bi-flag-fill{% else %}bi-flag{% endif %}" data-role="icon"></i>
+                      <span data-role="label">Report</span>
+                      <span class="badge rounded-pill bg-light text-dark ms-1" data-role="count">
+                        {{ r.report_count|default:0 }}
+                      </span>
+                    </button>
+                  </form>
+                {% else %}
+                  <span class="text-muted small">Log in to vote</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-muted small">No reviews yet.</div>
+      {% endif %}
+    </div>
+
+    <!-- Review form (left untouched) -->
+    <div class="p-3 border rounded mt-4 bg-light">
+      <form action="{% url 'submit_review' car.id %}" method="POST" class="mb-4" autocomplete="off">
+        {% csrf_token %}
+        <h5>Write Your Review</h5>
+        <label>How do you rate this product?</label>
+        <br>
+        <div class="rate">
+          <input type="radio" name="rating" id="rating10" value="5" required><label for="rating10" title="5 stars"></label>
+          <input type="radio" name="rating" id="rating9" value="4.5"><label for="rating9" class="half" title="4.5 stars"></label>
+          <input type="radio" name="rating" id="rating8" value="4"><label for="rating8" title="4 stars"></label>
+          <input type="radio" name="rating" id="rating7" value="3.5"><label for="rating7" class="half" title="3.5 stars"></label>
+          <input type="radio" name="rating" id="rating6" value="3"><label for="rating6" title="3 stars"></label>
+          <input type="radio" name="rating" id="rating5" value="2.5"><label for="rating5" class="half" title="2.5 stars"></label>
+          <input type="radio" name="rating" id="rating4" value="2"><label for="rating4" title="2 stars"></label>
+          <input type="radio" name="rating" id="rating3" value="1.5"><label for="rating3" class="half" title="1.5 stars"></label>
+          <input type="radio" name="rating" id="rating2" value="1"><label for="rating2" title="1 star"></label>
+          <input type="radio" name="rating" id="rating1" value="0.5"><label for="rating1" class="half" title="0.5 stars"></label>
+        </div>
+
+        <div class="mb-2">
+            <label>Review Title</label>
+            <input type="text" name="subject" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Review</label>
+            <textarea name="review" rows="4" class="form-control" required></textarea>
+        </div>
+
+        {% if user.is_authenticated %}
+            <input type="submit" value="Submit Review" class="btn btn-primary">
+        {% else %}
+            <p>You must be logged in to post a review. <a href="{% url 'login' %}">Login now</a></p>
+        {% endif %}
+      </form>
+    </div>
+  </details>
+
+</div>
+
+
+
+
+
+
+
+{% endblock %}

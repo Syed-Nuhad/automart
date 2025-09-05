@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Delete: {{ listing.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="alert alert-danger">
+    <h4 class="alert-heading">Delete listing?</h4>
+    <p class="mb-0">This action cannot be undone. Listing: <strong>{{ listing.title }}</strong></p>
+  </div>
+
+  <form method="post" class="d-flex gap-2">
+    {% csrf_token %}
+    <button class="btn btn-danger" type="submit"><i class="bi bi-trash"></i> Yes, delete</button>
+    <a class="btn btn-outline-secondary" href="{% url 'marketplace:listing_detail' listing.slug %}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

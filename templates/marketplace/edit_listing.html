@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit: {{ listing.title }}{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h3 m-0">Edit listing</h1>
+    <div class="d-flex gap-2">
+      <a href="{% url 'marketplace:listing_detail' listing.slug %}" class="btn btn-outline-secondary">Back</a>
+      <a href="{% url 'marketplace:delete_listing' listing.slug %}" class="btn btn-outline-danger">Delete…</a>
+    </div>
+  </div>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="alert {% if m.tags %}alert-{{ m.tags }}{% else %}alert-info{% endif %} mb-3">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+    {% csrf_token %}
+
+    <div class="row g-3">
+      {% for field in form.visible_fields %}
+        <div class="col-md-6">
+          <label class="form-label">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+          {{ field }}
+          {% for e in field.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <hr class="my-4">
+
+    <h5 class="mb-2">Photos</h5>
+    {{ formset.management_form }}
+    <div class="row g-3">
+      {% for f in formset.forms %}
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100">
+            <div class="card-body">
+              {% for field in f.visible_fields %}
+                <div class="mb-2">
+                  {% if field.name != "is_cover" %}
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                  {% else %}
+                    <div class="form-check">
+                      {{ field }} <label class="form-check-label">Make cover</label>
+                    </div>
+                  {% endif %}
+                  {% for e in field.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+                </div>
+              {% endfor %}
+              {% if f.instance.pk and f.instance.image %}
+                <img src="{{ f.instance.image.url }}" class="img-fluid rounded mt-2" alt="">
+              {% endif %}
+              {% if f.can_delete %}
+                <div class="form-check mt-2">
+                  {{ f.DELETE }} <label class="form-check-label">Remove</label>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+      <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Save changes</button>
+      <a class="btn btn-outline-secondary" href="{% url 'marketplace:listing_detail' listing.slug %}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

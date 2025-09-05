@@ -1,0 +1,1044 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+{% load static %}
+{% load seller_badge %}
+{% block title %}Home – AutoMart{% endblock %}
+
+{% block content %}
+
+
+<!-- ============================== HERO / PRIMARY SEARCH (Admin-driven Carousel) ============================== -->
+<section class="hero-section position-relative overflow-hidden">
+  <!-- Background Carousel (images managed in Django admin via HeroSlide) -->
+  <div id="heroCarousel"
+       class="carousel slide carousel-fade position-absolute top-0 start-0 w-100 h-100 z-n1"
+       data-bs-ride="carousel"
+       data-bs-interval="4000"
+       data-bs-wrap="true"
+       aria-label="Hero background carousel">
+    <div class="carousel-inner h-100">
+      {% for slide in hero_slides %}
+        <div class="carousel-item h-100 {% if forloop.first %}active{% endif %}">
+          <img src="{{ slide.image.url }}" class="d-block w-100 h-100 object-fit-cover" alt="Hero slide {{ forloop.counter }}">
+        </div>
+      {% empty %}
+        <!-- Fallback image if no slides exist -->
+        <div class="carousel-item active h-100">
+          <img src="{% static 'img/pexels-photo-358070.jpeg' %}" class="d-block w-100 h-100 object-fit-cover" alt="Default hero">
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if hero_slides|length > 1 %}
+      <!-- Indicators -->
+      <div class="carousel-indicators mb-4">
+        {% for slide in hero_slides %}
+          <button type="button"
+                  data-bs-target="#heroCarousel"
+                  data-bs-slide-to="{{ forloop.counter0 }}"
+                  class="{% if forloop.first %}active{% endif %}"
+                  aria-label="Slide {{ forloop.counter }}"
+                  {% if forloop.first %}aria-current="true"{% endif %}></button>
+        {% endfor %}
+      </div>
+
+      <!-- Controls -->
+      <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev" aria-label="Previous slide">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next" aria-label="Next slide">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      </button>
+    {% endif %}
+  </div>
+
+  <!-- Dark overlay for readability -->
+  <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0,0,0,0.55); z-index:0;"></div>
+
+  <!-- Foreground content -->
+  <div class="container position-relative py-5" style="z-index:1;">
+    <div class="row align-items-center g-4">
+      <!-- Left: Heading + chips + actions -->
+      <div class="col-lg-6 text-white">
+        <h1 class="display-5 fw-bold mb-3">Find your next car with confidence.</h1>
+        <p class="lead text-white">Search thousands of verified listings, compare specs, and get financing—all in one place.</p>
+
+        <!-- ============================== QUICK CHIPS ============================== -->
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          {% if quick_chips %}
+            {% for chip in quick_chips %}
+              <span class="badge rounded-pill wf-pill text-white">
+                {{ chip.title }}
+              </span>
+            {% endfor %}
+          {% else %}
+            <span class="badge rounded-pill wf-pill text-white">New arrivals</span>
+            <span class="badge rounded-pill wf-pill text-white">Certified</span>
+            <span class="badge rounded-pill wf-pill text-white">Under $20k</span>
+            <span class="badge rounded-pill wf-pill text-white">SUV</span>
+            <span class="badge rounded-pill wf-pill text-white">Electric</span>
+          {% endif %}
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+          <a class="btn btn-primary" href="{% url 'home' %}#results">
+            <i class="bi bi-lightning-charge me-1"></i> Browse Deals
+          </a>
+          <button class="btn btn-outline-light" data-bs-toggle="offcanvas" data-bs-target="#filtersOffcanvas">
+            <i class="bi bi-sliders me-1"></i> Filters
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Primary search form -->
+      <div class="col-lg-6">
+        <div class="p-3 p-md-4 wf-card wf-shadow rounded-3" style="background-color: rgba(0,0,0,.35);">
+          <form id="primarySearchForm" method="get" action="{% url 'home' %}#results">
+            <div class="row g-2 g-md-3">
+              <!-- Make -->
+              <div class="col-md-6">
+                <label class="form-label text-white">Make</label>
+                <select class="form-select bg-dark text-white border-light" name="make">
+                  <option value="">Any</option>
+                  {% for make in makes %}
+                    <option value="{{ make.slug }}" {% if q.make == make.slug %}selected{% endif %}>{{ make.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <!-- Model -->
+              <div class="col-md-6">
+                <label class="form-label text-white">Model</label>
+                <input class="form-control bg-dark text-white border-light" name="model" value="{{ q.model }}" placeholder="e.g., Corolla">
+              </div>
+              <!-- Location -->
+              <div class="col-md-6">
+                <label class="form-label text-white">Location</label>
+                <input class="form-control bg-dark text-white border-light" name="location" value="{{ q.location }}" placeholder="City or ZIP">
+              </div>
+              <!-- Max price -->
+              <div class="col-md-6">
+                <label class="form-label text-white">Max price</label>
+                <select class="form-select bg-dark text-white border-light" name="max_price">
+                  <option value="">No limit</option>
+                  <option value="10000" {% if q.max_price == "10000" %}selected{% endif %}>$10,000</option>
+                  <option value="20000" {% if q.max_price == "20000" %}selected{% endif %}>$20,000</option>
+                  <option value="30000" {% if q.max_price == "30000" %}selected{% endif %}>$30,000</option>
+                  <option value="50000" {% if q.max_price == "50000" %}selected{% endif %}>$50,000</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mt-3">
+              <button class="btn btn-primary flex-grow-1" type="submit">
+                <i class="bi bi-search me-1"></i> Search
+              </button>
+              <button class="btn btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#financeCalcModal" aria-label="Quick Finance">
+                <i class="bi bi-calculator"></i>
+              </button>
+              <button class="btn btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#sellModal" aria-label="Sell Your Car">
+                <i class="bi bi-cash-coin"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ============================== FEATURED ============================== -->
+<section class="py-5">
+  <div class="container">
+
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h2 class="h4 mb-0">Featured Deals</h2>
+      <a href="{% url 'home' %}" class="btn btn-sm btn-soft btn-pill btn-soft-primary">
+        <i class="bi bi-lightning-charge me-1"></i> View all
+      </a>
+    </div>
+
+    <div class="row g-3 g-md-4">
+      {% for car in featured_cars %}
+      <div class="col-sm-6 col-lg-3">
+        <div class="card h-100 card-neo position-relative overflow-hidden">
+
+          <!-- Hover quick actions -->
+          <div class="position-absolute top-0 end-0 m-2 d-flex gap-1 z-3">
+            <button class="btn btn-sm btn-glass icon-chip share-card"
+                    aria-label="Share"
+                    data-id="{{ car.id }}"
+                    data-url="{% url 'car_detail' car.id %}"
+                    data-bs-toggle="tooltip" title="Share">
+              <i class="bi bi-share"></i>
+            </button>
+          </div>
+
+          <!-- Badges -->
+          <div class="position-absolute start-0 top-0 m-2 d-flex flex-wrap gap-1 z-3">
+            {% if car.is_new %}<span class="badge bg-primary text-white badge-modern new">New</span>{% endif %}
+            {% if car.is_certified %}<span class="badge bg-success badge-modern certified">Certified</span>{% endif %}
+            {% if car.is_hot %}<span class="badge bg-danger badge-modern hot">Hot</span>{% endif %}
+          </div>
+
+          <!-- Cover image -->
+          <img
+            class="card-img-top car-img wf-skel"
+            src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
+            alt="{{ car.title }}"
+            style="aspect-ratio:16/10;object-fit:cover;"
+          >
+
+          <div class="card-body">
+            <h5 class="card-title mb-1">{{ car.title }}</h5>
+
+            <!-- Tiny meta -->
+            <div class="small text-secondary mb-2 d-flex flex-wrap gap-2">
+              {% if car.make %}<span class="icon-chip"><i class="bi bi-buildings"></i>{{ car.make.name }}</span>{% endif %}
+              {% if car.body_type %}<span class="icon-chip"><i class="bi bi-truck"></i>{{ car.body_type.name }}</span>{% endif %}
+            </div>
+
+            <!-- Spec line -->
+            <p class="card-text small text-secondary mb-2">
+              {% if car.mileage %}{{ car.mileage|floatformat:0 }} mi{% else %}—{% endif %}
+              • {{ car.transmission|default:"—" }}
+              • {{ car.fuel|default:"—" }}
+            </p>
+
+            <!-- Dealer (optional) -->
+            {% if car.seller_name or car.seller_meta %}
+              <div class="d-flex align-items-center gap-2 small text-secondary mb-2">
+                <i class="bi bi-shop"></i>
+                <span class="text-truncate" title="{{ car.seller_name }} {{ car.seller_meta }}">
+                  {{ car.seller_name|default:"Dealer" }}{% if car.seller_meta %} • {{ car.seller_meta }}{% endif %}
+                </span>
+              </div>
+            {% endif %}
+
+            <!-- Price -->
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="price h5 mb-0">
+                {% if car.price %}${{ car.price|floatformat:0 }}{% else %}—{% endif %}
+              </div>
+              {% if car.price %}
+                <span class="badge text-bg-light border">Est. payment</span>
+              {% endif %}
+            </div>
+          </div>
+
+       <div class="card-footer bg-white border-0">
+          <!-- View details (opens modal) -->
+          <button
+            class="btn btn-sm btn-outline-primary w-100 view-details"
+            data-bs-toggle="modal"
+            data-bs-target="#carDetailModal"
+            data-id="{{ car.id }}"
+            data-title="{{ car.title }}"
+            data-price="{{ car.price }}"
+            data-mileage="{{ car.mileage }}"
+            data-transmission="{{ car.transmission }}"
+            data-fuel="{{ car.fuel }}"
+            {% if car.make %}data-make="{{ car.make.name }}"{% endif %}
+            {% if car.model_name %}data-model="{{ car.model_name }}"{% endif %}
+            {% if car.body_type %}data-body="{{ car.body_type.name }}"{% endif %}
+            {% if car.overview %}data-overview="{{ car.overview|escapejs }}"{% endif %}
+            {% if car.history %}data-history="{{ car.history|escapejs }}"{% endif %}
+            {% if car.seller_name %}data-seller-name="{{ car.seller_name|escapejs }}"{% endif %}
+            {% if car.seller_meta %}data-seller-meta="{{ car.seller_meta|escapejs }}"{% endif %}
+            {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}
+            data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
+          >
+            <i class="bi bi-eye me-1"></i> View Details
+          </button>
+
+          <!-- Inline actions -->
+          <div class="d-flex gap-2 mt-2">
+            <!-- Wishlist -->
+            <form method="post" action="{% url 'toggle_wishlist' car.id %}" class="flex-fill">
+              {% csrf_token %}
+              <button type="submit"
+                      class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
+                <i class="bi bi-heart"></i><span>Wishlist</span>
+              </button>
+            </form>
+
+            <!-- Compare -->
+            <form method="post"
+                  action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
+                  class="flex-fill">
+              {% csrf_token %}
+              <button type="submit"
+                      class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
+                <i class="bi bi-plus-square"></i><span>Compare</span>
+              </button>
+            </form>
+
+            <!-- Test drive -->
+            <a class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2"
+               href="{% url 'test_drive' car.id %}">
+              <i class="bi bi-steering-wheel"></i><span>Test drive</span>
+            </a>
+          </div>
+        </div>
+
+        </div>
+      </div>
+      {% empty %}
+        <div class="col-12">
+          <div class="alert alert-light border">No featured cars yet.</div>
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ============================== LISTINGS (with sidebar filters) ============================== -->
+<section class="py-5 border-top bg-white" id="results">
+  <div class="container">
+
+    <!-- Header: title + results count + controls -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+      <div class="d-flex align-items-center gap-3">
+        <h2 class="h4 mb-0">All Listings</h2>
+        {% if page_obj %}
+          <span class="badge text-bg-light border small">
+            Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ paginator.count }} cars
+          </span>
+        {% endif %}
+      </div>
+
+      <div class="d-flex gap-2 align-items-center">
+        <!-- Mobile Filters button -->
+        <button class="btn btn-outline-secondary d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#filtersOffcanvas">
+          <i class="bi bi-sliders"></i> Filters
+        </button>
+
+        <!-- Sort -->
+        <form id="sortForm" method="get" action="{% url 'home' %}#results">
+          <!-- preserve existing filters on sort -->
+          {% if q.min_price %}<input type="hidden" name="min_price" value="{{ q.min_price }}">{% endif %}
+          {% if q.max_price %}<input type="hidden" name="max_price" value="{{ q.max_price }}">{% endif %}
+          {% if q.make %}<input type="hidden" name="make" value="{{ q.make }}">{% endif %}
+          {% for b in q.body_types %}<input type="hidden" name="body_types" value="{{ b }}">{% endfor %}
+          {% if q.fuel %}<input type="hidden" name="fuel" value="{{ q.fuel }}">{% endif %}
+          {% if q.transmission %}<input type="hidden" name="transmission" value="{{ q.transmission }}">{% endif %}
+          {% if q.featured %}<input type="hidden" name="featured" value="{{ q.featured }}">{% endif %}
+
+          <select class="form-select form-select-sm" style="width:auto" name="sort" id="sortSelect" onchange="this.form.submit()">
+            <option value="-created" {% if sort == '-created' or not sort %}selected{% endif %}>Sort: Newest</option>
+            <option value="price" {% if sort == 'price' %}selected{% endif %}>Sort: Price (Low → High)</option>
+            <option value="-price" {% if sort == '-price' %}selected{% endif %}>Sort: Price (High → Low)</option>
+            <option value="mileage" {% if sort == 'mileage' %}selected{% endif %}>Sort: Mileage (Low → High)</option>
+          </select>
+        </form>
+
+        <!-- View switch -->
+        <div class="btn-group" role="group" aria-label="View switch">
+          <input type="radio" class="btn-check" name="view" id="gridView" autocomplete="off" checked>
+          <label class="btn btn-outline-secondary" for="gridView"><i class="bi bi-grid"></i></label>
+          <input type="radio" class="btn-check" name="view" id="listView" autocomplete="off">
+          <label class="btn btn-outline-secondary" for="listView"><i class="bi bi-list"></i></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick filters (extra) -->
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <a class="btn btn-sm btn-outline-dark rounded-pill"
+         href="{% url 'home' %}?featured=1#results">
+        <i class="bi bi-star-fill me-1"></i> Featured
+      </a>
+      <a class="btn btn-sm btn-outline-dark rounded-pill"
+         href="{% url 'home' %}?fuel=Electric#results">
+        <i class="bi bi-lightning-charge me-1"></i> Electric
+      </a>
+      <a class="btn btn-sm btn-outline-dark rounded-pill"
+         href="{% url 'home' %}?max_price=20000#results">
+        <i class="bi bi-cash-coin me-1"></i> Under $20k
+      </a>
+      <a class="btn btn-sm btn-outline-dark rounded-pill"
+         href="{% url 'home' %}?transmission=Manual#results">
+        <i class="bi bi-gear me-1"></i> Manual
+      </a>
+      <a class="btn btn-sm btn-outline-dark rounded-pill"
+         href="{% url 'home' %}#results">
+        Reset
+      </a>
+    </div>
+
+    <!-- Active filter chips -->
+    {% if q.min_price or q.max_price or q.make or q.body_types or q.fuel or q.transmission or q.featured %}
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      {% if q.featured == '1' %}
+        <a class="badge rounded-pill text-bg-light border text-decoration-none"
+           href="{% url 'home' %}?min_price={{ q.min_price }}&max_price={{ q.max_price }}&make={{ q.make }}{% for b in q.body_types %}&body_types={{ b }}{% endfor %}&fuel={{ q.fuel }}&transmission={{ q.transmission }}#results">
+          Featured ×
+        </a>
+      {% endif %}
+      {% if q.min_price or q.max_price %}
+        <a class="badge rounded-pill text-bg-light border text-decoration-none"
+           href="{% url 'home' %}?make={{ q.make }}{% for b in q.body_types %}&body_types={{ b }}{% endfor %}&fuel={{ q.fuel }}&transmission={{ q.transmission }}{% if q.featured %}&featured={{ q.featured }}{% endif %}#results">
+          Price: {{ q.min_price|default:"0" }}–{{ q.max_price|default:"∞" }} ×
+        </a>
+      {% endif %}
+      {% if q.make %}
+        <a class="badge rounded-pill text-bg-light border text-decoration-none"
+           href="{% url 'home' %}?min_price={{ q.min_price }}&max_price={{ q.max_price }}{% for b in q.body_types %}&body_types={{ b }}{% endfor %}&fuel={{ q.fuel }}&transmission={{ q.transmission }}{% if q.featured %}&featured={{ q.featured }}{% endif %}#results">
+          Make: {{ q.make }} ×
+        </a>
+      {% endif %}
+      {% for b in q.body_types %}
+        <a class="badge rounded-pill text-bg-light border text-decoration-none"
+           href="{% url 'home' %}?min_price={{ q.min_price }}&max_price={{ q.max_price }}&make={{ q.make }}{% for b2 in q.body_types %}{% if b2 != b %}&body_types={{ b2 }}{% endif %}{% endfor %}&fuel={{ q.fuel }}&transmission={{ q.transmission }}{% if q.featured %}&featured={{ q.featured }}{% endif %}#results">
+          Body: {{ b }} ×
+        </a>
+      {% endfor %}
+      {% if q.fuel %}
+        <a class="badge rounded-pill text-bg-light border text-decoration-none"
+           href="{% url 'home' %}?min_price={{ q.min_price }}&max_price={{ q.max_price }}&make={{ q.make }}{% for b in q.body_types %}&body_types={{ b }}{% endfor %}&transmission={{ q.transmission }}{% if q.featured %}&featured={{ q.featured }}{% endif %}#results">
+          Fuel: {{ q.fuel }} ×
+        </a>
+      {% endif %}
+      {% if q.transmission %}
+        <a class="badge rounded-pill text-bg-light border text-decoration-none"
+           href="{% url 'home' %}?min_price={{ q.min_price }}&max_price={{ q.max_price }}&make={{ q.make }}{% for b in q.body_types %}&body_types={{ b }}{% endfor %}&fuel={{ q.fuel }}{% if q.featured %}&featured={{ q.featured }}{% endif %}#results">
+          Trans: {{ q.transmission }} ×
+        </a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="row g-4" id="resultsWrap">
+      <!-- Sidebar (desktop) - unchanged + “Clear all” added -->
+      <aside class="col-lg-3 d-none d-lg-block">
+        <div class="card bg-white text-dark shadow-sm">
+          <div class="card-body text-dark">
+            <h6 class="mb-3 text-dark">Filters</h6>
+            <hr class="border-dark mb-3">
+
+            <form id="filtersForm" class="text-dark" method="get" action="{% url 'home' %}#results">
+              {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+
+              <div class="mb-3 form-check">
+                <input class="form-check-input" type="checkbox" id="featuredOnly" name="featured" value="1"
+                       {% if q.featured == '1' %}checked{% endif %}>
+                <label class="form-check-label text-dark" for="featuredOnly">Featured only</label>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label text-dark">Price range ($)</label>
+                <div class="d-flex gap-2">
+                  <input type="number" class="form-control border-secondary text-dark bg-white"
+                         name="min_price" placeholder="Min" value="{{ q.min_price }}">
+                  <input type="number" class="form-control border-secondary text-dark bg-white"
+                         name="max_price" placeholder="Max" value="{{ q.max_price }}">
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label text-dark">Make</label>
+                <select class="form-select border-secondary bg-white text-dark" name="make">
+                  <option value="">Any</option>
+                  {% for make in makes %}
+                    <option value="{{ make.slug }}" {% if q.make == make.slug %}selected{% endif %}>{{ make.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label text-dark">Body type</label>
+                <div class="d-grid gap-2">
+                  {% for body in body_types %}
+                  <div class="form-check">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           name="body_types"
+                           value="{{ body.slug }}"
+                           id="body_{{ body.slug }}"
+                           {% if body.slug in q.body_types %}checked{% endif %}>
+                    <label class="form-check-label text-dark" for="body_{{ body.slug }}">{{ body.name }}</label>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label text-dark">Fuel</label>
+                <select class="form-select border-secondary bg-white text-dark" name="fuel">
+                  <option value="">Any</option>
+                  {% for f in fuel_choices %}
+                    <option value="{{ f }}" {% if q.fuel == f %}selected{% endif %}>{{ f }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label text-dark">Transmission</label>
+                <select class="form-select border-secondary bg-white text-dark" name="transmission">
+                  <option value="">Any</option>
+                  {% for t in transmission_choices %}
+                    <option value="{{ t }}" {% if q.transmission == t %}selected{% endif %}>{{ t }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="d-grid gap-2">
+                <button class="btn btn-primary" type="submit">Apply filters</button>
+                <a class="btn btn-outline-secondary" href="{% url 'home' %}#results">Clear all</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Results -->
+      <div class="col-lg-9">
+        <div class="row g-3 g-md-4" id="cardsGrid">
+          {% for car in cars %}
+          <div class="col-md-6 col-xl-4">
+            <div class="card h-100 wf-card position-relative">
+
+              <!-- Ribbons -->
+              <div class="position-absolute start-0 top-0 m-2 d-flex flex-wrap gap-1 z-3">
+                {% if car.is_featured %}<span class="badge text-bg-warning">Featured</span>{% endif %}
+                {% if car.is_new %}<span class="badge bg-primary text-white badge-new">New</span>{% endif %}
+                {% if car.is_hot %}<span class="badge bg-danger text-white badge-hot">Hot</span>{% endif %}
+              </div>
+
+              <!-- Cover -->
+              <img
+                class="card-img-top car-img wf-skel"
+                src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
+                alt="{{ car.title }}"
+              >
+
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title mb-1">{{ car.title }}</h5>
+
+                <!-- Meta line -->
+                <div class="small text-secondary mb-2 d-flex flex-wrap gap-2">
+                  {% if car.make %}<span><i class="bi bi-buildings me-1"></i>{{ car.make.name }}</span>{% endif %}
+                  {% if car.body_type %}<span>• {{ car.body_type.name }}</span>{% endif %}
+                </div>
+
+                <!-- Specs -->
+                <p class="card-text small text-secondary mb-3">
+                  {% if car.mileage %}{{ car.mileage }} mi{% else %}—{% endif %}
+                  • {{ car.transmission|default:"—" }}
+                  • {{ car.fuel|default:"—" }}
+                </p>
+
+                <!-- Feature chips (derived) -->
+                <div class="d-flex flex-wrap gap-1 mb-3">
+                  {% if car.fuel == 'Electric' %}<span class="badge text-bg-light border"><i class="bi bi-lightning-charge me-1"></i>EV</span>{% endif %}
+                  {% if car.transmission == 'Manual' %}<span class="badge text-bg-light border"><i class="bi bi-gear me-1"></i>Manual</span>{% endif %}
+                  {% if car.is_certified %}<span class="badge text-bg-light border"><i class="bi bi-patch-check me-1"></i>Certified</span>{% endif %}
+                </div>
+
+                <!-- Price + quick actions -->
+                <div class="mt-auto">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="price h5 mb-0">
+                      {% if car.price %}${{ car.price|floatformat:0 }}{% else %}—{% endif %}
+                    </div>
+                    <div class="d-flex gap-1">
+                      <a class="btn btn-sm btn-outline-secondary add-wishlist"
+                         href="{% url 'toggle_wishlist' car.id %}"
+                         data-id="{{ car.id }}">
+                        <i class="bi bi-heart"></i> Wishlist
+                      </a>
+                      <form method="post"
+                            action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
+                            class="d-inline compare-form">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn btn-sm btn-outline-secondary add-compare"
+                                data-id="{{ car.id }}"
+                                data-href="{% url 'toggle_compare' car.id %}">
+                          <i class="bi bi-plus-square"></i>
+                        </button>
+                      </form>
+                      <button class="btn btn-sm btn-outline-secondary share-card"
+                              type="button"
+                              data-url="{% url 'car_detail' car.id %}"
+                              title="Share">
+                        <i class="bi bi-share"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="d-grid">
+
+                    <a href="{{ car.get_absolute_url|default:'#' }}" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-eye me-1"></i> View Details
+                    </a>
+
+<!--                    <button-->
+<!--                      class="btn btn-outline-primary view-details"-->
+<!--                      data-bs-toggle="modal"-->
+<!--                      data-bs-target="#carDetailModal"-->
+<!--                      data-id="{{ car.id }}"-->
+<!--                      data-title="{{ car.title }}"-->
+<!--                      data-price="{{ car.price }}"-->
+<!--                      data-mileage="{{ car.mileage }}"-->
+<!--                      data-transmission="{{ car.transmission }}"-->
+<!--                      data-fuel="{{ car.fuel }}"-->
+<!--                      {% if car.make %}data-make="{{ car.make.name }}"{% endif %}-->
+<!--                      {% if car.model_name %}data-model="{{ car.model_name }}"{% endif %}-->
+<!--                      {% if car.body_type %}data-body="{{ car.body_type.name }}"{% endif %}-->
+<!--                      {% if car.overview %}data-overview="{{ car.overview|escapejs }}"{% endif %}-->
+<!--                      {% if car.history %}data-history="{{ car.history|escapejs }}"{% endif %}-->
+<!--                      {% if car.seller_name %}data-seller-name="{{ car.seller_name|escapejs }}"{% endif %}-->
+<!--                      {% if car.seller_meta %}data-seller-meta="{{ car.seller_meta|escapejs }}"{% endif %}-->
+<!--                      {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}-->
+<!--                      data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% empty %}{% endfor %}]'-->
+<!--                    >-->
+<!--                      <i class="bi bi-eye me-1"></i> View Details-->
+<!--                    </button>-->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="col-12">
+            <div class="alert alert-light border">No cars found.</div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav class="mt-4" aria-label="Listings pagination">
+          <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}#results">&laquo; Prev</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
+            {% endif %}
+
+            {% for num in paginator.page_range %}
+              {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}&sort={{ sort }}#results">{{ num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&sort={{ sort }}#results">Next &raquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================== COMPARE DRAWER ============================== -->
+<div class="sticky-compare bg-white border-top p-2">
+  <div class="container d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2" id="compareThumbs"></div>
+    <div class="d-flex align-items-center gap-2">
+      <small class="text-secondary" id="compareHint">Select up to 4 to compare</small>
+      <button class="btn btn-outline-secondary" id="clearCompare">Clear</button>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#compareModal" id="openCompare" disabled>Compare Now</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================== OFFCANVAS FILTERS (mobile) ============================== -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="filtersOffcanvas" aria-labelledby="filtersOffcanvasLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="filtersOffcanvasLabel">Filters</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <form id="filtersFormMobile">
+      <div class="mb-3">
+        <label class="form-label">Price range ($)</label>
+        <div class="d-flex gap-2">
+          <input class="form-control" name="min_price" placeholder="Min" />
+          <input class="form-control" name="max_price" placeholder="Max" />
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Make</label>
+        <select class="form-select" name="make">
+          <option value="">Any</option>
+          {% for make in makes %}
+            <option value="{{ make.slug }}">{{ make.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Body type</label>
+        <div class="d-grid gap-2">
+          {% for body in body_types %}
+          <label class="form-check">
+            <input class="form-check-input" type="checkbox" name="body_types" value="{{ body.slug }}">
+            <span class="form-check-label">{{ body.name }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Fuel</label>
+        <select class="form-select" name="fuel">
+          <option value="">Any</option>
+          <option>Petrol</option><option>Diesel</option><option>Hybrid</option><option>Electric</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Transmission</label>
+        <select class="form-select" name="transmission">
+          <option value="">Any</option>
+          <option>Automatic</option><option>Manual</option><option>CVT</option>
+        </select>
+      </div>
+      <button class="btn btn-primary w-100" data-bs-dismiss="offcanvas" type="submit">Apply filters</button>
+    </form>
+  </div>
+</div>
+
+
+<!-- ============================== COMPARE MODAL ============================== -->
+<div class="modal fade" id="compareModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Compare Vehicles</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table align-middle" id="compareTable">
+            <thead>
+              <tr>
+                <th>Spec</th>
+                <th>Vehicle 1</th>
+                <th>Vehicle 2</th>
+                <th>Vehicle 3</th>
+                <th>Vehicle 4</th>
+              </tr>
+            </thead>
+            <tbody class="small text-secondary">
+              <tr><td>Price</td><td data-spec="price-1">—</td><td data-spec="price-2">—</td><td data-spec="price-3">—</td><td data-spec="price-4">—</td></tr>
+              <tr><td>Mileage</td><td data-spec="mileage-1">—</td><td data-spec="mileage-2">—</td><td data-spec="mileage-3">—</td><td data-spec="mileage-4">—</td></tr>
+              <tr><td>Fuel</td><td data-spec="fuel-1">—</td><td data-spec="fuel-2">—</td><td data-spec="fuel-3">—</td><td data-spec="fuel-4">—</td></tr>
+              <tr><td>Transmission</td><td data-spec="trans-1">—</td><td data-spec="trans-2">—</td><td data-spec="trans-3">—</td><td data-spec="trans-4">—</td></tr>
+              <tr><td>Body</td><td data-spec="body-1">—</td><td data-spec="body-2">—</td><td data-spec="body-3">—</td><td data-spec="body-4">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary" id="saveComparison">Save Comparison</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== SELL MODAL ============================== -->
+<div class="modal fade" id="sellModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Sell your car</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-secondary small">Create a free listing in minutes. Add photos, set a price, and reach verified buyers.</p>
+        <form class="row g-2" id="sellForm">
+          <div class="col-md-6"><input class="form-control" name="make" placeholder="Make" /></div>
+          <div class="col-md-6"><input class="form-control" name="model" placeholder="Model" /></div>
+          <div class="col-md-6"><input class="form-control" name="year" placeholder="Year" /></div>
+          <div class="col-md-6"><input class="form-control" name="mileage" placeholder="Mileage" /></div>
+          <div class="col-12"><input class="form-control" name="email" placeholder="Your email" /></div>
+          <div class="col-12"><button class="btn btn-primary w-100" type="button" id="startListingBtn">Start Listing</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== FINANCE CALCULATOR MODAL ============================== -->
+<div class="modal fade" id="financeCalcModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Quick Finance Calculator</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- IMPORTANT: method=get and action to the new route -->
+        <form id="quickCalcForm" method="get" action="{% url 'finance_offers' %}">
+          <div class="mb-2">
+            <label class="form-label">Vehicle Price ($)</label>
+            <input class="form-control" id="qPrice" name="qPrice" type="number" value="17990" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Down Payment ($)</label>
+            <input class="form-control" id="qDown" name="qDown" type="number" value="3000" min="0">
+          </div>
+          <div class="mb-2">
+            <label class="form-label">APR %</label>
+            <input class="form-control" id="qApr" name="qApr" type="number" value="6" step="0.01" min="0">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Term (months)</label>
+            <input class="form-range" id="qTerm" name="qTerm" type="range" min="12" max="84" value="60">
+            <div class="d-flex justify-content-between"><small>12</small><small>84</small></div>
+          </div>
+
+          <!-- Live preview (optional) -->
+          <div class="alert alert-light border">Monthly: <strong id="qMonthly">$0</strong></div>
+
+          <button class="btn btn-primary w-100" type="submit">See Offers</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================== CAR DETAIL MODAL (Full, corrected) ============================== -->
+<div class="modal fade" id="carDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="carModalTitle">Vehicle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-3">
+          <!-- LEFT: Images + Tabs -->
+          <div class="col-lg-7">
+            <!-- Image carousel (unique id) -->
+            <div id="cdCarousel" class="carousel slide wf-card rounded-3">
+              <div class="carousel-inner" id="carModalCarouselInner">
+                <!-- JS will replace; skeletons as fallback -->
+                <div class="carousel-item active"><div class="ratio ratio-16x9 wf-skel"></div></div>
+                <div class="carousel-item"><div class="ratio ratio-16x9 wf-skel"></div></div>
+                <div class="carousel-item"><div class="ratio ratio-16x9 wf-skel"></div></div>
+              </div>
+              <button class="carousel-control-prev" type="button" data-bs-target="#cdCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+                <span class="visually-hidden">Prev</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#cdCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
+
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mt-3" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabOverview" type="button" role="tab">Overview</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabSpecs" type="button" role="tab">Specs</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabHistory" type="button" role="tab">History</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabSeller" type="button" role="tab">Seller</button>
+              </li>
+            </ul>
+
+            <div class="tab-content p-3 wf-card rounded-bottom-3 border-top-0">
+              <!-- Overview -->
+              <div class="tab-pane fade show active" id="tabOverview" role="tabpanel">
+                <p class="text-secondary small" id="carOverview">—</p>
+                <ul class="small text-secondary mb-0" id="carHighlights"></ul>
+              </div>
+
+              <!-- Specs -->
+              <div class="tab-pane fade" id="tabSpecs" role="tabpanel">
+                <div class="row small" id="carSpecs"></div>
+              </div>
+
+              <!-- History -->
+              <div class="tab-pane fade" id="tabHistory" role="tabpanel">
+                <p class="small text-secondary" id="carHistory">—</p>
+              </div>
+
+              <!-- Seller -->
+              {% if active_car %}
+              <div class="tab-pane fade" id="tabSeller" role="tabpanel">
+                <div class="d-flex align-items-center gap-3">
+                  <!-- Avatar -->
+                  <div class="rounded-circle overflow-hidden border" style="width:56px;height:56px;">
+                    {% if userprofile and userprofile.profile_picture %}
+                      <img src="{{ userprofile.profile_picture.url }}" alt="User Profile Picture"
+                           class="img-fluid rounded-circle" style="width:56px;height:56px;object-fit:cover;">
+                    {% else %}
+                      <img src="{% static 'profiles/default_profile.png' %}" alt="Default Profile Picture"
+                           class="img-fluid rounded-circle" style="width:56px;height:56px;object-fit:cover;">
+                    {% endif %}
+                  </div>
+
+                  <!-- Name + badge -->
+                  <div>
+                    <div class="fw-semibold d-flex align-items-center gap-2" id="sellerName">
+                      {{ car.seller_name|default:"Seller" }}
+
+                      {# Replace the custom tag with a plain conditional #}
+                      {% if seller_verified %}
+                        <span class="badge rounded-pill bg-success d-inline-flex align-items-center gap-1 px-2 py-1" title="Verified seller">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" role="img">
+                            <path fill="currentColor" d="M5.072.56a1.5 1.5 0 0 1 1.13-.515h3.596c.44 0 .862.185 1.16.51l3.12 3.44c.22.243.34.559.34.885v2.784c0 3.58-2.063 6.79-5.295 8.235l-.63.287a1.5 1.5 0 0 1-1.246 0l-.63-.287C3.645 14.46 1.582 11.25 1.582 7.662V4.88c0-.326.12-.642.34-.885L5.072.56Z"/>
+                            <path fill="#fff" d="M6.4 8.7 5.05 7.35a.75.75 0 1 0-1.06 1.06l1.88 1.88a.75.75 0 0 0 1.06 0l3.9-3.9a.75.75 0 1 0-1.06-1.06L6.4 8.7Z"/>
+                          </svg>
+                          <span class="text-white fw-semibold small">Trusted</span>
+                        </span>
+                      {% endif %}
+                    </div>
+                    <div class="small am-muted" id="sellerMeta">{{ car.seller_meta|default:"" }}</div>
+                  </div>
+                </div>
+
+
+                <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
+                  {% with raw=active_car.seller_phone|default:active_car.seller_meta|default_if_none:'' %}
+                    {% with digits=raw|cut:' '|cut:'('|cut:')'|cut:'-'|cut:'.'|cut:'+'|cut:':' %}
+                      {% if digits|length > 6 %}
+                        <a class="btn btn-primary am-btn"
+                           href="https://wa.me/{{ digits }}?text={{ 'Hi! I am interested in '|add:active_car.title|urlencode }}"
+                           target="_blank" rel="noopener">
+                          <i class="bi bi-whatsapp am-icon" aria-hidden="true"></i><span>Message</span>
+                        </a>
+
+                        <button type="button"
+                          class="btn btn-outline-primary am-btn"
+                          data-phone="+{{ active_car.seller_phone|default:active_car.seller_meta|default_if_none:''|cut:' '|cut:'('|cut:')'|cut:'-'|cut:'.'|cut:'+'|cut:':' }}"
+                          onclick="(function(b){
+                            var n=b.dataset.phone; if(!n) return;
+
+                            function toSolid(){
+                              b.classList.remove('btn-outline-primary');
+                              b.classList.add('btn-primary','text-white');
+                            }
+                            function toOutline(){
+                              b.classList.remove('btn-primary','text-white');
+                              b.classList.add('btn-outline-primary');
+                            }
+                            function done(){
+                              toSolid();
+                              b.innerHTML='<i class=&quot;bi bi-clipboard-check am-icon&quot;></i><span>Copied</span>';
+                              setTimeout(function(){
+                                toOutline();
+                                b.innerHTML='<i class=&quot;bi bi-clipboard am-icon&quot;></i><span>Copy number</span>';
+                              },1400);
+                            }
+
+                            if(navigator.clipboard && navigator.clipboard.writeText){
+                              navigator.clipboard.writeText(n).then(done,done);
+                            }else{
+                              var i=document.createElement('input'); i.value=n;
+                              document.body.appendChild(i); i.select();
+                              try{ document.execCommand('copy'); }catch(e){}
+                              document.body.removeChild(i);
+                              done();
+                            }
+                          })(this)">
+                          <i class="bi bi-clipboard am-icon" aria-hidden="true"></i><span>Copy number</span>
+                        </button>
+
+                        <span class="small am-muted ms-1">+{{ digits }}</span>
+                      {% else %}
+                        <span class="small am-muted">No phone number provided.</span>
+                      {% endif %}
+                    {% endwith %}
+                  {% endwith %}
+                </div>
+
+
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- RIGHT: Price + Finance + Actions -->
+          <div class="col-lg-5">
+            <div class="p-3 p-md-4 wf-card rounded-3">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="text-secondary small">Price</div>
+                  <div class="h3 mb-0" id="detailPrice">$0</div>
+                </div>
+                <button class="btn btn-outline-secondary" id="modalWishlistBtn" data-id="">
+                  <i class="bi bi-heart"></i>
+                </button>
+              </div>
+
+              <div class="divider my-3"></div>
+
+              <!-- Finance Calculator -->
+              <form id="calcForm" class="small">
+                <div class="row g-2">
+                  <div class="col-6">
+                    <label class="form-label">Down Payment</label>
+                    <input class="form-control" id="downPayment" type="number" placeholder="3000" value="3000" />
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label">APR %</label>
+                    <input class="form-control" id="apr" type="number" placeholder="6" value="6" />
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Term (months)</label>
+                    <input class="form-range" id="term" type="range" min="12" max="84" value="60" />
+                    <div class="d-flex justify-content-between"><small>12</small><small>84</small></div>
+                  </div>
+                  <div class="col-12">
+                    <div class="alert alert-light border small mb-2">
+                      Estimated monthly: <span class="fw-bold" id="monthly">$0</span>
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit">Get Finance Offer</button>
+                  </div>
+                </div>
+              </form>
+
+              <div class="divider my-3"></div>
+
+              <div class="d-grid gap-2">
+                <button class="btn btn-outline-secondary" id="start360Btn">
+                  <i class="bi bi-arrows-angle-expand"></i> Start 360° View
+                </button>
+                <button class="btn btn-outline-secondary" id="shareBtn">
+                  <i class="bi bi-share"></i> Share
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- /RIGHT -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <a class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</a>
+        <a class="btn btn-primary" id="contactSellerBtn" href="#">Contact Seller</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

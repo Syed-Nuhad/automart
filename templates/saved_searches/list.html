@@ -1,0 +1,35 @@
+{# templates/marketplace/saved_search_list.html #}
+{% extends "base.html" %}
+{% block title %}Saved searches{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="h4 mb-3">Saved searches</h1>
+
+  {% if searches %}
+    <div class="list-group">
+      {% for s in searches %}
+        <div class="list-group-item d-flex justify-content-between align-items-start">
+          <div class="me-3">
+            <div class="fw-semibold">{{ s.name }}</div>
+            <div class="small text-muted mb-1">
+              {% for k, v in s.params.items %}
+                <span class="badge text-bg-light border me-1">{{ k }}: {{ v }}</span>
+              {% empty %}
+                <span class="text-muted">No filters saved.</span>
+              {% endfor %}
+            </div>
+            <div class="small text-muted">Saved {{ s.created_at|date:"M j, Y, g:i a" }}</div>
+          </div>
+          <form method="post" action="{% url 'marketplace:saved_search_delete' s.pk %}">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger">Delete</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-muted">You don’t have any saved searches yet.</div>
+  {% endif %}
+</div>
+{% endblock %}

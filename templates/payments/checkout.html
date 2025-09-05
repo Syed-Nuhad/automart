@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load money %} {# from payments/templatetags/money.py #}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Ensure CSRF cookie is set for JS fetches -->
+  <form class="d-none">{% csrf_token %}</form>
+
+  <div class="row g-4">
+    <!-- Left: Order Summary -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h4 class="mb-3">Order Summary</h4>
+
+          {% if items %}
+            <ul class="list-group mb-3">
+              {% for it in items %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="fw-semibold">{{ it.name }}</div>
+                    <small class="text-muted">Qty: {{ it.quantity }}</small>
+                  </div>
+                  <div class="text-end">{{ it.unit_amount|cents_to_money }} {{ currency }}</div>
+                </li>
+              {% endfor %}
+              <li class="list-group-item d-flex justify-content-between">
+                <span class="fw-bold">Total</span>
+                <span class="fw-bold">{{ total_cents|cents_to_money }} {{ currency }}</span>
+              </li>
+            </ul>
+            <div class="alert alert-info small">
+              Test mode: Stripe card <code>4242 4242 4242 4242</code> (any future date/CVC) and PayPal Sandbox buyer.
+            </div>
+          {% else %}
+            <div class="alert alert-warning">Your cart is empty.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Payment Buttons -->
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="mb-3">Pay with</h5>
+          <button id="stripe-btn" class="btn btn-primary w-100 mb-3">Pay with Stripe</button>
+          <div class="text-center text-muted small my-2">or</div>
+          <div id="paypal-buttons-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+<!-- Stripe (load only on this page) -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<!-- PayPal SDK (Sandbox). For live, change client-id + domain-side base URL in views.py -->
+<script src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&currency={{ currency }}"></script>
+
+
+{% block extra_scripts %}
+
+
+    // ---- CSRF helper (cookie) ----
+    function getCSRF(){
+      const m = document.cookie.match(/(?:^|;\\s*)csrftoken=([^;]+)/);
+      return m ? decodeURIComponent(m[1]) : "";
+    }
+
+    // ---- Stripe ----
+    const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
+    document.getElementById('stripe-btn')?.addEventListener('click', async () => {
+      try {
+        const res = await fetch("{% url 'api_create_stripe_session' %}", {
+          method: "POST",
+          headers: { "X-CSRFToken": getCSRF() },
+        });
+        const data = await res.json();
+        if (data.sessionId) {
+          await stripe.redirectToCheckout({ sessionId: data.sessionId });
+        } else {
+          alert(data.error || "Stripe error");
+        }
+      } catch (e) {
+        alert("Stripe request failed.");
+      }
+    });
+
+    // ---- PayPal ----
+    if (window.paypal) {
+      paypal.Buttons({
+        createOrder: async () => {
+          const res = await fetch("{% url 'api_paypal_create_order' %}", {
+            method: "POST",
+            headers: { "X-CSRFToken": getCSRF() },
+          });
+          const data = await res.json();
+          if (!data.paypalOrderId) throw new Error(data.error || "PayPal create failed");
+          window.__LOCAL_ORDER_ID__ = data.orderId;
+          return data.paypalOrderId;
+        },
+        onApprove: async (data) => {
+          const res = await fetch("{% url 'api_paypal_capture_order' %}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRF() },
+            body: JSON.stringify({ paypalOrderId: data.orderID, orderId: window.__LOCAL_ORDER_ID__ })
+          });
+          const json = await res.json();
+          if (json.status === "ok") {
+            window.location.href = "{% url 'checkout_success' %}" + "?order_id=" + window.__LOCAL_ORDER_ID__ + "&gateway=paypal";
+          } else {
+            alert("PayPal capture failed.");
+          }
+        },
+        onError: (err) => { console.error(err); alert("PayPal error."); }
+      }).render('#paypal-buttons-container');
+    }
+{% endblock %}

@@ -1,0 +1,572 @@
+/* =========================================================
+   AutoMart – FULL styles.css
+   - Transparent navbar with subtle dark overlay + blur
+   - Hero section with background image + dark overlay
+   - Hero form: transparent inputs with white text
+   - Global forms: white background, black text
+   - Sidebar/cards: readable black-on-white
+   - Bootstrap-friendly overrides only where needed
+   ========================================================= */
+
+/* ---------------- NAVBAR ---------------- */
+.navbar {
+  background-color: #ffffff !important; /* solid white */
+  border-bottom: 1px solid #dee2e6;     /* subtle gray border for separation */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* optional light shadow */
+}
+
+/* Navbar text & brand (dark for contrast on white bg) */
+.navbar .navbar-brand,
+.navbar .nav-link{
+  color: #212529 !important;
+}
+
+/* Brand icon (make dark to match text, instead of white) */
+.navbar .navbar-brand i {
+  color: #0d6efd !important; /* primary blue for logo pop */
+}
+
+/* Toggler (hamburger) */
+.navbar-toggler {
+  border-color: rgba(0, 0, 0, 0.25); /* dark border on white */
+}
+.navbar-toggler-icon {
+  filter: none; /* keep default dark */
+}
+
+/* Dropdown menu (white with dark text, consistent with navbar) */
+.dropdown-menu {
+  background-color: #ffffff !important;
+  border: 1px solid #dee2e6;
+}
+.dropdown-menu .dropdown-item {
+  color: #212529 !important;
+}
+.dropdown-menu .dropdown-item:hover {
+  background-color: #f8f9fa; /* light gray hover */
+}
+
+/* ========== HERO SECTION ONLY (drop in your style.css) ========== */
+/* Container element: <section class="py-5 border-bottom hero-section"> */
+.hero-section {
+  position: relative;
+  background-image: url('../img/pexels-photo-358070.jpeg'); /* update path if needed */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 80vh;
+  color: #fff; /* default white text in hero */
+}
+
+/* Strong dark overlay for readability */
+.hero-section::before {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure hero content sits above overlay */
+.hero-section > .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* “Glassy” search card */
+.hero-section .wf-card {
+  background-color: transparent !important;
+  box-shadow: 0 8px 24px rgba(16,24,40,.25);
+}
+
+/* Labels in white */
+.hero-section .form-label { color: #ffffff !important; }
+
+/* Inputs/selects in translucent white with white text */
+.hero-section .form-control,
+.hero-section .form-select {
+  background-color: rgba(255,255,255,0.1) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* Placeholder tint */
+.hero-section .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Dropdown options when opened */
+.hero-section .form-select option {
+  background-color: #1f1f1f !important;
+  color: #ffffff !important;
+}
+
+/* “Quick chips” styling */
+.hero-section .wf-pill {
+  color: #fff;
+  border-color: rgba(255,255,255,.6);
+  background: rgba(255,255,255,.08);
+}
+
+/* Buttons harmony */
+.hero-section .btn-outline-light:hover {
+  background-color: rgba(255,255,255,.15);
+}
+
+/* Responsive tweak */
+@media (max-width: 991.98px) {
+  .hero-section { min-height: 60vh; }
+}
+
+
+/* ---------------- GLOBAL LAYOUT & UTILITIES ---------------- */
+body { background-color: #f6f7f9; color: #212529; }
+.wf-muted { color:#6c757d; }
+
+/* Cards & wireframe helpers */
+.wf-card { border: 1px dashed #d6d9de; background: #fff; color: #1c1c1c !important; }
+.wf-skel { background: repeating-linear-gradient(45deg,#f3f4f6,#f3f4f6 8px,#eef0f4 8px,#eef0f4 16px); }
+.wf-pill { border: 1px dashed #cfd3da; }
+.wf-shadow { box-shadow: 0 8px 24px rgba(16,24,40,.08); }
+.brand { letter-spacing: .5px; font-weight: 700; }
+.car-img { aspect-ratio: 16/10; object-fit: cover; }
+.list-view .car-img { aspect-ratio: 16/9; }
+.badge-new { background:#0d6efd10; color:#0d6efd; border:1px dashed #0d6efd; }
+.badge-hot { background:#dc354510; color:#dc3545; border:1px dashed #dc3545; }
+.badge-certified { background:#19875410; color:#198754; border:1px dashed #198754; }
+.sticky-compare { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1050; display:none; }
+.price { font-weight: 700; }
+.divider { height:1px; background: #e9ecef; }
+.icon-btn { border: 1px dashed #d6d9de; }
+
+/* Ensure any explicit white cards render dark text (in case of global overrides) */
+.card.bg-white, .card.bg-white * { color: #000 !important; }
+
+/* ---------------- GLOBAL FORMS (outside hero) ---------------- */
+/* Inputs: white bg, black text */
+body .form-control {
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid #ced4da; /* Bootstrap default */
+}
+
+/* Labels: dark */
+body .form-label { color: #212529; }
+
+/* Selects: white bg, black text (global) */
+.form-select {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ced4da !important;
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+}
+.form-select option {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* ---------------- OPTIONAL: WHITE SECTION WITH BACKGROUND IMAGE (non-hero) ---------------- */
+/* If you still use: <section class="py-5 bg-white border-bottom"> as a hero-like section */
+section.py-5.bg-white.border-bottom {
+  position: relative;
+  background-image: url('./img/pexels-photo-358070.jpeg'); /* update path if used */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 80vh;
+  color: #ffffff; /* readable over bg */
+}
+section.py-5.bg-white.border-bottom::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-color: rgba(0,0,0,0.55);
+  pointer-events: none;
+  z-index: 0;
+}
+section.py-5.bg-white.border-bottom > .container { position: relative; z-index: 1; }
+
+
+
+
+/* === Modern rectangular colorful buttons === */
+.btn-modern {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  font-weight: 600;
+  border-radius: .5rem;          /* <— rectangular with slight rounding */
+  padding: .6rem 1rem;
+  border: none;
+  color: #fff !important;
+  transition: all .2s ease-in-out;
+  box-shadow: 0 4px 10px rgba(0,0,0,.15);
+}
+
+/* Variants */
+.btn-view    { background: linear-gradient(135deg, #4facfe, #0061ff); }
+.btn-wishlist{ background: linear-gradient(135deg, #ff6a88, #ff3e6c); }
+.btn-compare { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+.btn-drive   { background: linear-gradient(135deg, #f7971e, #ffd200); }
+
+/* Hover effects */
+.btn-modern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.25);
+  filter: brightness(1.05);
+}
+.btn-modern:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(0,0,0,.15);
+}
+/* keep card action buttons in one line */
+.card .btn i,
+.card .btn .bi { display:inline-block; line-height:1; }
+.card .btn { white-space:nowrap; }         /* prevent icon/text wrapping */
+
+
+.navbar {
+  background:#fff;
+  border-bottom: 1px solid color-mix(in srgb, var(--bs-primary) 12%, transparent);
+}
+
+.navbar-brand { font-weight:700; letter-spacing:.2px; color:var(--bs-primary); }
+.navbar-brand:hover { color:var(--bs-primary); }
+
+/* Links: primary on white, subtle underline on hover/active */
+.nav-link{
+  position:relative;
+  color: color-mix(in srgb, var(--bs-primary) 85%, white);
+  opacity:.95;
+  padding:.55rem .8rem;
+  transition:opacity .15s ease;
+}
+.nav-link:hover,
+.nav-link.active{ color:var(--bs-primary); opacity:1; }
+
+/* Underline ONLY for non-dropdown nav links (leave dropdown toggle stock) */
+.navbar .nav-link:not(.dropdown-toggle):hover::after,
+.navbar .nav-link:not(.dropdown-toggle).active::after{
+  content:"";
+  position:absolute; left:.8rem; right:.8rem; bottom:.35rem;
+  height:2px; background:var(--bs-primary); border-radius:2px;
+}
+
+/* Turn any “secondary outline” buttons in the navbar into primary-outline */
+.navbar .btn-outline-secondary{
+  --bs-btn-color: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: var(--bs-primary);
+  --bs-btn-hover-border-color: var(--bs-primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--bs-primary);
+  --bs-btn-active-border-color: var(--bs-primary);
+}
+
+/* Badges in navbar: use primary only */
+.navbar .badge { background: var(--bs-primary)!important; }
+
+/* Toggler */
+.navbar-toggler{ border-color: color-mix(in srgb, var(--bs-primary) 25%, white); }
+.navbar-toggler:focus{ box-shadow:0 0 0 .2rem color-mix(in srgb, var(--bs-primary) 30%, transparent); }
+
+/* Mobile collapse keeps the same scheme */
+@media (max-width: 991.98px){
+  .navbar-collapse{
+    background:#fff;
+    border-top:1px solid color-mix(in srgb, var(--bs-primary) 12%, transparent);
+  }
+  .nav-link::after{ display:none; }
+}
+
+
+
+  /* Minimal, modern, white/primary-blue theme tweaks */
+  .cd-card { background:#fff; border:1px solid #e9ecef; border-radius:12px; }
+  .cd-shadow { box-shadow: 0 6px 20px rgba(0,0,0,.06); }
+  .cd-icon { line-height:0; }
+  .cd-muted { color: #6c757d; }
+  .object-fit-cover { object-fit: cover; }
+
+    /* Modern card + shadow system */
+  .cd-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 1rem;
+    transition: box-shadow .2s ease, transform .2s ease;
+  }
+  .cd-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  }
+  .cd-shadow {
+    box-shadow: 0 6px 20px rgba(0,0,0,.06);
+  }
+  .cd-muted { color: #6c757d; }
+  .object-fit-cover { object-fit: cover; }
+
+  /* Buttons */
+  .cd-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    border-radius: 50px;
+    font-weight: 500;
+    transition: all .2s ease;
+  }
+  .cd-btn i { font-size: 1rem; }
+  .cd-btn:hover { transform: translateY(-1px); }
+
+  /* Review stars */
+  .rb-stars {
+    position: relative;
+    font-size: 1.1rem;
+    color: #ddd;
+    display: inline-block;
+    line-height: 1;
+  }
+  .rb-stars .fill {
+    position: absolute;
+    top: 0; left: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    width: var(--w, 0%);
+    color: #f6c90e;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: #f6c90e;
+  }
+  .rb-stars .base { color: #e9ecef; }
+
+  /* Progress bars */
+  .progress {
+    height: 6px;
+    border-radius: 50px;
+    background: #f1f3f5;
+  }
+  .progress-bar {
+    background: linear-gradient(90deg, #0d6efd, #4dabf7);
+    border-radius: 50px;
+  }
+
+  /* Review items */
+  .review-item {
+    border: 1px solid #e9ecef;
+    border-radius: .75rem;
+    background: #fff;
+    transition: background .2s;
+  }
+  .review-item:hover {
+    background: #f8f9fa;
+  }
+
+  /* Carousel controls */
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    filter: invert(1) grayscale(100);
+  }
+
+  /* Finance calculator */
+  #calcForm .form-label { font-size: .85rem; font-weight: 500; color: #495057; }
+  #calcForm .alert { border-radius: .75rem; }
+
+  /* Tabs */
+  .nav-tabs .nav-link {
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    font-weight: 500;
+    color: #495057;
+  }
+  .nav-tabs .nav-link.active {
+    color: #0d6efd;
+    border-bottom-color: #0d6efd;
+  }
+/* Hide Radio button */
+.rate > input{
+  display: none;
+}
+
+.rate{
+  display: inline-block;;
+  border: 0;
+}
+
+.rate > label{
+  float: right;
+}
+
+/* Showing the stars */
+.rate > label:before{
+  display: inline-block;
+  font-size: 1.1rem;
+  font-family: FontAwesome;
+  content: "\f005";
+  margin:0;
+  padding:0.3rem .2rem;
+  cursor: pointer;
+}
+
+/* Half star */
+.rate .half:before{
+  content: "\f089";
+  position: absolute;
+  padding-right: 0;
+}
+
+/* Click and hover */
+input:checked ~ label, label:hover ~ label{
+  color: #ffb503;
+}
+
+/* hover hightlight */
+input:checked + label:hover, input:checked ~ label:hover,input:checked ~ label:hover ~ label,
+label:hover ~ input:checked ~ label{
+  color: #cc9000;
+}
+
+.rating-star i{
+  color: #ffb503 !important;
+}
+
+  .car-hero { border:1px solid #e9ecef; border-radius:14px; background:#fff; box-shadow:0 8px 24px rgba(0,0,0,.06); }
+  .car-hero .hero-cover { width:96px; height:96px; border-radius:12px; object-fit:cover; }
+  .car-hero .rating-display i { color:#ffc107; }
+  .car-hero .rating-display .fa-regular { color:#e2e6ea; }
+  .car-hero .meta { color:#6c757d; }
+  .car-hero .meta .dot::before { content:"•"; margin:0 .5rem; color:#c2c7cf; }
+  @media (max-width: 991.98px) {
+    .car-hero .hero-actions { justify-content:flex-start !important; }
+  }
+
+
+/* ===== Modern, soft UI ===================================================== */
+:root{
+  --cd-radius:16px;
+  --cd-border:#e9eef3;
+  --cd-muted:#6c7a89;
+}
+
+/* Cards / layout */
+.cd-card{background:#fff;border:1px solid var(--cd-border);border-radius:var(--cd-radius);}
+.cd-shadow{box-shadow:0 8px 24px rgba(15,23,42,.08);}
+.object-fit-cover{object-fit:cover;}
+
+/* Buttons: centered content + consistent spacing */
+.cd-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  padding:.55rem .9rem;border-radius:12px;font-weight:600;line-height:1;
+}
+.cd-btn i{line-height:0;}
+/* keep text centered even when you wrap spans with .text-center */
+.cd-btn .text-center{display:inline;}
+/* small square icon buttons (wishlist/compare) */
+.icon-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:40px;height:40px;border-radius:10px;padding:0
+}
+
+/* Carousel */
+#cdCarousel .carousel-item img{border-radius:calc(var(--cd-radius) - 2px);}
+#cdCarousel .carousel-control-prev,#cdCarousel .carousel-control-next{
+  width:44px;height:44px;top:50%;transform:translateY(-50%);
+  background:#fff;border:1px solid var(--cd-border);border-radius:50%;opacity:.95
+}
+#cdCarousel .carousel-control-prev-icon,#cdCarousel .carousel-control-next-icon{filter:invert(35%);}
+
+/* Tabs: soft pills, no hover jiggle */
+.nav-tabs{border-bottom:0;gap:.5rem}
+.nav-tabs .nav-link{
+  border:1px solid var(--cd-border);border-radius:999px;
+  padding:.45rem .9rem;color:#334155;background:#f8fafc;transition:none;
+}
+.nav-tabs .nav-link:hover{transform:none;box-shadow:none;}
+.nav-tabs .nav-link.active{
+  background:#fff;border-color:#2563eb;color:#0f172a;
+  box-shadow:0 0 0 3px rgba(37,99,235,.12) inset;
+}
+
+/* Range helper text */
+.form-range + .d-flex small{color:var(--cd-muted);}
+
+/* ===== Ratings (header summary stars) ===================================== */
+.rb-stars{position:relative;display:inline-block;line-height:1;font-size:1.125rem;}
+.rb-stars .base{color:#e2e8f0;}              /* light gray baseline stars */
+.rb-stars .fill{
+  color:#f59e0b;                              /* amber fill */
+  position:absolute;inset:0 auto auto 0;      /* top:0;left:0 */
+  width:var(--w,0%);white-space:nowrap;overflow:hidden;
+}
+
+
+/* 4) Make nav tabs themselves fully stable on hover/focus */
+.nav-tabs .nav-link,
+.nav-tabs .nav-link:hover,
+.nav-tabs .nav-link:focus{
+  color:#334155 !important;
+  background:#f8fafc !important;
+  border-color:var(--cd-border) !important;
+  box-shadow:none !important;
+  transform:none !important;
+}
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-link.active:hover,
+.nav-tabs .nav-link.active:focus{
+  color:#0f172a !important;
+  background:#fff !important;
+  border-color:#2563eb !important;
+  box-shadow:0 0 0 3px rgba(37,99,235,.12) inset !important;
+  transform:none !important;
+}
+
+/* 5) Progress bars + rating stars shouldn’t animate width on hover */
+.tab-content .tab-pane .progress-bar,
+.rb-stars .fill{
+  transition: none !important;
+}
+
+/* ===== AutoMart tab content – am- namespace (no conflicts) ===== */
+:root{
+  --am-radius:16px;
+  --am-border:#e5e7eb;
+  --am-bg:#ffffff;
+  --am-muted:#6b7280;
+  --am-shadow:0 8px 24px rgba(15,23,42,.08);
+}
+
+/* Container */
+.am-tab-content{
+  background:var(--am-bg);
+  border:1px solid var(--am-border);
+  border-radius:var(--am-radius);
+  box-shadow:var(--am-shadow);
+}
+
+/* Panes: no fade/hover/transform jitter */
+.am-pane{ padding:.25rem 0; }
+.am-pane, .am-pane *{
+  transition:none !important;
+  animation:none !important;
+  transform:none !important;
+}
+
+/* Muted text inside this block */
+.am-muted{ color:var(--am-muted); }
+.am-muted a,
+.am-muted a:hover,
+.am-muted a:focus{ color:inherit !important; text-decoration:none !important; }
+
+/* Avatar placeholder */
+.am-avatar{
+  width:56px; height:56px; border-radius:50%;
+  background:#f3f4f6; border:1px solid var(--am-border);
+}
+
+/* Buttons (center content perfectly, no movement on hover) */
+.am-btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:.5rem; padding:.55rem .9rem; border-radius:12px; font-weight:600; line-height:1;
+  text-align:center;
+}
+.am-btn .am-icon{ line-height:0; display:inline-block; }
+
+.am-avatar{ width:56px; height:56px; border-radius:50%; overflow:hidden;
+            background:#f3f4f6; border:1px solid var(--am-border); }
+.am-avatar-img{ width:100%; height:100%; object-fit:cover; display:block; }

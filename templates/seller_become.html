@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Become a Seller{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h1 class="h4 mb-3">Become a Seller</h1>
+
+          {% if messages %}
+            {% for m in messages %}
+              <div class="alert alert-{{ m.tags }}">{{ m }}</div>
+            {% endfor %}
+          {% endif %}
+
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label">Dealership / Business name *</label>
+                {{ form.dealership_name }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Public phone *</label>
+                {{ form.phone }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">WhatsApp (optional)</label>
+                {{ form.whatsapp }}
+              </div>
+
+              <div class="col-12"><hr></div>
+
+              <div class="col-12">
+                <label class="form-label">Address *</label>
+                {{ form.address_line1 }}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">City *</label>
+                {{ form.city }}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">State/Region *</label>
+                {{ form.state }}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Postal code *</label>
+                {{ form.postal_code }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Country *</label>
+                {{ form.country }}
+              </div>
+
+              <div class="col-12"><hr></div>
+
+              <div class="col-md-6">
+                <label class="form-label">ID document (image/pdf) *</label>
+                {{ form.id_document }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Dealer license (image/pdf) *</label>
+                {{ form.dealer_license }}
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Avatar / logo</label>
+                {{ form.avatar }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Tax / VAT ID (optional)</label>
+                {{ form.tax_id }}
+              </div>
+
+              <div class="col-12 mt-2">
+                <div class="form-check">
+                  {{ form.accept_terms }}
+                  <label class="form-check-label">I agree to the Seller Terms &amp; Conditions</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              <button class="btn btn-primary" type="submit">Submit for review</button>
+              <a class="btn btn-outline-secondary" href="{{ request.META.HTTP_REFERER|default:'/' }}">Cancel</a>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

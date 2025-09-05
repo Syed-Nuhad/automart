@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="en">
+{% load static %}
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}AutoMart{% endblock %}</title>
+  <meta name="csrf-token" content="{{ csrf_token }}">
+
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin>
+  <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <script src="{% static 'scripts.js' %}" defer></script>
+  <style>
+    body { background-color: #f6f7f9; }
+    .wf-muted { color:#6c757d; }
+    .wf-card { border: 1px dashed #d6d9de; background: #fff;  color: #1c1c1c !important; }
+    .wf-skel { background: repeating-linear-gradient(45deg,#f3f4f6,#f3f4f6 8px,#eef0f4 8px,#eef0f4 16px); }
+    .wf-pill { border: 1px dashed #cfd3da; }
+    .wf-shadow { box-shadow: 0 8px 24px rgba(16,24,40,.08); }
+    .brand { letter-spacing: .5px; font-weight: 700; }
+    .car-img { aspect-ratio: 16/10; object-fit: cover; }
+    .list-view .car-img { aspect-ratio: 16/9; }
+    .badge-new { background:#0d6efd10; color:#0d6efd; border:1px dashed #0d6efd; }
+    .badge-hot { background:#dc354510; color:#dc3545; border:1px dashed #dc3545; }
+    .badge-certified { background:#19875410; color:#198754; border:1px dashed #198754; }
+    .sticky-compare { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1050; display:none; }
+    .price { font-weight: 700; }
+    .divider { height:1px; background: #e9ecef; }
+    .icon-btn { border: 1px dashed #d6d9de; }
+    .card.bg-white,
+    .card.bg-white * {
+      color: #000 !important;
+    }
+    .navbar { background-color: #fff !important; }
+    /* Make dropdown match white navbar too */
+    .dropdown-menu { background-color: #fff !important; border: 1px solid #dee2e6; }
+    .dropdown-menu .dropdown-item { color: #212529 !important; }
+    .dropdown-menu .dropdown-item:hover { background-color: #f8f9fa; }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+  <!-- ============================== NAVBAR ============================== -->
+  <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+    <div class="container">
+      <!-- Brand -->
+      <a class="navbar-brand brand d-inline-flex align-items-center" href="{% url 'home' %}">
+        <i class="bi bi-speedometer2 me-2 text-primary"></i> AutoMart
+      </a>
+
+      <!-- DESKTOP SEARCH (goes to browse_listings) -->
+      <form class="d-none d-lg-flex ms-3" method="get" action="{% url 'marketplace:browse_listings' %}" role="search">
+
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+          <input name="q" class="form-control" placeholder="Search make, model, keyword…" value="{{ request.GET.q|default:'' }}">
+          <button class="btn btn-outline-secondary" type="submit">Search</button>
+
+          {# Show Save only when there are filters/keywords and user is logged in #}
+          {% if user.is_authenticated and request.GET %}
+            <button class="btn btn-outline-primary" type="submit" form="saveSearchForm">
+              <i class="bi bi-bell"></i> Save
+            </button>
+          {% endif %}
+        </div>
+      </form>
+
+      {# Hidden POST form that creates the saved search #}
+      {% if user.is_authenticated and request.GET %}
+      <form id="saveSearchForm" action="{% url 'marketplace:saved_search_create' %}" method="post" class="d-none">
+        {% csrf_token %}
+        <input type="hidden" name="name" value="{{ request.GET.q|default:'My search' }}">
+        {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+        {% if request.GET.make %}<input type="hidden" name="make" value="{{ request.GET.make }}">{% endif %}
+        {% if request.GET.model_name %}<input type="hidden" name="model_name" value="{{ request.GET.model_name }}">{% endif %}
+        {% if request.GET.body_type %}<input type="hidden" name="body_type" value="{{ request.GET.body_type }}">{% endif %}
+        {% if request.GET.transmission %}<input type="hidden" name="transmission" value="{{ request.GET.transmission }}">{% endif %}
+        {% if request.GET.fuel %}<input type="hidden" name="fuel" value="{{ request.GET.fuel }}">{% endif %}
+        {% if request.GET.price_min %}<input type="hidden" name="price_min" value="{{ request.GET.price_min }}">{% endif %}
+        {% if request.GET.price_max %}<input type="hidden" name="price_max" value="{{ request.GET.price_max }}">{% endif %}
+        {% if request.GET.mileage_max %}<input type="hidden" name="mileage_max" value="{{ request.GET.mileage_max }}">{% endif %}
+        {% if request.GET.is_featured %}<input type="hidden" name="is_featured" value="{{ request.GET.is_featured }}">{% endif %}
+        {% if request.GET.is_new %}<input type="hidden" name="is_new" value="{{ request.GET.is_new }}">{% endif %}
+        {% if request.GET.is_certified %}<input type="hidden" name="is_certified" value="{{ request.GET.is_certified }}">{% endif %}
+        {% if request.GET.is_hot %}<input type="hidden" name="is_hot" value="{{ request.GET.is_hot }}">{% endif %}
+      </form>
+      {% endif %}
+
+      <!-- Mobile toggler -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+              aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- Right side -->
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          {% with current=request.resolver_match.url_name %}
+            <li class="nav-item">
+              <a class="nav-link {% if current == 'browse_listings' %}active{% endif %}"
+                 href="{% url 'marketplace:browse_listings' %}">Browse</a>
+            </li>
+
+            {% if user.is_authenticated %}
+              <li class="nav-item">
+                <a class="nav-link {% if current == 'sell_car' %}active{% endif %}"
+                   href="{% url 'marketplace:sell_car' %}">Sell your car</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if current == 'my_listings' %}active{% endif %}"
+                   href="{% url 'marketplace:my_listings' %}">My Listings</a>
+              </li>
+            {% else %}
+              <li class="nav-item">
+                <a class="nav-link" href="/accounts/login/?next={% url 'marketplace:sell_car' %}">Sell your car</a>
+              </li>
+            {% endif %}
+
+            {% if user.is_staff %}
+              <li class="nav-item"><a class="nav-link" href="/admin/">Admin</a></li>
+            {% endif %}
+          {% endwith %}
+
+          <!-- Wishlist -->
+          <li class="nav-item me-lg-2">
+            <a class="btn btn-sm btn-outline-primary position-relative d-inline-flex align-items-center gap-1"
+               href="{% url 'wishlist_page' %}" id="wishlistBtn">
+              <i class="bi bi-heart"></i><span class="d-none d-xl-inline"> Wishlist</span>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary"
+                    id="wishlistCount">{{ wishlist_count|default:0 }}</span>
+            </a>
+          </li>
+
+          <!-- Compare -->
+          <li class="nav-item me-lg-2">
+            <a class="btn btn-sm btn-outline-primary position-relative d-inline-flex align-items-center gap-1"
+               href="{% url 'compare_page' %}" id="compareBtn">
+              <i class="bi bi-bar-chart"></i><span class="d-none d-xl-inline"> Compare</span>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary"
+                    id="compareCount">{{ compare_count|default:0 }}</span>
+            </a>
+          </li>
+
+          <!-- Account -->
+          <li class="nav-item ms-lg-2">
+            {% if user.is_authenticated %}
+              <div class="btn-group">
+                <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-person-circle me-1 text-white"></i> {{ user.username }}
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'wishlist_page' %}">
+                    <i class="bi bi-heart"></i> My wishlist</a></li>
+                  <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'compare_page' %}">
+                    <i class="bi bi-bar-chart"></i> Compare</a></li>
+                  <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'marketplace:saved_search_list' %}">
+                    <i class="bi bi-bell"></i> Saved searches
+                    {% if has_new_saved_searches %}<span class="badge bg-danger ms-2">●</span>{% endif %}
+                  </a></li>
+                  <li><hr class="dropdown-divider"></li>
+
+                  {# Seller block (single source of truth) #}
+                  {% if is_seller %}
+                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'seller_account_edit' %}">
+                      <i class="bi bi-person-gear"></i> Seller account</a></li>
+                  {% elif is_seller_pending %}
+                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'seller_account_edit' %}">
+                      <i class="bi bi-hourglass-split"></i> Seller (pending review)</a></li>
+                  {% else %}
+                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'seller_become' %}">
+                      <i class="bi bi-briefcase"></i> Become a seller</a></li>
+                  {% endif %}
+
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <form method="post" action="{% url 'logout' %}" class="m-0">
+                      {% csrf_token %}
+                      <button type="submit" class="dropdown-item d-flex align-items-center gap-2">
+                        <i class="bi bi-box-arrow-right"></i> Log out
+                      </button>
+                    </form>
+                  </li>
+                </ul>
+              </div>
+            {% else %}
+              <div class="btn-group">
+                <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-person-circle me-1"></i> Account
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item d-flex align-items-center gap-2"
+                         href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">
+                         <i class="bi bi-box-arrow-in-right"></i> Sign in</a></li>
+                  <li><a class="dropdown-item d-flex align-items-center gap-2"
+                         href="{% url 'signup' %}?next={{ request.get_full_path|urlencode }}">
+                         <i class="bi bi-person-plus"></i> Create account</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'marketplace:sell_car' %}">
+                    <i class="bi bi-speedometer2"></i> Sell your car</a></li>
+                </ul>
+              </div>
+            {% endif %}
+          </li>
+        </ul>
+
+        <!-- MOBILE SEARCH (same target as desktop) -->
+        <form class="d-lg-none mt-3" id="globalSearchFormMobile" method="get" action="{% url 'marketplace:browse_listings' %}">
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+            <input class="form-control" type="search" name="q"
+                   placeholder="Search make, model, keyword…" aria-label="Search"
+                   value="{{ request.GET.q|default:'' }}">
+            <button class="btn btn-outline-primary" type="submit">Go</button>
+            <a class="btn btn-light" href="{% url 'marketplace:saved_search_list' %}">
+              <i class="bi bi-bell"></i>
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- ============================== MAIN CONTENT ============================== -->
+  {% block content %}{% endblock %}
+
+  <!-- ============================== FOOTER ============================== -->
+  <footer class="bg-light text-dark py-5">
+    <div class="container">
+      <div class="row g-4">
+
+        <!-- Brand + About -->
+        <div class="col-md-3">
+          <h5 class="brand"><i class="bi bi-speedometer2 me-2 text-primary"></i>AutoMart</h5>
+          <p class="small text-secondary">Your trusted marketplace for new & used cars. Research, compare, finance & drive away with confidence.</p>
+          <div class="d-flex gap-2">
+            <a href="#" class="btn btn-outline-secondary btn-sm rounded-circle"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="btn btn-outline-secondary btn-sm rounded-circle"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="btn btn-outline-secondary btn-sm rounded-circle"><i class="bi bi-twitter"></i></a>
+            <a href="#" class="btn btn-outline-secondary btn-sm rounded-circle"><i class="bi bi-youtube"></i></a>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="col-6 col-md-2">
+          <h6 class="fw-bold">Shop</h6>
+          <ul class="list-unstyled small">
+            <li><a href="#" class="text-decoration-none text-secondary"><i class="bi bi-chevron-right small me-1"></i>New Cars</a></li>
+            <li><a href="#" class="text-decoration-none text-secondary"><i class="bi bi-chevron-right small me-1"></i>Used Cars</a></li>
+            <li><a href="#" class="text-decoration-none text-secondary"><i class="bi bi-chevron-right small me-1"></i>Certified</a></li>
+          </ul>
+        </div>
+
+        <!-- Services -->
+        <div class="col-6 col-md-3">
+          <h6 class="fw-bold">Services</h6>
+          <ul class="list-unstyled small">
+            <li><a href="#" class="text-decoration-none text-secondary"><i class="bi bi-cash-coin me-1"></i>Finance</a></li>
+            <li><a href="#" class="text-decoration-none text-secondary"><i class="bi bi-arrow-left-right me-1"></i>Trade-in</a></li>
+            <li><a href="#" class="text-decoration-none text-secondary"><i class="bi bi-shield-check me-1"></i>Insurance</a></li>
+          </ul>
+        </div>
+
+        <!-- Newsletter -->
+        <div class="col-md-4">
+          <h6 class="fw-bold">Stay Updated</h6>
+          <p class="small text-secondary">Subscribe to get the latest deals, tips, and auto news.</p>
+          <form class="input-group">
+            <input type="email" class="form-control" placeholder="Your email" />
+            <button class="btn btn-primary" type="submit"><i class="bi bi-send-fill"></i></button>
+          </form>
+          <small class="d-block mt-2 text-muted">We respect your privacy. Unsubscribe anytime.</small>
+        </div>
+
+      </div>
+
+      <!-- Divider -->
+      <hr class="my-4">
+
+      <!-- Bottom Bar -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center small">
+        <div class="text-secondary mb-2 mb-md-0">
+          © 2025 AutoMart. All rights reserved.
+        </div>
+        <div class="d-flex gap-3">
+          <a href="#" class="text-decoration-none text-secondary">Privacy Policy</a>
+          <a href="#" class="text-decoration-none text-secondary">Terms & Conditions</a>
+          <a href="#" class="text-decoration-none text-secondary">Support</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <div class="mt-3">
+  <div class="ratio ratio-16x9 wf-card rounded-3 overflow-hidden" id="dealerMapWrap">
+    <div id="dealerMap"
+         data-line1="{{ car.address_line1|default_if_none:'' }}"
+         data-city="{{ car.city|default_if_none:'' }}"
+         data-state="{{ car.state|default_if_none:'' }}"
+         data-postal="{{ car.postal_code|default_if_none:'' }}"
+         data-fallback="{{ car.seller_meta|default_if_none:'' }}">
+    </div>
+  </div>
+  </div>
+  <script>
+/* ------------ Helpers ------------ */
+const qs  = (sel, root = document) => root.querySelector(sel);
+const qsa = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const money = (n) => (isFinite(n) ? "$" + Number(n).toLocaleString() : "—");
+const toNum = (v, d = 0) => {
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : d;
+};
+
+/* ------------ CAR DETAIL MODAL WIRING ------------ */
+const modalEl = qs("#carDetailModal");
+let bsCarouselInstance = null;
+
+if (modalEl) {
+  modalEl.addEventListener("show.bs.modal", (e) => {
+    const btn = e.relatedTarget;
+    if (!btn) return;
+
+    // Extract all known data from the triggering button
+    const carId   = btn.dataset.id || "";
+    const title   = btn.dataset.title || "Vehicle";
+    const price   = toNum(btn.dataset.price, 0);
+    const mileage = btn.dataset.mileage || "";
+    const trans   = btn.dataset.transmission || "";
+    const fuel    = btn.dataset.fuel || "";
+    const make    = btn.dataset.make || "";
+    const model   = btn.dataset.model || "";
+    const body    = btn.dataset.body || "";
+    const overview= btn.dataset.overview || "";
+    const history = btn.dataset.history || "";
+    const sName   = btn.dataset.sellerName || "";
+    const sMeta   = btn.dataset.sellerMeta || "";
+    const href    = btn.getAttribute("href");
+    const detailUrl = href && href !== "#" ? href : (carId ? `/car/${carId}/` : "#");
+
+    // Build image list: gallery JSON -> cover -> card img -> static fallback
+    let images = [];
+    try {
+      images = JSON.parse(btn.dataset.images || "[]");
+    } catch (err) {
+      images = [];
+    }
+    if (!images || !images.length) {
+      if (btn.dataset.cover) {
+        images = [btn.dataset.cover];
+      } else {
+        const cardImg = btn.closest(".card")?.querySelector("img.card-img-top");
+        if (cardImg?.src) images = [cardImg.src];
+      }
+    }
+    if (!images || !images.length) {
+      // Static fallback
+      const staticTag = document.createElement("template");
+      staticTag.innerHTML = `{% load static %}{% static "img/sample1.jpg" %}`;
+      // The above will render to a plain URL when served through Django templates.
+      images = [staticTag.innerHTML || "/static/img/sample1.jpg"];
+    }
+
+    // ---- Fill modal header & price ----
+    qs("#carModalTitle", modalEl).textContent = title;
+    const priceEl = qs("#detailPrice", modalEl);
+    priceEl.textContent = money(price);
+    priceEl.dataset.price = String(price);
+
+    // ---- Render images into carousel ----
+    const inner = qs("#carModalCarouselInner", modalEl);
+    inner.innerHTML = images
+      .map(
+        (src, i) => `
+        <div class="carousel-item ${i === 0 ? "active" : ""}">
+          <div class="ratio ratio-16x9">
+            <img src="${src}" class="w-100 h-100 object-fit-cover" alt="image ${i + 1}">
+          </div>
+        </div>`
+      )
+      .join("");
+
+    // Setup carousel instance fresh each show
+    const carouselEl = qs("#carousel", modalEl);
+    if (carouselEl) {
+      if (bsCarouselInstance) {
+        try { bsCarouselInstance.dispose(); } catch (_) {}
+      }
+      bsCarouselInstance = new bootstrap.Carousel(carouselEl, {
+        interval: 5000,
+        ride: false,
+        pause: "hover",
+        wrap: true
+      });
+    }
+
+    // ---- Tabs content ----
+    // Overview
+    qs("#carOverview", modalEl).textContent = overview || "—";
+    qs("#carHighlights", modalEl).innerHTML = ""; // optional list if you later add highlights
+
+    // Specs (use fields we actually have)
+    const modelLine = [make, model].filter(Boolean).join(" ") || "—";
+    qs("#carSpecs", modalEl).innerHTML = `
+      <div class="col-6">Model: ${modelLine}</div>
+      <div class="col-6">Body: ${body || "—"}</div>
+      <div class="col-6">Transmission: ${trans || "—"}</div>
+      <div class="col-6">Fuel: ${fuel || "—"}</div>
+      <div class="col-6">Mileage: ${
+        mileage ? Number(mileage).toLocaleString() + " mi" : "—"
+      }</div>
+    `;
+
+    // History
+    qs("#carHistory", modalEl).textContent = history || "—";
+
+    // Seller
+    qs("#sellerName", modalEl).textContent = sName || "—";
+    qs("#sellerMeta", modalEl).textContent = sMeta || "—";
+    const telMatch = (sMeta.match(/(\+?\d[\d\s\-()]{6,})/) || [])[0] || "";
+    const callBtn  = qs("#sellerCallBtn", modalEl);
+    const msgBtn   = qs("#sellerMsgBtn", modalEl);
+    const contactBtn = qs("#contactSellerBtn", modalEl);
+
+    if (telMatch) {
+      callBtn.href = `tel:${telMatch.replace(/\s+/g, "")}`;
+      callBtn.classList.remove("disabled");
+    } else {
+      callBtn.href = "#";
+      callBtn.classList.add("disabled");
+    }
+    const contactUrl = detailUrl + (detailUrl.includes("?") ? "&" : "?") + "contact=1";
+    msgBtn.href = contactUrl;
+    contactBtn.href = contactUrl;
+
+    // Attach id for modal action buttons
+    const wishBtnModal   = qs("#modalWishlistBtn", modalEl);
+    const compareBtnModal= qs("#modalCompareBtn", modalEl);
+    const start360Btn    = qs("#start360Btn", modalEl);
+
+    wishBtnModal.dataset.id = carId || "";
+    compareBtnModal.dataset.id = carId || "";
+    start360Btn.dataset.playing = "0";
+    // reset 360 button visuals
+    start360Btn.classList.remove("btn-secondary");
+    start360Btn.innerHTML = `<i class="bi bi-arrows-angle-expand"></i> Start 360° View`;
+  });
+
+  // When fully shown, compute finance once
+  modalEl.addEventListener("shown.bs.modal", () => {
+    updateMonthlyPayment();
+  });
+
+  // Wishlist toggle (modal)
+  qs("#modalWishlistBtn", modalEl).addEventListener("click", async function () {
+    const id = this.dataset.id;
+    if (!id) return;
+    try {
+      await fetch(`/wishlist/${id}/toggle/`, { credentials: "same-origin" });
+      const badge = qs("#wishlistCount");
+      if (badge) {
+        const n = parseInt(badge.textContent || "0", 10);
+        badge.textContent = String(Math.max(0, n + 1));
+      }
+      this.classList.toggle("btn-outline-secondary");
+      this.classList.toggle("btn-secondary");
+    } catch (_) {}
+  });
+
+  // Compare toggle (modal)
+  qs("#modalCompareBtn", modalEl).addEventListener("click", async function () {
+    const id = this.dataset.id;
+    if (!id) return;
+    try {
+      await fetch(`/compare/${id}/toggle/`, { credentials: "same-origin" });
+      const badge = qs("#compareCount");
+      if (badge) {
+        const n = parseInt(badge.textContent || "0", 10);
+        badge.textContent = String(Math.max(0, n + 1));
+      }
+      this.classList.toggle("btn-outline-secondary");
+      this.classList.toggle("btn-secondary");
+    } catch (_) {}
+  });
+
+  // Share button (modal)
+  qs("#shareBtn", modalEl).addEventListener("click", async function () {
+    const id = qs("#modalWishlistBtn", modalEl).dataset.id;
+    if (!id) return;
+    const url = `${location.origin}/car/${id}/`;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: qs("#carModalTitle", modalEl).textContent || "Vehicle",
+          url
+        });
+      } else {
+        await navigator.clipboard.writeText(url);
+        this.innerHTML = `<i class="bi bi-clipboard-check"></i> Copied`;
+        setTimeout(() => {
+          this.innerHTML = `<i class="bi bi-share"></i> Share`;
+        }, 1400);
+      }
+    } catch (_) {}
+  });
+
+  // 360° start/stop (just cycles carousel fast)
+  qs("#start360Btn", modalEl).addEventListener("click", function () {
+    const isPlaying = this.dataset.playing === "1";
+    const carouselEl = qs("#carousel", modalEl);
+    if (!carouselEl) return;
+
+    if (!bsCarouselInstance) {
+      bsCarouselInstance = new bootstrap.Carousel(carouselEl, {
+        interval: 5000,
+        ride: false,
+        pause: "hover",
+        wrap: true
+      });
+    }
+
+    if (!isPlaying) {
+      carouselEl.setAttribute("data-bs-interval", "600");
+      bsCarouselInstance.cycle();
+      this.dataset.playing = "1";
+      this.classList.add("btn-secondary");
+      this.innerHTML = `<i class="bi bi-pause-circle"></i> Stop 360°`;
+    } else {
+      bsCarouselInstance.pause();
+      carouselEl.setAttribute("data-bs-interval", "5000");
+      this.dataset.playing = "0";
+      this.classList.remove("btn-secondary");
+      this.innerHTML = `<i class="bi bi-arrows-angle-expand"></i> Start 360° View`;
+    }
+  });
+
+  /* ---- Finance calculator ---- */
+  const dp  = qs("#downPayment", modalEl);
+  const apr = qs("#apr", modalEl);
+  const term= qs("#term", modalEl);
+  const form= qs("#calcForm", modalEl);
+
+  function updateMonthlyPayment() {
+    const price = toNum(qs("#detailPrice", modalEl).dataset.price, 0);
+    const down  = toNum(dp?.value, 0);
+    const rYear = toNum(apr?.value, 0);
+    const months= Math.max(1, parseInt(term?.value || "60", 10));
+
+    const principal = Math.max(0, price - down);
+    const r = rYear > 0 ? (rYear / 100) / 12 : 0;
+
+    let payment = 0;
+    if (r === 0) {
+      payment = principal / months;
+    } else {
+      payment = principal * (r / (1 - Math.pow(1 + r, -months)));
+    }
+    qs("#monthly", modalEl).textContent = money(payment.toFixed(2));
+  }
+
+  ["input", "change"].forEach((ev) => {
+    dp?.addEventListener(ev, updateMonthlyPayment);
+    apr?.addEventListener(ev, updateMonthlyPayment);
+    term?.addEventListener(ev, updateMonthlyPayment);
+  });
+
+  form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    updateMonthlyPayment();
+  });
+}
+
+/* ------------ CARD-LEVEL WISHLIST / COMPARE (optional progressive enhance) ------------ */
+document.addEventListener("click", async (e) => {
+  const wishBtn = e.target.closest(".add-wishlist");
+  if (wishBtn) {
+    e.preventDefault();
+    const id = wishBtn.dataset.id;
+    if (!id) return;
+    try {
+      await fetch(`/wishlist/${id}/toggle/`, { credentials: "same-origin" });
+      const badge = qs("#wishlistCount");
+      if (badge) {
+        const n = parseInt(badge.textContent || "0", 10);
+        badge.textContent = String(Math.max(0, n + 1));
+      }
+      wishBtn.classList.toggle("btn-outline-secondary");
+      wishBtn.classList.toggle("btn-secondary");
+    } catch (_) {}
+    return;
+  }
+
+  const compareBtn = e.target.closest(".add-compare");
+  if (compareBtn) {
+    e.preventDefault();
+    const id = compareBtn.dataset.id;
+    if (!id) return;
+    try {
+      await fetch(`/compare/${id}/toggle/`, { credentials: "same-origin" });
+      const badge = qs("#compareCount");
+      if (badge) {
+        const n = parseInt(badge.textContent || "0", 10);
+        badge.textContent = String(Math.max(0, n + 1));
+      }
+      compareBtn.classList.toggle("btn-outline-secondary");
+      compareBtn.classList.toggle("btn-secondary");
+    } catch (_) {}
+    return;
+  }
+});
+
+/* ------------ PRIMARY SEARCH FORM (optional: turn into GET to /) ------------ */
+const primarySearchForm = qs("#primarySearchForm");
+if (primarySearchForm) {
+  primarySearchForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const formData = new FormData(primarySearchForm);
+    const params = new URLSearchParams();
+
+    // Map fields to your backend query params (adjust as needed)
+    const make      = formData.get("make") || "";
+    const model     = formData.get("model") || "";
+    const location  = formData.get("location") || "";
+    const max_price = formData.get("max_price") || "";
+
+    if (make) params.set("make", make);
+    if (model) params.set("model", model);         // only if you support this on backend
+    if (location) params.set("location", location); // only if you support this on backend
+    if (max_price) params.set("max_price", max_price);
+
+    // Go to home with filters (keeps page at top intentionally)
+    const url = `${location.origin}/?${params.toString()}`;
+    window.location.assign(url);
+  });
+}
+{% block extra_scripts %}{% endblock %}
+  </script>
+
+
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin></script>
+<script async src="https://static.addtoany.com/menu/page.js"></script>
+</body>
+</html>

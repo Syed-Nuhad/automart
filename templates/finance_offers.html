@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Finance Offers · AutoMart{% endblock %}
+
+{% block content %}
+<section class="py-4">
+  <div class="container">
+    <!-- Header / criteria summary -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+      <h1 class="h4 mb-0">Finance Offers</h1>
+      <div class="d-flex flex-wrap gap-2">
+        {% if params.max_price is not None %}
+          <span class="badge text-bg-light border">Max Price: ${{ params.max_price|floatformat:0 }}</span>
+        {% endif %}
+        <span class="badge text-bg-light border">Down: ${{ params.down|default_if_none:"0"|floatformat:0 }}</span>
+        <span class="badge text-bg-light border">APR: {{ params.apr|default_if_none:"0" }}%</span>
+        <span class="badge text-bg-light border">Term: {{ params.term }} mo</span>
+      </div>
+    </div>
+
+    {% if offers %}
+      <div class="row g-3 g-md-4">
+        {% for o in offers %}
+          {% with car=o.car %}
+          <div class="col-sm-6 col-lg-4 col-xl-3">
+            <div class="card h-100 wf-card">
+              <img
+                class="card-img-top car-img wf-skel"
+                src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
+                alt="{{ car.title }}"
+              >
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h5 class="card-title mb-0">{{ car.title }}</h5>
+                  {% if o.monthly %}
+                    <span class="badge bg-primary">≈ ${{ o.monthly|floatformat:0 }}/mo</span>
+                  {% endif %}
+                </div>
+
+                <p class="card-text small text-secondary mb-2">
+                  {{ car.mileage|default:"—" }} mi • {{ car.transmission|default:"—" }} • {{ car.fuel|default:"—" }}
+                </p>
+
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="price h6 mb-0">
+                    {% if car.price %}${{ car.price|floatformat:0 }}{% else %}—{% endif %}
+                  </div>
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-sm btn-outline-secondary add-wishlist" aria-label="Save" data-id="{{ car.id }}">
+                      <i class="bi bi-heart"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary add-compare" aria-label="Compare" data-id="{{ car.id }}">
+                      <i class="bi bi-plus-square"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-footer bg-white border-0">
+                <!-- View Details triggers your existing modal with full data attributes -->
+                <button
+                  class="btn btn-sm btn-outline-primary w-100 view-details"
+                  data-bs-toggle="modal"
+                  data-bs-target="#carDetailModal"
+                  data-id="{{ car.id }}"
+                  data-title="{{ car.title }}"
+                  data-price="{{ car.price }}"
+                  data-mileage="{{ car.mileage }}"
+                  data-transmission="{{ car.transmission }}"
+                  data-fuel="{{ car.fuel }}"
+                  data-make="{{ car.make.name|default_if_none:'' }}"
+                  data-model="{{ car.model_name|default_if_none:'' }}"
+                  data-body="{{ car.body_type.name|default_if_none:'' }}"
+                  data-overview="{{ car.overview|default_if_none:''|escape }}"
+                  data-history="{{ car.history|default_if_none:''|escape }}"
+                  data-seller-name="{{ car.seller_name|default_if_none:''|escape }}"
+                  data-seller-meta="{{ car.seller_meta|default_if_none:''|escape }}"
+                  {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}
+                  data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
+                >
+                  View Details
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endwith %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="alert alert-light border">
+        No cars matched your finance criteria. <a class="alert-link" href="{% url 'home' %}">Go back</a> and adjust filters.
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

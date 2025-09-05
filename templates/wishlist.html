@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Wishlist — AutoMart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header + Clear All -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <h2 class="mb-0">My Wishlist</h2>
+    {% if cars %}
+      <form action="{% url 'clear_wishlist' %}" method="post" class="m-0">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-danger">
+          <i class="bi bi-trash me-1"></i> Clear All
+        </button>
+      </form>
+    {% endif %}
+  </div>
+
+  <div class="row g-4">
+    {% for car in cars %}
+      <div class="col-sm-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-0">
+          <!-- Car image -->
+          <div class="ratio ratio-16x9">
+            <img
+              src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
+              class="card-img-top rounded-top"
+              alt="{{ car.title }}"
+              style="object-fit: cover;"
+            >
+          </div>
+
+          <!-- Card body -->
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">{{ car.title }}</h5>
+            <p class="small text-muted mb-3">
+              {{ car.mileage|default:"—" }} mi •
+              {{ car.transmission|default:"—" }} •
+              {{ car.fuel|default:"—" }}
+            </p>
+
+            <div class="mt-auto d-grid gap-2">
+              <a href="{{ car.get_absolute_url|default:'#' }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-eye me-1"></i> View Details
+              </a>
+
+              <!-- Remove -->
+              <form action="{% url 'toggle_wishlist' car.id %}" method="post" class="m-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                  <i class="bi bi-x-circle me-1"></i> Remove
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12">
+        <div class="alert alert-light border text-center py-5">
+          <i class="bi bi-heart text-danger fs-3 d-block mb-2"></i>
+          Your wishlist is empty.<br>
+          <a href="{% url 'home' %}" class="btn btn-sm btn-primary mt-3">Browse Cars</a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

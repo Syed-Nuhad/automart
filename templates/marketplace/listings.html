@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Cars for sale{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h1 class="h4 mb-3">Cars for sale</h1>
+
+  <form class="row g-2 mb-3" method="get">
+    <div class="col-sm-6 col-md-3">
+      <input type="text" name="q" value="{{ query.q }}" class="form-control" placeholder="Search title, make, model">
+    </div>
+    <div class="col-6 col-md-2"><input class="form-control" name="make" value="{{ query.make }}" placeholder="Make"></div>
+    <div class="col-6 col-md-2"><input class="form-control" name="model" value="{{ query.model }}" placeholder="Model"></div>
+    <div class="col-6 col-md-2"><input class="form-control" name="mileage_max" value="{{ query.mileage_max }}" placeholder="Max mileage"></div>
+    <div class="col-6 col-md-1"><input class="form-control" name="price_min" value="{{ query.price_min }}" placeholder="Min"></div>
+    <div class="col-6 col-md-1"><input class="form-control" name="price_max" value="{{ query.price_max }}" placeholder="Max"></div>
+
+    <div class="col-6 col-md-2">
+      <select class="form-select" name="fuel">
+        <option value="">Fuel</option>
+        <option value="petrol"   {% if query.fuel == 'petrol' %}selected{% endif %}>Petrol</option>
+        <option value="diesel"   {% if query.fuel == 'diesel' %}selected{% endif %}>Diesel</option>
+        <option value="hybrid"   {% if query.fuel == 'hybrid' %}selected{% endif %}>Hybrid</option>
+        <option value="electric" {% if query.fuel == 'electric' %}selected{% endif %}>Electric</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <select class="form-select" name="trans">
+        <option value="">Transmission</option>
+        <option value="auto"   {% if query.trans == 'auto' %}selected{% endif %}>Automatic</option>
+        <option value="manual" {% if query.trans == 'manual' %}selected{% endif %}>Manual</option>
+        <option value="cvt"    {% if query.trans == 'cvt' %}selected{% endif %}>CVT</option>
+      </select>
+    </div>
+
+    <div class="col-12 col-md-2">
+      <button class="btn btn-primary w-100">Filter</button>
+    </div>
+  </form>
+
+  {% if page_obj.object_list %}
+    <div class="row g-3">
+      {% for x in page_obj.object_list %}
+        <div class="col-12 col-sm-6 col-lg-4">
+          <a href="{% url 'car_detail' x.id %}" class="text-decoration-none">
+            <div class="card h-100 shadow-sm">
+
+              {% with cover=x.cover imgs=x.images.all %}
+                {% if cover %}
+                  <img src="{{ cover.url }}" class="card-img-top object-fit-cover" style="height:200px" alt="{{ x.title }}">
+                {% elif imgs|length %}
+                  <img src="{{ imgs.0.image.url }}" class="card-img-top object-fit-cover" style="height:200px" alt="{{ x.title }}">
+                {% else %}
+                  <div class="bg-light d-flex align-items-center justify-content-center" style="height:200px">No photo</div>
+                {% endif %}
+              {% endwith %}
+
+              <div class="card-body">
+                <h2 class="h6 text-dark mb-1">{{ x.title }}</h2>
+                <div class="small text-muted mb-2">
+                  {{ x.make.name }} {{ x.model_name|default:"" }}
+                  {% if x.mileage %} • {{ x.mileage|floatformat:0 }} mi{% endif %}
+                  {% if x.transmission %} • {{ x.transmission }}{% endif %}
+                  {% if x.fuel %} • {{ x.fuel }}{% endif %}
+                </div>
+                <div class="fw-semibold">
+                  {% if x.price %}${{ x.price|floatformat:0 }}{% else %}—{% endif %}
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+
+    <nav class="mt-4">
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query.q }}">Previous</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query.q }}">Next</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+
+  {% else %}
+    <div class="alert alert-info">No cars found.</div>
+  {% endif %}
+</div>
+{% endblock %}

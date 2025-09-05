@@ -1,0 +1,59 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}My Listings{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h3 m-0">My Listings</h1>
+    <a href="{% url 'marketplace:sell_car' %}" class="btn btn-primary"><i class="bi bi-plus"></i> New</a>
+  </div>
+
+  {% if messages %}{% for m in messages %}
+    <div class="alert {% if m.tags %}alert-{{ m.tags }}{% else %}alert-info{% endif %} mb-3">{{ m }}</div>
+  {% endfor %}{% endif %}
+
+  {% if listings %}
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Title</th><th>Make/Model</th><th>Year</th><th>Price</th><th>Status</th><th>Created</th><th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in listings %}
+        <tr>
+          <td class="fw-medium">{{ item.title }}</td>
+          <td>{{ item.make }} {{ item.model }}</td>
+          <td>{{ item.year }}</td>
+          <td>{{ item.price }}</td>
+          <td>
+            {% if item.is_published %}
+              <span class="badge bg-success">Published</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">Pending</span>
+            {% endif %}
+          </td>
+          <td>{{ item.created_at|date:"M d, Y H:i" }}</td>
+          <td class="text-end">
+            <div class="btn-group">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'marketplace:listing_detail' item.slug %}">
+                <i class="bi bi-eye"></i> View
+              </a>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'marketplace:edit_listing' item.slug %}">
+                <i class="bi bi-pencil"></i> Edit
+              </a>
+              <a class="btn btn-sm btn-outline-danger" href="{% url 'marketplace:delete_listing' item.slug %}">
+                <i class="bi bi-trash"></i> Delete
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="alert alert-light border">No listings yet. <a href="{% url 'marketplace:sell_car' %}">Create one</a>.</div>
+  {% endif %}
+</div>
+{% endblock %}

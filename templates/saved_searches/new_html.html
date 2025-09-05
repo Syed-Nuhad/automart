@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Saved searches{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h1 class="h4 mb-3">Saved searches</h1>
+
+  {% for m in messages %}<div class="alert alert-{{ m.tags }}">{{ m }}</div>{% endfor %}
+
+  {% if items %}
+    <div class="list-group">
+      {% for it in items %}
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-semibold">{{ it.s.name|default:"Saved search" }}</div>
+            <div class="text-muted small">{{ it.s.params }}</div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            {% if it.new_count %}
+              <a class="btn btn-sm btn-primary" href="{% url 'saved_search_new' it.s.id %}">
+                View new ({{ it.new_count }})
+              </a>
+              <form method="post" action="{% url 'saved_search_mark_read' it.s.id %}" class="m-0">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-secondary" type="submit">Mark read</button>
+              </form>
+            {% else %}
+              <span class="badge text-bg-secondary">No new</span>
+            {% endif %}
+            <form method="post" action="{% url 'saved_search_delete' it.s.id %}" class="m-0" onsubmit="return confirm('Delete this saved search?')">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-muted">You don’t have any saved searches yet.</div>
+  {% endif %}
+</div>
+{% endblock %}

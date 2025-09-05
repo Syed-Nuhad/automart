@@ -1,0 +1,11 @@
+{# =================== START: Trusted badge (Bootstrap + inline SVG) =================== #}
+{% if show %}
+<span class="badge rounded-pill bg-success d-inline-flex align-items-center gap-1 {{ pad_cls }}" title="Verified seller">
+  <svg xmlns="http://www.w3.org/2000/svg" width="{{ svg_px }}" height="{{ svg_px }}" viewBox="0 0 16 16" aria-hidden="true" role="img">
+    <path fill="currentColor" d="M5.072.56a1.5 1.5 0 0 1 1.13-.515h3.596c.44 0 .862.185 1.16.51l3.12 3.44c.22.243.34.559.34.885v2.784c0 3.58-2.063 6.79-5.295 8.235l-.63.287a1.5 1.5 0 0 1-1.246 0l-.63-.287C3.645 14.46 1.582 11.25 1.582 7.662V4.88c0-.326.12-.642.34-.885L5.072.56Z"/>
+    <path fill="#fff" d="M6.4 8.7 5.05 7.35a.75.75 0 1 0-1.06 1.06l1.88 1.88a.75.75 0 0 0 1.06 0l3.9-3.9a.75.75 0 1 0-1.06-1.06L6.4 8.7Z"/>
+  </svg>
+  {% if label %}<span class="text-white fw-semibold {{ font_cls }}">{{ text }}</span>{% endif %}
+</span>
+{% endif %}
+{# =================== END: Trusted badge =================== #}
