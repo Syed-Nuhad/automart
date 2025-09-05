@@ -3,9 +3,11 @@ from django.conf import settings
 from django.contrib import admin
 from django.db import models
 from django.db.models import Count, Avg, Q
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
-from django.urls import reverse
+
+
 
 class Make(models.Model):
     name = models.CharField(max_length=100, unique=True)

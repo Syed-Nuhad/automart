@@ -1,7 +1,14 @@
-# models/admin.py
-from django.contrib import admin
 from . import models as m
-from .models import HeroSlide, CarReview
+from .models import HeroSlide
+from django.contrib import admin
+from django.apps import apps
+
+
+
+
+
+
+
 
 
 class CarImageInline(admin.TabularInline):
@@ -77,3 +84,10 @@ class ReviewFeedbackAdmin(admin.ModelAdmin):
     date_hierarchy = "created_at"
 
 
+@admin.display(description="Rating")
+def rating_summary(self):
+    CarReview = apps.get_model("reviews", "CarReview")  # <-- adjust app label if different
+    agg = CarReview.aggregate_for_car(self.id)
+    avg = agg.get("avg") or 0.0
+    cnt = agg.get("count") or 0
+    return f"{avg:.1f} ({cnt})"

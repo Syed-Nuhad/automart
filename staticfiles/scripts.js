@@ -249,26 +249,26 @@
       $('.modal-transmission', modal)?.replaceChildren(document.createTextNode(trans || '—'));
       $('.modal-fuel', modal)?.replaceChildren(document.createTextNode(fuel || '—'));
 
-      // Tabs content
-      const tabOverview = $('#tabOverview', modal);
-      if (tabOverview) tabOverview.innerHTML = `<p class="text-secondary small mb-0">${overview || '—'}</p>`;
-      const tabHistory  = $('#tabHistory', modal);
-      if (tabHistory) tabHistory.innerHTML = `<p class="text-secondary small mb-0">${history || '—'}</p>`;
-      const tabSeller   = $('#tabSeller', modal);
-      if (tabSeller) {
-        tabSeller.innerHTML = `
-          <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle wf-skel" style="width:56px;height:56px"></div>
-            <div>
-              <div class="fw-semibold" id="sellerName">${sName || 'Seller'}</div>
-              <div class="small text-secondary" id="sellerMeta">${sMeta || ''}</div>
-            </div>
-          </div>
-          <div class="mt-3 d-flex gap-2">
-            <a class="btn btn-outline-secondary" id="sellerCallBtn"><i class="bi bi-telephone"></i> Call</a>
-            <a class="btn btn-primary" id="sellerMsgBtn"><i class="bi bi-envelope"></i> Message</a>
-          </div>`;
-      }
+//      // Tabs content
+//      const tabOverview = $('#tabOverview', modal);
+//      if (tabOverview) tabOverview.innerHTML = `<p class="text-secondary small mb-0">${overview || '—'}</p>`;
+//      const tabHistory  = $('#tabHistory', modal);
+//      if (tabHistory) tabHistory.innerHTML = `<p class="text-secondary small mb-0">${history || '—'}</p>`;
+//      const tabSeller   = $('#tabSeller', modal);
+//      if (tabSeller) {
+//        tabSeller.innerHTML = `
+//          <div class="d-flex align-items-center gap-3">
+//            <div class="rounded-circle wf-skel" style="width:56px;height:56px"></div>
+//            <div>
+//              <div class="fw-semibold" id="sellerName">${sName || 'Seller'}</div>
+//              <div class="small text-secondary" id="sellerMeta">${sMeta || ''}</div>
+//            </div>
+//          </div>
+//          <div class="mt-3 d-flex gap-2">
+//            <a class="btn btn-outline-secondary" id="sellerCallBtn"><i class="bi bi-telephone"></i> Call</a>
+//            <a class="btn btn-primary" id="sellerMsgBtn"><i class="bi bi-envelope"></i> Message</a>
+//          </div>`;
+//      }
 
       // Build gallery images from data-images JSON, then fallback to cover/card image/static
       let images = [];
@@ -818,3 +818,38 @@ document.addEventListener('DOMContentLoaded', function () {
     if (timer) clearInterval(timer);
   });
 });
+
+
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => bootstrap.Tooltip.getOrCreateInstance(el));
+  });
+
+
+
+
+
+  function getCSRF(){
+    const m = document.cookie.match(/(?:^|;\\s*)csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.js-add-to-cart');
+    if (!btn) return;
+    const pid = btn.dataset.pid;
+    const qty = btn.dataset.qty || 1;
+    const res = await fetch(`/cart/add/${pid}/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCSRF(), 'X-Requested-With': 'XMLHttpRequest' },
+      body: new URLSearchParams({ qty })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      const badge = document.querySelector('#cart-count');
+      if (badge) badge.textContent = data.cart_count;
+    } else {
+      alert(data.error || 'Failed to add to cart');
+    }
+  });
+
+

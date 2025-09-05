@@ -829,6 +829,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-
+  function getCSRF(){
+    const m = document.cookie.match(/(?:^|;\\s*)csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.js-add-to-cart');
+    if (!btn) return;
+    const pid = btn.dataset.pid;
+    const qty = btn.dataset.qty || 1;
+    const res = await fetch(`/cart/add/${pid}/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCSRF(), 'X-Requested-With': 'XMLHttpRequest' },
+      body: new URLSearchParams({ qty })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      const badge = document.querySelector('#cart-count');
+      if (badge) badge.textContent = data.cart_count;
+    } else {
+      alert(data.error || 'Failed to add to cart');
+    }
+  });
 
 

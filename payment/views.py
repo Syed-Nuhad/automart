@@ -2,25 +2,125 @@
 import json
 import requests  # <-- NEW: using REST calls for PayPal
 
-from django.conf import settings
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
-from django.shortcuts import render
-from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
-
-from .models import Order, OrderItem
-from .utils import collect_checkout_items
-
 # ---------- Stripe ----------
 import stripe
+from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.http import require_POST
+from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt  # already used above
+from django.http import HttpResponseBadRequest
+from django.contrib import messages
+
+
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
+from django.conf import settings
+
+from .models import Order, OrderItem
+from .utils import collect_checkout_items, _to_cents
+from .cart import add_item as cart_add_item, remove_item as cart_remove_item, clear as cart_clear, in_cart as cart_in_cart, total_cents as cart_total_cents, count as cart_count
+
+from models.models import  Car
+
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # ---------- PayPal (SDK-free REST) ----------
 # Use Sandbox for testing; switch to "https://api-m.paypal.com" for live.
 PAYPAL_API_BASE = getattr(settings, "PAYPAL_API_BASE", "https://api-m.sandbox.paypal.com")
 
+# Import your Car (or Product) model here. Adjust app/model names to match your project.
+# Example assumes a Car model with fields: id, title (or name), price
+try:
+    from models.models import Car  # change to your real app/model
+    def _get_product(pk):
+        obj = get_object_or_404(Car, pk=pk)
+        name = getattr(obj, "title", None) or getattr(obj, "name", None) or f"Item {obj.pk}"
+        price = getattr(obj, "price", 0)
+        return obj, name, price
+except Exception:
+    # Fallback: demo-only — remove in real project
+    def _get_product(pk):
+        # If you don't have the model import yet, this will act as a dummy
+        return object(), f"Item {pk}", 19.99
 
+
+@login_required
+def cart_page(request):
+    """Render the cart page."""
+    cart = request.session.get("cart", [])
+    total_cents = sum(_to_cents(r.get("price", 0)) * int(r.get("qty", 1)) for r in cart)
+    currency = (getattr(settings, "PAYMENT_CURRENCY", "usd") or "usd").upper()
+    return render(request, "payment/cart.html", {
+        "rows": cart,
+        "total_cents": total_cents,
+        "currency": currency,
+    })
+
+
+@require_POST
+@login_required
+def cart_add(request, pid):
+    """Add a product to cart (qty from POST or default 1)."""
+    qty = int(request.POST.get("qty", 1) or 1)
+    _, name, price = _get_product(pid)
+    cart_add_item(request, pid=str(pid), name=name, price=price, qty=qty)
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        from .cart import count as cart_count_fn, total_cents as total_cents_fn
+        return JsonResponse({
+            "ok": True,
+            "cart_count": cart_count_fn(request),
+            "cart_total_cents": total_cents_fn(request),
+        })
+    messages.success(request, f"Added '{name}' to cart.")
+    return redirect(request.META.get("HTTP_REFERER") or reverse("cart_page"))
+
+
+@require_POST
+@login_required
+def cart_update(request, pid):
+    """Set quantity for a product (min 1)."""
+    try:
+        qty = int(request.POST.get("qty", 1))
+    except ValueError:
+        return HttpResponseBadRequest("Invalid qty")
+    cart_set_qty(request, pid=str(pid), qty=qty)
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        from .cart import count as cart_count_fn, total_cents as total_cents_fn
+        return JsonResponse({
+            "ok": True,
+            "cart_count": cart_count_fn(request),
+            "cart_total_cents": total_cents_fn(request),
+        })
+    return redirect("cart_page")
+
+
+@require_POST
+@login_required
+def cart_remove(request, pid):
+    cart_remove_item(request, pid=str(pid))
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        from .cart import count as cart_count_fn, total_cents as total_cents_fn
+        return JsonResponse({
+            "ok": True,
+            "cart_count": cart_count_fn(request),
+            "cart_total_cents": total_cents_fn(request),
+        })
+    return redirect("cart_page")
+
+
+@require_POST
+@login_required
+def cart_clear_all(request):
+    cart_clear(request)
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({"ok": True})
+    return redirect("cart_page")
 def _paypal_access_token() -> str:
     """
     Get an OAuth2 access token via Client Credentials.

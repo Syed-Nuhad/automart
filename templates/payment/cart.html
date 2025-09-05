@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% load money %}
+
+{% block title %}Your Cart{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- ensure CSRF cookie exists for POSTs -->
+  <form class="d-none">{% csrf_token %}</form>
+
+  <div class="row g-4">
+    <!-- Items list -->
+    <div class="col-lg-8">
+      <h3 class="mb-3">Your Cart</h3>
+
+      {% if rows %}
+        <div class="d-flex flex-column gap-3">
+
+          {% for r in rows %}
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex align-items-center gap-3 flex-wrap">
+
+                <!-- Avatar / placeholder -->
+                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                     style="width:56px;height:56px;background:#eef2f7;font-weight:700;">
+                  {{ r.name|first|upper }}
+                </div>
+
+                <!-- Name + unit price -->
+                <div class="flex-grow-1">
+                  <div class="fw-semibold">{{ r.name }}</div>
+                  <div class="text-muted small">
+                    Unit: <span class="text-body js-unit">{{ r.price|floatformat:2 }}</span> {{ currency }}
+                  </div>
+                </div>
+
+                <!-- Qty stepper -->
+                <div>
+                  <form action="{% url 'cart_update' r.id %}" method="post" class="d-flex align-items-center gap-2 cart-update-form" data-pid="{{ r.id }}">
+                    {% csrf_token %}
+                    <div class="input-group input-group-sm" style="width:140px;">
+                      <button class="btn btn-outline-secondary js-qty-minus" type="button" aria-label="decrease">−</button>
+                      <input type="number" name="qty" min="1" value="{{ r.qty }}" class="form-control text-center qty-input">
+                      <button class="btn btn-outline-secondary js-qty-plus" type="button" aria-label="increase">+</button>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary">Update</button>
+                  </form>
+                </div>
+
+                <!-- Subtotal -->
+                <div class="ms-auto text-end">
+                  <div class="small text-muted">Subtotal</div>
+                  <div class="fw-semibold">
+                    <span class="js-subtotal"></span> {{ currency }}
+                  </div>
+                </div>
+
+                <!-- Remove -->
+                <div>
+                  <form action="{% url 'cart_remove' r.id %}" method="post">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-outline-danger" title="Remove item">
+                      Remove
+                    </button>
+                  </form>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+
+        </div>
+      {% else %}
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="me-3 display-6">🛒</div>
+              <div>
+                <h5 class="mb-1">Your cart is empty</h5>
+                <div class="text-muted">Browse cars and add some to your cart.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Summary card -->
+    <div class="col-lg-4">
+      <div class="position-sticky" style="top: 88px;">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <h5 class="mb-3">Order Summary</h5>
+
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Items</span>
+              <span class="fw-semibold">{{ rows|length }}</span>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Total</span>
+              <span class="fw-semibold">{{ total_cents|cents_to_money }} {{ currency }}</span>
+            </div>
+
+            <hr class="my-3">
+
+            <div class="d-grid gap-2">
+              {% if rows %}
+                <a class="btn btn-primary" href="{% url 'checkout_page' %}">Proceed to Checkout</a>
+                <form action="{% url 'cart_clear' %}" method="post">
+                  {% csrf_token %}
+                  <button class="btn btn-outline-secondary w-100">Clear Cart</button>
+                </form>
+              {% else %}
+                <button class="btn btn-primary" disabled>Proceed to Checkout</button>
+                <button class="btn btn-outline-secondary" disabled>Clear Cart</button>
+              {% endif %}
+            </div>
+
+            <div class="small text-muted mt-3">
+              Prices shown include item totals. Taxes/fees (if any) may appear at payment.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- /row -->
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+  // Fill per-row subtotals from unit price x qty (display only).
+  function renderSubtotals(){
+    document.querySelectorAll('.cart-update-form').forEach(function(form){
+      var row = form.closest('.card');
+      var unitEl = row.querySelector('.js-unit');
+      var unit = parseFloat((unitEl && unitEl.textContent || "0").replace(/[,]/g,'')) || 0;
+      var qtyInput = form.querySelector('.qty-input');
+      var qty = parseInt(qtyInput && qtyInput.value ? qtyInput.value : '1', 10);
+      var sub = (unit * qty).toFixed(2);
+      var out = row.querySelector('.js-subtotal');
+      if (out) out.textContent = sub;
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    renderSubtotals();
+    // qty stepper submits the form (server recomputes totals)
+    document.querySelectorAll('.cart-update-form').forEach(function(form){
+      var minus = form.querySelector('.js-qty-minus');
+      var plus  = form.querySelector('.js-qty-plus');
+      var input = form.querySelector('.qty-input');
+
+      function clamp(){
+        var v = Math.max(1, parseInt(input.value || "1", 10));
+        input.value = v;
+      }
+      if (minus) minus.addEventListener('click', function(){
+        input.value = Math.max(1, (parseInt(input.value || "1", 10) - 1));
+        form.requestSubmit();
+      });
+      if (plus) plus.addEventListener('click', function(){
+        input.value = Math.max(1, (parseInt(input.value || "1", 10) + 1));
+        form.requestSubmit();
+      });
+      input.addEventListener('change', function(){
+        clamp();
+        form.requestSubmit();
+      });
+    });
+  });
+{% endblock %}

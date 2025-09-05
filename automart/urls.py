@@ -61,6 +61,12 @@ urlpatterns = [
 
     path("checkout/success/", payment_views.checkout_success, name="checkout_success"),
     path("checkout/cancel/",  payment_views.checkout_cancel,  name="checkout_cancel"),
+
+    path("cart/", payment_views.cart_page, name="cart_page"),
+    path("cart/add/<int:pid>/", payment_views.cart_add, name="cart_add"),
+    path("cart/update/<int:pid>/", payment_views.cart_update, name="cart_update"),
+    path("cart/remove/<int:pid>/", payment_views.cart_remove, name="cart_remove"),
+    path("cart/clear/", payment_views.cart_clear_all, name="cart_clear"),
 ]
 
 
