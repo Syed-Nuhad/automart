@@ -1,82 +1,47 @@
 {% extends "base.html" %}
 {% load i18n %}
-
 {% block title %}{% trans "Settings" %}{% endblock %}
-
 {% block content %}
 <div class="container py-5">
   <h3 class="mb-4">{% trans "Settings" %}</h3>
-
   <form method="post" action="{% url 'update_settings' %}">
     {% csrf_token %}
 
-    <div class="row g-4">
 
-      <!-- Theme -->
-      <div class="col-lg-6">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body">
-            <h5 class="mb-3">{% trans "Appearance" %}</h5>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="theme" id="t-auto" value="auto" {% if theme == 'auto' %}checked{% endif %}>
-              <label class="form-check-label" for="t-auto">{% trans "Auto (follow system)" %}</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="theme" id="t-light" value="light" {% if theme == 'light' %}checked{% endif %}>
-              <label class="form-check-label" for="t-light">{% trans "Light" %}</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="theme" id="t-dark" value="dark" {% if theme == 'dark' %}checked{% endif %}>
-              <label class="form-check-label" for="t-dark">{% trans "Dark" %}</label>
-            </div>
-            <div class="form-text mt-2">{% trans "Theme is saved to your browser and applies instantly." %}</div>
-          </div>
+    <!-- Language & Currency -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <h5 class="mb-3">{% trans "Locale" %}</h5>
+
+        <div class="mb-3">
+          <label class="form-label">{% trans "Language" %}</label>
+          <select name="language" class="form-select">
+            {% for code, name in LANG_CHOICES %}
+              <option value="{{ code }}" {% if code == language %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+          </select>
         </div>
-      </div>
 
-      <!-- Language & Currency -->
-      <div class="col-lg-6">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body">
-            <h5 class="mb-3">{% trans "Locale" %}</h5>
-
-            <div class="mb-3">
-              <label class="form-label">{% trans "Language" %}</label>
-              <select name="language" class="form-select">
-                {% for code, name in LANG_CHOICES %}
-                  <option value="{{ code }}" {% if code == language %}selected{% endif %}>{{ name }}</option>
-                {% endfor %}
-              </select>
-              <div class="form-text">{% trans "Affects interface text across the site." %}</div>
-            </div>
-
-            <div class="mb-2">
-              <label class="form-label">{% trans "Currency" %}</label>
-              <select name="currency" class="form-select">
-                {% for c in CURR_CHOICES %}
-                  <option value="{{ c }}" {% if c == currency %}selected{% endif %}>{{ c }}</option>
-                {% endfor %}
-              </select>
-              <div class="form-text">{% trans "Display currency for prices. Payment may still settle in your store base currency." %}</div>
-            </div>
-          </div>
+        <div>
+          <label class="form-label">{% trans "Currency" %}</label>
+          <select name="currency" class="form-select">
+            {% for c in CURR_CHOICES %}
+              <option value="{{ c }}" {% if c == currency %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
         </div>
-      </div>
-
-      <div class="col-12 d-flex gap-2">
-        <button class="btn btn-primary">{% trans "Save Settings" %}</button>
-        <a class="btn btn-outline-secondary" href="/">{% trans "Back to Home" %}</a>
       </div>
     </div>
+
+    <button class="btn btn-primary">{% trans "Save Settings" %}</button>
   </form>
 </div>
 {% endblock %}
 
-{% block extra_script %}
+{% block extra_scripts %}
 <script>
-  // Keep theme in localStorage so Bootstrap 5.3 applies before paint.
-  (function syncThemeFromServer(){
-    const selected = document.querySelector('input[name="theme"]:checked')?.value || "auto";
+  // Live preview for theme (before Save)
+  (function(){
     function apply(theme){
       if (theme === "auto") {
         localStorage.removeItem("theme");
@@ -87,12 +52,12 @@
         document.documentElement.setAttribute("data-bs-theme", theme);
       }
     }
-    // Apply immediately on page load (in case session value changed)
-    apply(selected);
-
-    // Live preview when user clicks radio (before hitting Save)
-    document.querySelectorAll('input[name="theme"]').forEach((el) => {
-      el.addEventListener("change", () => apply(el.value));
+    // apply current
+    const current = document.querySelector('input[name="theme"]:checked')?.value || "auto";
+    apply(current);
+    // listen
+    document.querySelectorAll('input[name="theme"]').forEach(r => {
+      r.addEventListener("change", () => apply(r.value));
     });
   })();
 </script>

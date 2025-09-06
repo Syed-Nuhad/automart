@@ -51,9 +51,11 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "marketplace.context_processors.seller_flags",
-                "payment.context_processors.cart_meta",
-                "payment.context_processors.cart_meta",
                 "payment.context_processors.currency_meta",
+                "django.template.context_processors.request",
+                "payment.context_processors.cart_meta",
+                # move these to preferences:
+                "preferences.context_processors.ui_currency",
             ],
         },
     },

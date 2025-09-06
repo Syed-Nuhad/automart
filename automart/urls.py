@@ -9,6 +9,8 @@ from django.contrib.auth import views as auth_views
 from django.conf.urls.i18n import set_language
 from payment import views as payment_views
 from payment.views import set_currency
+from preferences import views as pref_views
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -72,6 +74,8 @@ urlpatterns = [
     path("set-currency/", set_currency, name="set_currency"),
     path("settings/", pref_views.settings_page, name="settings_page"),
     path("settings/update/", pref_views.update_settings, name="update_settings"),
+
+
 ]
 
 

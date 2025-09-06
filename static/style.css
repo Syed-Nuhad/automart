@@ -7,7 +7,31 @@
    - Sidebar/cards: readable black-on-white
    - Bootstrap-friendly overrides only where needed
    ========================================================= */
-
+    body { background-color: #f6f7f9; }
+    .wf-muted { color:#6c757d; }
+    .wf-card { border: 1px dashed #d6d9de; background: #fff;  color: #1c1c1c !important; }
+    .wf-skel { background: repeating-linear-gradient(45deg,#f3f4f6,#f3f4f6 8px,#eef0f4 8px,#eef0f4 16px); }
+    .wf-pill { border: 1px dashed #cfd3da; }
+    .wf-shadow { box-shadow: 0 8px 24px rgba(16,24,40,.08); }
+    .brand { letter-spacing: .5px; font-weight: 700; }
+    .car-img { aspect-ratio: 16/10; object-fit: cover; }
+    .list-view .car-img { aspect-ratio: 16/9; }
+    .badge-new { background:#0d6efd10; color:#0d6efd; border:1px dashed #0d6efd; }
+    .badge-hot { background:#dc354510; color:#dc3545; border:1px dashed #dc3545; }
+    .badge-certified { background:#19875410; color:#198754; border:1px dashed #198754; }
+    .sticky-compare { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1050; display:none; }
+    .price { font-weight: 700; }
+    .divider { height:1px; background: #e9ecef; }
+    .icon-btn { border: 1px dashed #d6d9de; }
+    .card.bg-white,
+    .card.bg-white * {
+      color: #000 !important;
+    }
+    .navbar { background-color: #fff !important; }
+    /* Make dropdown match white navbar too */
+    .dropdown-menu { background-color: #fff !important; border: 1px solid #dee2e6; }
+    .dropdown-menu .dropdown-item { color: #212529 !important; }
+    .dropdown-menu .dropdown-item:hover { background-color: #f8f9fa; }
 /* ---------------- NAVBAR ---------------- */
 .navbar {
   background-color: #ffffff !important; /* solid white */
