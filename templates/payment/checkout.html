@@ -1,54 +1,65 @@
 {% extends "base.html" %}
-{% load money %} {# from payments/templatetags/money.py #}
+{% load money %}
 
 {% block title %}Checkout{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-  <!-- Ensure CSRF cookie is set for JS fetches -->
   <form class="d-none">{% csrf_token %}</form>
 
   <div class="row g-4">
-    <!-- Left: Order Summary -->
-    <div class="col-lg-7">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h4 class="mb-3">Order Summary</h4>
+    <!-- Order Summary -->
+    <div class="col-lg-8">
+      <h3 class="mb-3">Review your order</h3>
 
-          {% if items %}
-            <ul class="list-group mb-3">
-              {% for it in items %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <div>
-                    <div class="fw-semibold">{{ it.name }}</div>
-                    <small class="text-muted">Qty: {{ it.quantity }}</small>
-                  </div>
-                  <div class="text-end">{{ it.unit_amount|cents_to_money }} {{ currency }}</div>
-                </li>
-              {% endfor %}
-              <li class="list-group-item d-flex justify-content-between">
-                <span class="fw-bold">Total</span>
-                <span class="fw-bold">{{ total_cents|cents_to_money }} {{ currency }}</span>
-              </li>
-            </ul>
-            <div class="alert alert-info small">
-              Test mode: Stripe card <code>4242 4242 4242 4242</code> (any future date/CVC) and PayPal Sandbox buyer.
+      {% if items %}
+        <div class="d-flex flex-column gap-3">
+          {% for it in items %}
+          <div class="card border-0 shadow-sm">
+            <div class="card-body d-flex justify-content-between align-items-center">
+              <div>
+                <div class="fw-semibold">{{ it.name }}</div>
+                <div class="text-muted small">Qty: {{ it.quantity }}</div>
+              </div>
+              <div class="text-end">
+                <div class="small text-muted">Unit</div>
+                <div class="fw-semibold">{{ it.unit_amount|cents_to_money }} {{ currency }}</div>
+              </div>
             </div>
-          {% else %}
-            <div class="alert alert-warning">Your cart is empty.</div>
-          {% endif %}
+          </div>
+          {% endfor %}
+
+          <div class="card border-0 shadow-sm">
+            <div class="card-body d-flex justify-content-between align-items-center">
+              <span class="fw-semibold">Total</span>
+              <span class="fs-5 fw-bold">{{ total_cents|cents_to_money }} {{ currency }}</span>
+            </div>
+          </div>
         </div>
-      </div>
+      {% else %}
+        <div class="alert alert-warning">Your cart is empty.</div>
+      {% endif %}
     </div>
 
-    <!-- Right: Payment Buttons -->
-    <div class="col-lg-5">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="mb-3">Pay with</h5>
-          <button id="stripe-btn" class="btn btn-primary w-100 mb-3">Pay with Stripe</button>
-          <div class="text-center text-muted small my-2">or</div>
-          <div id="paypal-buttons-container"></div>
+    <!-- PayPal -->
+    <div class="col-lg-4">
+      <div class="position-sticky" style="top: 88px;">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <h5 class="mb-3">Pay securely with PayPal</h5>
+
+            <!-- Button mounts here -->
+            <div id="paypal-buttons"></div>
+
+            <!-- Diagnostics -->
+            <div id="paypal-diagnostic" class="small text-muted mt-2" style="display:none"></div>
+
+            <hr class="my-3">
+            <ul class="small text-muted mb-0">
+              <li>Sandbox client ID is used in test mode.</li>
+              <li>No charge is made until you approve the payment.</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -56,69 +67,103 @@
 </div>
 {% endblock %}
 
+{% block extra_script %}
+<script>
+  // expose data for the SDK loader
+  window.__PAYPAL_ENV__ = {
+    clientId: "{{ PAYPAL_CLIENT_ID|default:''|urlencode }}",
+    currency: "{{ currency|default:'USD'|upper }}"
+  };
+</script>
 
-<!-- Stripe (load only on this page) -->
-<script src="https://js.stripe.com/v3/"></script>
+<!-- Load the SDK only here -->
+<script id="paypal-sdk"></script>
 
-<!-- PayPal SDK (Sandbox). For live, change client-id + domain-side base URL in views.py -->
-<script src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&currency={{ currency }}"></script>
-
-
-{% block extra_scripts %}
-
-
-    // ---- CSRF helper (cookie) ----
-    function getCSRF(){
-      const m = document.cookie.match(/(?:^|;\\s*)csrftoken=([^;]+)/);
-      return m ? decodeURIComponent(m[1]) : "";
-    }
-
-    // ---- Stripe ----
-    const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
-    document.getElementById('stripe-btn')?.addEventListener('click', async () => {
-      try {
-        const res = await fetch("{% url 'api_create_stripe_session' %}", {
-          method: "POST",
-          headers: { "X-CSRFToken": getCSRF() },
-        });
-        const data = await res.json();
-        if (data.sessionId) {
-          await stripe.redirectToCheckout({ sessionId: data.sessionId });
-        } else {
-          alert(data.error || "Stripe error");
-        }
-      } catch (e) {
-        alert("Stripe request failed.");
+<script>
+  // Load the SDK with the dynamic client-id; then render the button.
+  (function loadPayPalSDK(){
+    var di = document.getElementById('paypal-diagnostic');
+    var c  = window.__PAYPAL_ENV__ || {};
+    if (!c.clientId) {
+      if (di) {
+        di.style.display = 'block';
+        di.textContent = "Missing PAYPAL_CLIENT_ID in template context. Check settings.py and the checkout_page view.";
       }
-    });
-
-    // ---- PayPal ----
-    if (window.paypal) {
-      paypal.Buttons({
-        createOrder: async () => {
-          const res = await fetch("{% url 'api_paypal_create_order' %}", {
-            method: "POST",
-            headers: { "X-CSRFToken": getCSRF() },
-          });
-          const data = await res.json();
-          if (!data.paypalOrderId) throw new Error(data.error || "PayPal create failed");
-          window.__LOCAL_ORDER_ID__ = data.orderId;
-          return data.paypalOrderId;
-        },
-        onApprove: async (data) => {
-          const res = await fetch("{% url 'api_paypal_capture_order' %}", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRF() },
-            body: JSON.stringify({ paypalOrderId: data.orderID, orderId: window.__LOCAL_ORDER_ID__ })
-          });
-          const json = await res.json();
-          if (json.status === "ok") {
-            window.location.href = "{% url 'checkout_success' %}" + "?order_id=" + window.__LOCAL_ORDER_ID__ + "&gateway=paypal";
-          } else {
-            alert("PayPal capture failed.");
-          }
-        },
-        onError: (err) => { console.error(err); alert("PayPal error."); }
-      }).render('#paypal-buttons-container');
+      return;
     }
+    var sdk = document.getElementById('paypal-sdk');
+    sdk.src = "https://www.paypal.com/sdk/js?client-id=" + c.clientId + "&currency=" + c.currency;
+    sdk.onload = initButtons;
+    sdk.onerror = function(){
+      if (di) {
+        di.style.display = 'block';
+        di.textContent = "Failed to load PayPal SDK (network/ad-blocker?).";
+      }
+    };
+  })();
+
+  function getCSRF(){
+    const m = document.cookie.match(/(?:^|;\\s*)csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+
+  async function createOrder(){
+    const res = await fetch("{% url 'api_paypal_create_order' %}", {
+      method: "POST",
+      headers: { "X-CSRFToken": getCSRF() },
+    });
+    const data = await res.json();
+    if (!res.ok || !data.paypalOrderId) {
+      throw new Error(data.error || "Create order failed");
+    }
+    window.__LOCAL_ORDER_ID__ = data.orderId;
+    return data.paypalOrderId;
+  }
+
+  async function onApprove(data){
+    const res = await fetch("{% url 'api_paypal_capture_order' %}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRF() },
+      body: JSON.stringify({ paypalOrderId: data.orderID, orderId: window.__LOCAL_ORDER_ID__ })
+    });
+    const json = await res.json();
+    if (json.status === "ok") {
+      window.location.href = "{% url 'checkout_success' %}" + "?order_id=" + window.__LOCAL_ORDER_ID__ + "&gateway=paypal";
+    } else {
+      alert(json.error || "PayPal capture failed.");
+    }
+  }
+
+  function initButtons(){
+    var di = document.getElementById('paypal-diagnostic');
+    if (!window.paypal || !paypal.Buttons) {
+      if (di) {
+        di.style.display = 'block';
+        di.textContent = "PayPal SDK loaded but paypal.Buttons is unavailable.";
+      }
+      return;
+    }
+    try {
+      paypal.Buttons({
+        style: { shape: 'rect', layout: 'vertical', label: 'paypal', height: 45 },
+        createOrder: createOrder,
+        onApprove: onApprove,
+        onError: function(err){
+          console.error(err);
+          if (di) {
+            di.style.display = 'block';
+            di.textContent = "PayPal error: " + (err && err.message ? err.message : "unknown");
+          }
+          alert("PayPal error. Check console for details.");
+        }
+      }).render('#paypal-buttons');
+    } catch (e) {
+      console.error(e);
+      if (di) {
+        di.style.display = 'block';
+        di.textContent = "Exception while rendering PayPal buttons.";
+      }
+    }
+  }
+</script>
 {% endblock %}

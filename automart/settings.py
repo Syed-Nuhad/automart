@@ -22,12 +22,14 @@ INSTALLED_APPS = [
     # app
     "models",
     'marketplace',
-    "payment"
+    "payment",
+    "preferences"
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",   # after sessions, before common
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -49,7 +51,9 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "marketplace.context_processors.seller_flags",
-                "payment.context_processors.cart_meta"
+                "payment.context_processors.cart_meta",
+                "payment.context_processors.cart_meta",
+                "payment.context_processors.currency_meta",
             ],
         },
     },
@@ -76,10 +80,16 @@ AUTH_PASSWORD_VALIDATORS = [
 # Fallbacks if a car has no seller_email:
 SALES_TEAM_EMAIL = "dont@example.com"
 
-
-LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
 USE_I18N = True
+LANGUAGE_CODE = "en"
+LANGUAGES = [
+    ("en", "English"),
+    ("bn", "বাংলা"),
+    ("ar", "العربية"),
+]
+LOCALE_PATHS = [ BASE_DIR / "locale" ]
+
+TIME_ZONE = "UTC"
 USE_TZ = True
 
 # Static files (CSS, JS, images)
@@ -139,3 +149,8 @@ STRIPE_PUBLIC_KEY      = os.getenv("STRIPE_PUBLIC_KEY", "pk_test_***")
 STRIPE_SECRET_KEY      = os.getenv("STRIPE_SECRET_KEY", "sk_test_***")
 STRIPE_WEBHOOK_SECRET  = os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_***")
 
+PAYPAL_API_BASE = (
+    "https://api-m.paypal.com"
+    if PAYPAL_ENVIRONMENT == "live"
+    else "https://api-m.sandbox.paypal.com"
+)

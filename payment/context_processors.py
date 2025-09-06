@@ -6,3 +6,5 @@ def cart_meta(request):
         "cart_total_cents": sum(int(r.get("unit_cents", 0) or 0) for r in cart),
         "cart_ids": [str(r.get("id")) for r in cart],
     }
+def currency_meta(request):
+    return {"currency": request.session.get("currency", "USD")}

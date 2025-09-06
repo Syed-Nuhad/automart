@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt  # already used above
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.contrib import messages
 
 
@@ -136,18 +136,27 @@ def _paypal_access_token() -> str:
     return resp.json()["access_token"]
 
 
+
 @login_required
 def checkout_page(request):
     items, total = collect_checkout_items(request)
+    ui_currency = (request.session.get("currency") or getattr(settings, "PAYMENT_CURRENCY", "usd") or "usd").upper()
+
+    # PayPal note: we’re charging in backend base currency (usually USD).
+    # The UI currency is display-only for now.
     context = {
         "items": items,
         "total_cents": total,
-        "currency": (settings.PAYMENT_CURRENCY or "usd").upper(),
-        "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
-        "PAYPAL_CLIENT_ID": settings.PAYPAL_CLIENT_ID,
+        "currency": ui_currency,
+        "PAYPAL_CLIENT_ID": getattr(settings, "PAYPAL_CLIENT_ID", ""),
     }
-    return render(request, "payments/checkout.html", context)
+    return render(request, "payment/checkout.html", context)
 
+@require_POST
+def set_currency(request):
+    cur = (request.POST.get("currency") or "USD").upper()
+    request.session["currency"] = cur
+    return HttpResponseRedirect(request.META.get("HTTP_REFERER") or "/")
 
 @login_required
 def api_create_stripe_session(request):
@@ -358,7 +367,6 @@ def api_paypal_capture_order(request):
 @login_required
 def cart_page(request):
     cart = list(request.session.get("cart", []))
-    # enrich with per-row subtotal and keep only essential fields
     rows = []
     for r in cart:
         unit = int(r.get("unit_cents", 0) or 0)
@@ -368,12 +376,12 @@ def cart_page(request):
             "make": r.get("make", ""),
             "model_name": r.get("model_name", ""),
             "unit_cents": unit,
-            "subtotal_cents": unit,   # qty is 1
             "cover_url": r.get("cover_url"),
         })
-    total = sum(row["subtotal_cents"] for row in rows)
-    currency = (getattr(settings, "PAYMENT_CURRENCY", "usd") or "usd").upper()
+    total = sum(row["unit_cents"] for row in rows)  # qty is 1 per car
+    currency = (request.session.get("currency") or getattr(settings, "PAYMENT_CURRENCY", "usd") or "usd").upper()
     return render(request, "payment/cart.html", {"rows": rows, "total_cents": total, "currency": currency})
+
 
 @require_POST
 @login_required

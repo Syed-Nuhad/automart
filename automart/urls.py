@@ -6,9 +6,9 @@ from django.conf.urls.static import static
 from marketplace import views
 from models import views as v
 from django.contrib.auth import views as auth_views
-
+from django.conf.urls.i18n import set_language
 from payment import views as payment_views
-
+from payment.views import set_currency
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -67,6 +67,11 @@ urlpatterns = [
     path("cart/update/<int:pid>/", payment_views.cart_update, name="cart_update"),
     path("cart/remove/<int:pid>/", payment_views.cart_remove, name="cart_remove"),
     path("cart/clear/", payment_views.cart_clear_all, name="cart_clear"),
+
+    path("i18n/setlang/", set_language, name="set_language"),
+    path("set-currency/", set_currency, name="set_currency"),
+    path("settings/", pref_views.settings_page, name="settings_page"),
+    path("settings/update/", pref_views.update_settings, name="update_settings"),
 ]
 
 

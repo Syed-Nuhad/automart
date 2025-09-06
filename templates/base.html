@@ -20,6 +20,14 @@
       crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="{% static 'style.css' %}">
   <script src="{% static 'scripts.js' %}" defer></script>
+  <script defer>
+    (function(){
+      const saved = localStorage.getItem("theme");
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const theme = saved || (prefersDark ? "dark" : "light");
+      document.documentElement.setAttribute("data-bs-theme", theme);
+    })();
+  </script>
   <style>
     body { background-color: #f6f7f9; }
     .wf-muted { color:#6c757d; }
@@ -155,12 +163,12 @@
 
           <!--Cart-->
           <li>
-          <a href="{% url 'cart_page' %}" class="position-relative">
-            <i class="bi bi-cart3"></i>
-            <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
-              {{ cart_count|default:0 }}
-            </span>
-          </a>
+            <a href="{% url 'cart_page' %}" class="btn btn-outline-primary class position-relative">
+              <i class="bi bi-cart3"></i>
+              <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
+                {{ cart_count|default:0 }}
+              </span>
+            </a>
           </li>
 
 
@@ -316,9 +324,10 @@
   </footer>
 
   <!-- Bootstrap Bundle -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_script %}{% endblock %}
 
-  <script>
+<script>
 /* ------------ Helpers ------------ */
 const qs  = (sel, root = document) => root.querySelector(sel);
 const qsa = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -649,6 +658,23 @@ if (primarySearchForm) {
     window.location.assign(url);
   });
 }
+
+  (function(){
+    const btn = document.getElementById("theme-toggle");
+    function sync(){
+      const t = document.documentElement.getAttribute("data-bs-theme") || "light";
+      btn?.querySelector(".light-label")?.classList.toggle("d-none", t === "dark");
+      btn?.querySelector(".dark-label")?.classList.toggle("d-none", t !== "dark");
+    }
+    btn?.addEventListener("click", function(){
+      const cur = document.documentElement.getAttribute("data-bs-theme") || "light";
+      const next = cur === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-bs-theme", next);
+      localStorage.setItem("theme", next);
+      sync();
+    });
+    sync();
+  })();
 {% block extra_scripts %}{% endblock %}
   </script>
 
