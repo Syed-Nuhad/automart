@@ -6,7 +6,7 @@ from django.db.models import Count, Avg, Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
-
+from django.utils.translation import gettext_lazy as _
 
 
 class Make(models.Model):
@@ -32,81 +32,82 @@ class BodyType(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
-class Car(models.Model):
-    TRANSMISSION_CHOICES = [("Automatic","Automatic"),("Manual","Manual"),("CVT","CVT")]
-    FUEL_CHOICES = [("Petrol","Petrol"),("Diesel","Diesel"),("Hybrid","Hybrid"),("Electric","Electric")]
 
+
+class Car(models.Model):
+    TRANSMISSION_CHOICES = [
+        ("Automatic", _("Automatic")),
+        ("Manual",    _("Manual")),
+        ("CVT",       _("CVT")),
+    ]
+    FUEL_CHOICES = [
+        ("Petrol",   _("Petrol")),
+        ("Diesel",   _("Diesel")),
+        ("Hybrid",   _("Hybrid")),
+        ("Electric", _("Electric")),
+
+    ]
     # basic
-    title = models.CharField(max_length=200)
-    make = models.ForeignKey(Make, on_delete=models.PROTECT, related_name="cars")
-    model_name = models.CharField(max_length=120, blank=True)
-    body_type = models.ForeignKey(BodyType, on_delete=models.SET_NULL, null=True, blank=True, related_name="cars")
+    title = models.CharField(_("Title"), max_length=200)
+    make = models.ForeignKey('Make', on_delete=models.PROTECT, related_name="cars")
+    model_name = models.CharField(_("Model"), max_length=120, blank=True)
+    body_type = models.ForeignKey('BodyType', on_delete=models.SET_NULL, null=True, blank=True, related_name="cars")
 
     # specs
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    mileage = models.PositiveIntegerField(null=True, blank=True, help_text="Miles")
-    transmission = models.CharField(max_length=20, choices=TRANSMISSION_CHOICES, blank=True)
-    fuel = models.CharField(max_length=20, choices=FUEL_CHOICES, blank=True)
+    price = models.DecimalField(_("Price"), max_digits=10, decimal_places=2, null=True, blank=True)
+    mileage = models.PositiveIntegerField(_("Mileage"), null=True, blank=True, help_text=_("Miles"))
+    transmission = models.CharField(_("Transmission"), max_length=20, choices=TRANSMISSION_CHOICES, blank=True)
+    fuel = models.CharField(_("Fuel"), max_length=20, choices=FUEL_CHOICES, blank=True)
 
     # media
     cover = models.ImageField(upload_to="cars/covers/", null=True, blank=True)
 
     # flags
-    is_featured = models.BooleanField(default=False, help_text="Show this car in the Featured section")
-    is_new = models.BooleanField(default=False)
-    is_certified = models.BooleanField(default=False)
-    is_hot = models.BooleanField(default=False)
+    is_featured = models.BooleanField(_("Featured"), default=False, help_text=_("Show this car in the Featured section"))
+    is_new = models.BooleanField(_("New"), default=False)
+    is_certified = models.BooleanField(_("Certified"), default=False)
+    is_hot = models.BooleanField(_("Hot"), default=False)
 
     # extra
-    overview = models.TextField(blank=True)
-    history = models.TextField(blank=True)
-    seller_name = models.CharField(max_length=200, blank=True)
-    seller_meta = models.CharField(max_length=200, blank=True)
-    seller_email = models.EmailField(blank=True)   # <-- ADD THIS
-    seller_phone = models.CharField(max_length=32, blank=True)  # e.g. "+1 555 123 4567"
+    overview = models.TextField(_("Overview"), blank=True)
+    history = models.TextField(_("History"), blank=True)
+    seller_name = models.CharField(_("Seller name"), max_length=200, blank=True)
+    seller_meta = models.CharField(_("Seller info"), max_length=200, blank=True)
+    seller_email = models.EmailField(_("Seller email"), blank=True)
+    seller_phone = models.CharField(_("Seller phone"), max_length=32, blank=True)
     seller_image = models.ImageField(upload_to="profiles/", blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
 
-    @admin.display(description="Rating")
-    def rating_summary(self, obj):
-        agg = CarReview.aggregate_for_car(obj.id)
-        avg = agg.get("avg") or 0.0
-        cnt = agg.get("count") or 0
-        return f"{avg:.1f} ({cnt})"
-    class Meta: ordering = ["-created",]
-    def __str__(self): return self.title
+    class Meta:
+        ordering = ["-created"]
+        verbose_name = _("Car")
+        verbose_name_plural = _("Cars")
 
-    @property
-    def seller_avatar(self) -> str | None:
-        """
-        Best-available seller avatar URL for this car.
-        Priority: car.seller_image → seller.profile_image → car.seller_photo
-        Returns None if nothing is available.
-        """
-        # 1) Car-level seller_image
-        if getattr(self, "seller_image", None):
-            try:
-                return self.seller_image.url
-            except Exception:
-                pass
+    def __str__(self):
+        return self.title
 
-        # 2) Related Seller.profile_image (if you have a Seller relation + field)
-        seller = getattr(self, "seller", None)
-        if seller and getattr(seller, "profile_image", None):
-            try:
-                return seller.profile_image.url
-            except Exception:
-                pass
+    def get_absolute_url(self):
+        return reverse("car_detail", args=[self.pk])
 
-        # 3) Car-level seller_photo (if you use it)
-        if getattr(self, "seller_photo", None):
-            try:
-                return self.seller_photo.url
-            except Exception:
-                pass
+class ReviewFeedback(models.Model):
+    ACTION_HELPFUL = "helpful"
+    ACTION_REPORT  = "report"
+    ACTIONS = (
+        (ACTION_HELPFUL, _("Helpful")),
+        (ACTION_REPORT,  _("Report")),
+    )
+    review     = models.ForeignKey('CarReview', on_delete=models.CASCADE, related_name='feedback')
+    user       = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='review_feedback')
+    action     = models.CharField(max_length=7, choices=ACTIONS)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-        return None
-    def get_absolute_url(self): return reverse("car_detail", args=[self.pk])
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['review','user','action'], name='uniq_feedback_per_user_per_action')
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} {self.action} review {self.review_id}"
 
 class CarImage(models.Model):
     car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name="images")
@@ -221,23 +222,23 @@ class CarReview(models.Model):
         }
 
 
-class ReviewFeedback(models.Model):
-    ACTION_HELPFUL = "helpful"
-    ACTION_REPORT  = "report"
-    ACTIONS = (
-        (ACTION_HELPFUL, "Helpful"),
-        (ACTION_REPORT,  "Report"),
-    )
-
-    review     = models.ForeignKey('CarReview', on_delete=models.CASCADE, related_name='feedback')
-    user       = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='review_feedback')
-    action     = models.CharField(max_length=7, choices=ACTIONS)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['review','user','action'], name='uniq_feedback_per_user_per_action')
-        ]
-
-    def __str__(self):
-        return f"{self.user_id} {self.action} review {self.review_id}"
+# class ReviewFeedback(models.Model):
+#     ACTION_HELPFUL = "helpful"
+#     ACTION_REPORT  = "report"
+#     ACTIONS = (
+#         (ACTION_HELPFUL, "Helpful"),
+#         (ACTION_REPORT,  "Report"),
+#     )
+#
+#     review     = models.ForeignKey('CarReview', on_delete=models.CASCADE, related_name='feedback')
+#     user       = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='review_feedback')
+#     action     = models.CharField(max_length=7, choices=ACTIONS)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#
+#     class Meta:
+#         constraints = [
+#             models.UniqueConstraint(fields=['review','user','action'], name='uniq_feedback_per_user_per_action')
+#         ]
+#
+#     def __str__(self):
+#         return f"{self.user_id} {self.action} review {self.review_id}"

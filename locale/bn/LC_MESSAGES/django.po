@@ -1,0 +1,680 @@
+# Arabic translations for Automart
+# Generated manually
+msgid ""
+msgstr ""
+"Project-Id-Version: automart\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-07 17:59+0600\n"
+"PO-Revision-Date: 2025-09-07 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5);\n"
+
+#: .\marketplace\admin.py:9 .\marketplace\admin.py:10
+msgid "Automart Admin"
+msgstr ""
+
+#: .\marketplace\admin.py:11
+msgid "Dashboard"
+msgstr ""
+
+#: .\marketplace\admin.py:38 .\models\forms.py:15 .\models\models.py:53
+#: .\templates\index.html:111 .\templates\index.html:751
+msgid "Model"
+msgstr ""
+
+#: .\marketplace\admin.py:63
+msgid "Approve selected sellers"
+msgstr ""
+
+#: .\marketplace\admin.py:67
+msgid "Reject selected sellers"
+msgstr ""
+
+#: .\marketplace\admin.py:80
+msgid "Basic"
+msgstr ""
+
+#: .\marketplace\admin.py:81 .\templates\index.html:89
+#: .\templates\index.html:318 .\templates\index.html:421
+#: .\templates\index.html:649
+msgid "Filters"
+msgstr ""
+
+#: .\marketplace\admin.py:82
+msgid "System"
+msgstr ""
+
+#: .\marketplace\admin.py:85
+msgid "New matches"
+msgstr ""
+
+#: .\marketplace\admin.py:93
+msgid "Mark selected sellers as VERIFIED"
+msgstr ""
+
+#: .\marketplace\admin.py:97
+msgid "Mark selected sellers as UNVERIFIED"
+msgstr ""
+
+#: .\models\forms.py:14 .\templates\index.html:101 .\templates\index.html:444
+#: .\templates\index.html:662 .\templates\index.html:750
+msgid "Make"
+msgstr ""
+
+#: .\models\forms.py:16 .\templates\index.html:752
+msgid "Year"
+msgstr ""
+
+#: .\models\forms.py:17 .\models\models.py:58 .\templates\index.html:723
+#: .\templates\index.html:753
+msgid "Mileage"
+msgstr ""
+
+#: .\models\forms.py:17
+msgid "Enter total miles on the car."
+msgstr ""
+
+#: .\models\models.py:39 .\templates\index.html:692
+msgid "Automatic"
+msgstr ""
+
+#: .\models\models.py:40 .\templates\index.html:366 .\templates\index.html:539
+#: .\templates\index.html:692
+msgid "Manual"
+msgstr ""
+
+#: .\models\models.py:41 .\templates\index.html:692
+msgid "CVT"
+msgstr ""
+
+#: .\models\models.py:44 .\templates\index.html:685
+msgid "Petrol"
+msgstr ""
+
+#: .\models\models.py:45 .\templates\index.html:685
+msgid "Diesel"
+msgstr ""
+
+#: .\models\models.py:46 .\templates\index.html:685
+msgid "Hybrid"
+msgstr ""
+
+#: .\models\models.py:47 .\models\views.py:157 .\templates\index.html:80
+#: .\templates\index.html:358 .\templates\index.html:685
+msgid "Electric"
+msgstr ""
+
+#: .\models\models.py:51
+msgid "Title"
+msgstr ""
+
+#: .\models\models.py:57 .\templates\index.html:722
+msgid "Price"
+msgstr ""
+
+#: .\models\models.py:58
+msgid "Miles"
+msgstr ""
+
+#: .\models\models.py:59 .\templates\index.html:481 .\templates\index.html:689
+#: .\templates\index.html:725
+msgid "Transmission"
+msgstr ""
+
+#: .\models\models.py:60 .\templates\index.html:471 .\templates\index.html:682
+#: .\templates\index.html:724
+msgid "Fuel"
+msgstr ""
+
+#: .\models\models.py:66 .\templates\index.html:354 .\templates\index.html:508
+msgid "Featured"
+msgstr ""
+
+#: .\models\models.py:66
+msgid "Show this car in the Featured section"
+msgstr ""
+
+#: .\models\models.py:67 .\templates\index.html:182 .\templates\index.html:509
+msgid "New"
+msgstr ""
+
+#: .\models\models.py:68 .\models\views.py:154 .\templates\index.html:77
+#: .\templates\index.html:183 .\templates\index.html:540
+msgid "Certified"
+msgstr ""
+
+#: .\models\models.py:69 .\templates\index.html:184 .\templates\index.html:510
+msgid "Hot"
+msgstr ""
+
+#: .\models\models.py:72
+msgid "Overview"
+msgstr ""
+
+#: .\models\models.py:73
+msgid "History"
+msgstr ""
+
+#: .\models\models.py:74
+msgid "Seller name"
+msgstr ""
+
+#: .\models\models.py:75
+msgid "Seller info"
+msgstr ""
+
+#: .\models\models.py:76
+msgid "Seller email"
+msgstr ""
+
+#: .\models\models.py:77
+msgid "Seller phone"
+msgstr ""
+
+#: .\models\models.py:83 .\models\views.py:632
+msgid "Car"
+msgstr ""
+
+#: .\models\models.py:84
+msgid "Cars"
+msgstr ""
+
+#: .\models\models.py:96
+msgid "Helpful"
+msgstr ""
+
+#: .\models\models.py:97
+msgid "Report"
+msgstr ""
+
+#: .\models\views.py:153 .\templates\index.html:76
+msgid "New arrivals"
+msgstr ""
+
+#: .\models\views.py:155 .\templates\index.html:78 .\templates\index.html:362
+msgid "Under $20k"
+msgstr ""
+
+#: .\models\views.py:156 .\templates\index.html:79
+msgid "SUV"
+msgstr ""
+
+#: .\models\views.py:261
+msgid "Car not found"
+msgstr ""
+
+#: .\models\views.py:465
+#, python-format
+msgid "Hi! I am interested in %(title)s"
+msgstr ""
+
+#: .\models\views.py:466
+msgid "this car"
+msgstr ""
+
+#: .\models\views.py:515
+msgid "Missing car id"
+msgstr ""
+
+#: .\models\views.py:531
+msgid "Thank you! Your review has been updated."
+msgstr ""
+
+#: .\models\views.py:541
+msgid "Thank you! Your review has been submitted."
+msgstr ""
+
+#: .\models\views.py:553
+msgid "Please enter a recipient email."
+msgstr ""
+
+#: .\models\views.py:558
+msgid "That doesn't look like a valid email address."
+msgstr ""
+
+#: .\models\views.py:562
+#, python-format
+msgid "Check this car: %(title)s"
+msgstr ""
+
+#: .\models\views.py:564
+msgid "Someone"
+msgstr ""
+
+#: .\models\views.py:567
+#, python-format
+msgid "%(who)s wanted to share this car with you:"
+msgstr ""
+
+#: .\models\views.py:573
+msgid "Message:"
+msgstr ""
+
+#: .\models\views.py:578
+msgid "Shared by email."
+msgstr ""
+
+#: .\models\views.py:630
+#, python-format
+msgid "New Test Drive Request — %(title)s"
+msgstr ""
+
+#: .\models\views.py:633
+msgid "Name"
+msgstr ""
+
+#: .\models\views.py:634
+msgid "Email"
+msgstr ""
+
+#: .\models\views.py:635
+msgid "Phone"
+msgstr ""
+
+#: .\models\views.py:636
+msgid "When"
+msgstr ""
+
+#: .\models\views.py:637
+msgid "Notes"
+msgstr ""
+
+#: .\models\views.py:750
+msgid "Marked helpful."
+msgstr ""
+
+#: .\models\views.py:753
+msgid "Removed your like."
+msgstr ""
+
+#: .\models\views.py:773
+msgid "Reported."
+msgstr ""
+
+#: .\models\views.py:776
+msgid "Removed your report."
+msgstr ""
+
+# i18n test page strings
+#: .\preferences\views.py:40
+msgid "Hello from Python"
+msgstr "مرحبًا من بايثون"
+
+#: .\templates\index.html:7
+msgid "Home – AutoMart"
+msgstr ""
+
+#: .\templates\index.html:19
+msgid "Hero background carousel"
+msgstr ""
+
+#: .\templates\index.html:23
+#, python-format
+msgid "Hero slide %(n)s"
+msgstr ""
+
+#: .\templates\index.html:28
+msgid "Default hero"
+msgstr ""
+
+#: .\templates\index.html:41
+#, python-format
+msgid "Slide %(n)s"
+msgstr ""
+
+#: .\templates\index.html:47
+msgid "Previous slide"
+msgstr ""
+
+#: .\templates\index.html:50
+msgid "Next slide"
+msgstr ""
+
+#: .\templates\index.html:64
+msgid "Find your next car with confidence."
+msgstr ""
+
+#: .\templates\index.html:65
+msgid ""
+"Search thousands of verified listings, compare specs, and get financing—all "
+"in one place."
+msgstr ""
+
+#: .\templates\index.html:86
+msgid "Browse Deals"
+msgstr ""
+
+#: .\templates\index.html:103 .\templates\index.html:446
+#: .\templates\index.html:473 .\templates\index.html:483
+#: .\templates\index.html:664 .\templates\index.html:684
+#: .\templates\index.html:691
+msgid "Any"
+msgstr ""
+
+#: .\templates\index.html:112
+msgid "e.g., Corolla"
+msgstr ""
+
+#: .\templates\index.html:116
+msgid "Location"
+msgstr ""
+
+#: .\templates\index.html:117
+msgid "City or ZIP"
+msgstr ""
+
+#: .\templates\index.html:121
+msgid "Max price"
+msgstr ""
+
+#: .\templates\index.html:123
+msgid "No limit"
+msgstr ""
+
+#: .\templates\index.html:134
+msgid "Search"
+msgstr ""
+
+#: .\templates\index.html:136
+msgid "Quick Finance"
+msgstr ""
+
+#: .\templates\index.html:139
+msgid "Sell Your Car"
+msgstr ""
+
+#: .\templates\index.html:158
+msgid "Featured Deals"
+msgstr ""
+
+#: .\templates\index.html:160
+msgid "View all"
+msgstr ""
+
+#: .\templates\index.html:172 .\templates\index.html:175
+#: .\templates\index.html:571
+msgid "Share"
+msgstr ""
+
+#: .\templates\index.html:206 .\templates\index.html:531
+msgid "mi"
+msgstr ""
+
+#: .\templates\index.html:216
+msgid "Dealer"
+msgstr ""
+
+#: .\templates\index.html:227
+msgid "Est. payment"
+msgstr ""
+
+#: .\templates\index.html:254 .\templates\index.html:582
+msgid "View Details"
+msgstr ""
+
+#: .\templates\index.html:264 .\templates\index.html:553
+msgid "Wishlist"
+msgstr ""
+
+#: .\templates\index.html:275 .\templates\index.html:564
+msgid "Compare"
+msgstr ""
+
+#: .\templates\index.html:282
+msgid "Test drive"
+msgstr ""
+
+#: .\templates\index.html:291
+msgid "No featured cars yet."
+msgstr ""
+
+#: .\templates\index.html:307
+msgid "All Listings"
+msgstr ""
+
+#: .\templates\index.html:310
+#, python-format
+msgid "Showing %(start)s–%(end)s of %(total)s cars"
+msgstr ""
+
+#: .\templates\index.html:333
+msgid "Sort: Newest"
+msgstr ""
+
+#: .\templates\index.html:334
+msgid "Sort: Price (Low → High)"
+msgstr ""
+
+#: .\templates\index.html:335
+msgid "Sort: Price (High → Low)"
+msgstr ""
+
+#: .\templates\index.html:336
+msgid "Sort: Mileage (Low → High)"
+msgstr ""
+
+#: .\templates\index.html:341
+msgid "View switch"
+msgstr ""
+
+#: .\templates\index.html:370
+msgid "Reset"
+msgstr ""
+
+#: .\templates\index.html:380
+msgid "Featured ×"
+msgstr ""
+
+#: .\templates\index.html:386
+#, python-format
+msgid "Price: %(min)s–%(max)s ×"
+msgstr ""
+
+#: .\templates\index.html:392
+#, python-format
+msgid "Make: %(m)s ×"
+msgstr ""
+
+#: .\templates\index.html:398
+#, python-format
+msgid "Body: %(body)s ×"
+msgstr ""
+
+#: .\templates\index.html:404
+msgid "Fuel:"
+msgstr ""
+
+#: .\templates\index.html:410
+msgid "Trans:"
+msgstr ""
+
+#: .\templates\index.html:430
+msgid "Featured only"
+msgstr ""
+
+#: .\templates\index.html:434 .\templates\index.html:655
+msgid "Price range ($)"
+msgstr ""
+
+#: .\templates\index.html:437 .\templates\index.html:657
+msgid "Min"
+msgstr ""
+
+#: .\templates\index.html:439 .\templates\index.html:658
+msgid "Max"
+msgstr ""
+
+#: .\templates\index.html:454 .\templates\index.html:671
+msgid "Body type"
+msgstr ""
+
+#: .\templates\index.html:491 .\templates\index.html:695
+msgid "Apply filters"
+msgstr ""
+
+#: .\templates\index.html:492
+msgid "Clear all"
+msgstr ""
+
+#: .\templates\index.html:538
+msgid "EV"
+msgstr ""
+
+#: .\templates\index.html:574
+msgid "Add to cart"
+msgstr ""
+
+#: .\templates\index.html:591
+msgid "No cars found."
+msgstr ""
+
+#: .\templates\index.html:598
+msgid "Listings pagination"
+msgstr ""
+
+#: .\templates\index.html:602 .\templates\index.html:605
+msgid "Prev"
+msgstr ""
+
+#: .\templates\index.html:620 .\templates\index.html:623
+msgid "Next"
+msgstr ""
+
+#: .\templates\index.html:639
+msgid "Select up to 4 to compare"
+msgstr ""
+
+#: .\templates\index.html:640
+msgid "Clear"
+msgstr ""
+
+#: .\templates\index.html:641
+msgid "Compare Now"
+msgstr ""
+
+#: .\templates\index.html:650 .\templates\index.html:707
+#: .\templates\index.html:732 .\templates\index.html:745
+#: .\templates\index.html:768
+msgid "Close"
+msgstr ""
+
+#: .\templates\index.html:706
+msgid "Compare Vehicles"
+msgstr ""
+
+#: .\templates\index.html:714
+msgid "Spec"
+msgstr ""
+
+#: .\templates\index.html:715
+msgid "Vehicle 1"
+msgstr ""
+
+#: .\templates\index.html:716
+msgid "Vehicle 2"
+msgstr ""
+
+#: .\templates\index.html:717
+msgid "Vehicle 3"
+msgstr ""
+
+#: .\templates\index.html:718
+msgid "Vehicle 4"
+msgstr ""
+
+#: .\templates\index.html:726
+msgid "Body"
+msgstr ""
+
+#: .\templates\index.html:733
+msgid "Save Comparison"
+msgstr ""
+
+#: .\templates\index.html:744
+msgid "Sell your car"
+msgstr ""
+
+#: .\templates\index.html:748
+msgid ""
+"Create a free listing in minutes. Add photos, set a price, and reach "
+"verified buyers."
+msgstr ""
+
+#: .\templates\index.html:754
+msgid "Your email"
+msgstr ""
+
+#: .\templates\index.html:755
+msgid "Start Listing"
+msgstr ""
+
+#: .\templates\index.html:767
+msgid "Quick Finance Calculator"
+msgstr ""
+
+#: .\templates\index.html:774
+msgid "Vehicle Price ($)"
+msgstr ""
+
+#: .\templates\index.html:778
+msgid "Down Payment ($)"
+msgstr ""
+
+#: .\templates\index.html:782
+#, python-format
+msgid "APR %%"
+msgstr ""
+
+#: .\templates\index.html:786
+msgid "Term (months)"
+msgstr ""
+
+#: .\templates\index.html:792
+msgid "Monthly:"
+msgstr ""
+
+#: .\templates\index.html:794
+msgid "See Offers"
+msgstr ""
+
+#: .\templates\preferences\i18n_test.html:8
+#: .\templates\preferences\settings.html:4
+#: .\templates\preferences\settings.html:8
+msgid "Settings"
+msgstr "الإعدادات"
+
+#: .\templates\preferences\i18n_test.html:9
+#: .\templates\preferences\settings.html:35
+msgid "Pick a language and click Save. The site reloads in that language."
+msgstr "اختر لغة واضغط حفظ. ستُعاد تحميل الصفحة بهذه اللغة."
+
+#: .\templates\preferences\i18n_test.html:13
+#, python-format
+msgid "Total: %(amount)s BDT"
+msgstr "মোট: %(amount)s টাকা"
+
+#: .\templates\preferences\settings.html:16
+msgid "Language"
+msgstr "اللغة"
+
+#: .\templates\preferences\settings.html:31
+msgid "Save Language"
+msgstr "حفظ اللغة"
+
+#: .\templates\preferences\settings.html:45
+msgid "Currency"
+msgstr "العملة"
+
+#: .\templates\preferences\settings.html:54
+msgid "Save Currency"
+msgstr "حفظ العملة"
+
+#: .\templates\preferences\settings.html:58
+msgid "Prices on the site will display using this currency symbol."
+msgstr "ستُعرض الأسعار في الموقع باستخدام رمز هذه العملة."

@@ -1,11 +1,48 @@
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.utils.translation import activate, get_language
+from django.utils.translation import get_language
 from django.views.decorators.http import require_http_methods
+from django.utils.translation import activate
 
+
+
+CURRENCY_CHOICES = ["USD", "BDT", "EUR"]
 THEME_CHOICES = ["auto", "light", "dark"]
 CURRENCY_CHOICES = ["USD", "BDT", "EUR"]  # extend later if needed
+
+
+
+
+
+@require_http_methods(["GET"])
+def settings_page(request):
+    ctx = {
+        "currency": request.session.get("currency", "USD"),
+        "language": getattr(request, "LANGUAGE_CODE", get_language()) or settings.LANGUAGE_CODE,
+        "LANG_CHOICES": settings.LANGUAGES,
+        "CURR_CHOICES": CURRENCY_CHOICES,
+    }
+    return render(request, "preferences/settings.html", ctx)
+
+@require_http_methods(["POST"])
+def update_settings(request):
+    currency = (request.POST.get("currency") or "USD").upper()
+    if currency not in CURRENCY_CHOICES:
+        currency = "USD"
+    request.session["currency"] = currency
+    return HttpResponseRedirect(request.META.get("HTTP_REFERER") or "/settings/")
+
+
+
+def i18n_test(request):
+    ctx = {
+        "py_text": _("Hello from Python"),
+        "price": 200000,
+    }
+    return render(request, "preferences/i18n_test.html", ctx)
+
+
 
 @require_http_methods(["GET"])
 def settings_page(request):

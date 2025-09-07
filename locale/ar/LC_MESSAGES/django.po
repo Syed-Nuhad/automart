@@ -1,0 +1,277 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: automart\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-07 18:05+0600\n"
+"PO-Revision-Date: 2025-09-07 18:05+0600\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: bn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# --- index.html essentials ---
+msgid "Home – AutoMart"
+msgstr "হোম – অটোমার্ট"
+
+msgid "Hero background carousel"
+msgstr "হিরো ব্যাকগ্রাউন্ড ক্যারাউসেল"
+
+msgid "Find your next car with confidence."
+msgstr "নিশ্চিন্তে আপনার পরের গাড়িটি খুঁজে নিন।"
+
+msgid "Search thousands of verified listings, compare specs, and get financing—all in one place."
+msgstr "হাজারো যাচাইকৃত তালিকা খুঁজুন, স্পেক তুলনা করুন, আর ফাইন্যান্সিং পান—সব এক জায়গায়।"
+
+msgid "Browse Deals"
+msgstr "ডিল দেখুন"
+
+msgid "Filters"
+msgstr "ফিল্টার"
+
+msgid "Make"
+msgstr "মেক"
+
+msgid "Model"
+msgstr "মডেল"
+
+msgid "Any"
+msgstr "যে-কোনো"
+
+msgid "e.g., Corolla"
+msgstr "যেমন: করোলা"
+
+msgid "Location"
+msgstr "অবস্থান"
+
+msgid "City or ZIP"
+msgstr "শহর বা জিপ"
+
+msgid "Max price"
+msgstr "সর্বোচ্চ দাম"
+
+msgid "No limit"
+msgstr "সীমাহীন"
+
+msgid "Search"
+msgstr "খুঁজুন"
+
+msgid "Quick Finance"
+msgstr "দ্রুত ফাইন্যান্স"
+
+msgid "Sell Your Car"
+msgstr "আপনার গাড়ি বিক্রি করুন"
+
+msgid "Featured Deals"
+msgstr "ফিচারড ডিল"
+
+msgid "View all"
+msgstr "সব দেখুন"
+
+msgid "New"
+msgstr "নতুন"
+
+msgid "Certified"
+msgstr "সার্টিফায়েড"
+
+msgid "Hot"
+msgstr "হট"
+
+msgid "mi"
+msgstr "মাইল"
+
+msgid "Dealer"
+msgstr "ডিলার"
+
+msgid "Est. payment"
+msgstr "আনুমানিক কিস্তি"
+
+msgid "View Details"
+msgstr "বিস্তারিত দেখুন"
+
+msgid "Wishlist"
+msgstr "ইচ্ছেতালিকা"
+
+msgid "Compare"
+msgstr "তুলনা"
+
+msgid "Test drive"
+msgstr "টেস্ট ড্রাইভ"
+
+msgid "No featured cars yet."
+msgstr "এখনও ফিচারড গাড়ি নেই।"
+
+msgid "All Listings"
+msgstr "সব লিস্টিং"
+
+msgid "Sort: Newest"
+msgstr "সাজান: নতুন আগে"
+
+msgid "Sort: Price (Low → High)"
+msgstr "সাজান: দাম (কম → বেশি)"
+
+msgid "Sort: Price (High → Low)"
+msgstr "সাজান: দাম (বেশি → কম)"
+
+msgid "Sort: Mileage (Low → High)"
+msgstr "সাজান: মাইলেজ (কম → বেশি)"
+
+msgid "View switch"
+msgstr "ভিউ পরিবর্তন"
+
+msgid "Featured"
+msgstr "ফিচারড"
+
+msgid "Under $20k"
+msgstr "$২০ হাজারের নিচে"
+
+msgid "Electric"
+msgstr "ইলেকট্রিক"
+
+msgid "Manual"
+msgstr "ম্যানুয়াল"
+
+msgid "Reset"
+msgstr "রিসেট"
+
+msgid "Featured ×"
+msgstr "ফিচারড ×"
+
+msgid "Fuel:"
+msgstr "জ্বালানি:"
+
+msgid "Trans:"
+msgstr "ট্রান্সমিশন:"
+
+msgid "Featured only"
+msgstr "শুধু ফিচারড"
+
+msgid "Price range ($)"
+msgstr "দাম সীমা ($)"
+
+msgid "Min"
+msgstr "সর্বনিম্ন"
+
+msgid "Max"
+msgstr "সর্বোচ্চ"
+
+msgid "Body type"
+msgstr "বডি টাইপ"
+
+msgid "Fuel"
+msgstr "জ্বালানি"
+
+msgid "Transmission"
+msgstr "ট্রান্সমিশন"
+
+msgid "Apply filters"
+msgstr "ফিল্টার প্রয়োগ করুন"
+
+msgid "Clear all"
+msgstr "সব মুছে দিন"
+
+msgid "EV"
+msgstr "ইভি"
+
+msgid "Add to cart"
+msgstr "কার্টে নিন"
+
+msgid "No cars found."
+msgstr "কোনও গাড়ি পাওয়া যায়নি।"
+
+msgid "Listings pagination"
+msgstr "লিস্টিং পেজিনেশন"
+
+msgid "Prev"
+msgstr "পূর্ববর্তী"
+
+msgid "Next"
+msgstr "পরবর্তী"
+
+msgid "Select up to 4 to compare"
+msgstr "তুলনার জন্য সর্বোচ্চ ৪টি বাছুন"
+
+msgid "Clear"
+msgstr "মুছুন"
+
+msgid "Compare Now"
+msgstr "এখন তুলনা করুন"
+
+msgid "Close"
+msgstr "বন্ধ"
+
+msgid "Compare Vehicles"
+msgstr "গাড়ি তুলনা"
+
+msgid "Spec"
+msgstr "স্পেস"
+
+msgid "Vehicle 1"
+msgstr "যানবাহন ১"
+
+msgid "Vehicle 2"
+msgstr "যানবাহন ২"
+
+msgid "Vehicle 3"
+msgstr "যানবাহন ৩"
+
+msgid "Vehicle 4"
+msgstr "যানবাহন ৪"
+
+msgid "Body"
+msgstr "বডি"
+
+msgid "Save Comparison"
+msgstr "তুলনা সংরক্ষণ"
+
+msgid "Sell your car"
+msgstr "আপনার গাড়ি বিক্রি করুন"
+
+msgid "Create a free listing in minutes. Add photos, set a price, and reach verified buyers."
+msgstr "কয়েক মিনিটেই ফ্রি লিস্টিং করুন। ছবি দিন, দাম ঠিক করুন, আর যাচাইকৃত ক্রেতাদের কাছে পৌঁছান।"
+
+msgid "Your email"
+msgstr "আপনার ইমেইল"
+
+msgid "Start Listing"
+msgstr "লিস্টিং শুরু করুন"
+
+msgid "Quick Finance Calculator"
+msgstr "দ্রুত ফাইন্যান্স ক্যালকুলেটর"
+
+msgid "Vehicle Price ($)"
+msgstr "যানবাহনের দাম ($)"
+
+msgid "Down Payment ($)"
+msgstr "ডাউন পেমেন্ট ($)"
+
+# keep double percent in python-format strings
+msgid "APR %%"
+msgstr "এপিআর %%"
+
+msgid "Term (months)"
+msgstr "মেয়াদ (মাস)"
+
+msgid "Monthly:"
+msgstr "মাসিক:"
+
+msgid "See Offers"
+msgstr "অফার দেখুন"
+
+# fuel/transmission labels used as values
+msgid "Automatic"
+msgstr "অটোমেটিক"
+
+msgid "CVT"
+msgstr "সিভিটি"
+
+msgid "Petrol"
+msgstr "পেট্রোল"
+
+msgid "Diesel"
+msgstr "ডিজেল"
+
+msgid "Hybrid"
+msgstr "হাইব্রিড"

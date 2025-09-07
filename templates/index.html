@@ -1,11 +1,12 @@
-<!-- templates/home.html -->
+{# templates/home.html #}
 {% extends "base.html" %}
 {% load static %}
 {% load seller_badge %}
-{% block title %}Home – AutoMart{% endblock %}
+{% load i18n %}
+
+{% block title %}{% trans "Home – AutoMart" %}{% endblock %}
 
 {% block content %}
-
 
 <!-- ============================== HERO / PRIMARY SEARCH (Admin-driven Carousel) ============================== -->
 <section class="hero-section position-relative overflow-hidden">
@@ -15,16 +16,16 @@
        data-bs-ride="carousel"
        data-bs-interval="4000"
        data-bs-wrap="true"
-       aria-label="Hero background carousel">
+       aria-label="{% trans 'Hero background carousel' %}">
     <div class="carousel-inner h-100">
       {% for slide in hero_slides %}
         <div class="carousel-item h-100 {% if forloop.first %}active{% endif %}">
-          <img src="{{ slide.image.url }}" class="d-block w-100 h-100 object-fit-cover" alt="Hero slide {{ forloop.counter }}">
+          <img src="{{ slide.image.url }}" class="d-block w-100 h-100 object-fit-cover" alt="{% blocktrans with n=forloop.counter %}Hero slide {{ n }}{% endblocktrans %}">
         </div>
       {% empty %}
         <!-- Fallback image if no slides exist -->
         <div class="carousel-item active h-100">
-          <img src="{% static 'img/pexels-photo-358070.jpeg' %}" class="d-block w-100 h-100 object-fit-cover" alt="Default hero">
+          <img src="{% static 'img/pexels-photo-358070.jpeg' %}" class="d-block w-100 h-100 object-fit-cover" alt="{% trans 'Default hero' %}">
         </div>
       {% endfor %}
     </div>
@@ -37,16 +38,16 @@
                   data-bs-target="#heroCarousel"
                   data-bs-slide-to="{{ forloop.counter0 }}"
                   class="{% if forloop.first %}active{% endif %}"
-                  aria-label="Slide {{ forloop.counter }}"
+                  aria-label="{% blocktrans with n=forloop.counter %}Slide {{ n }}{% endblocktrans %}"
                   {% if forloop.first %}aria-current="true"{% endif %}></button>
         {% endfor %}
       </div>
 
       <!-- Controls -->
-      <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev" aria-label="Previous slide">
+      <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev" aria-label="{% trans 'Previous slide' %}">
         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
       </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next" aria-label="Next slide">
+      <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next" aria-label="{% trans 'Next slide' %}">
         <span class="carousel-control-next-icon" aria-hidden="true"></span>
       </button>
     {% endif %}
@@ -60,32 +61,32 @@
     <div class="row align-items-center g-4">
       <!-- Left: Heading + chips + actions -->
       <div class="col-lg-6 text-white">
-        <h1 class="display-5 fw-bold mb-3">Find your next car with confidence.</h1>
-        <p class="lead text-white">Search thousands of verified listings, compare specs, and get financing—all in one place.</p>
+        <h1 class="display-5 fw-bold mb-3">{% trans "Find your next car with confidence." %}</h1>
+        <p class="lead text-white">{% trans "Search thousands of verified listings, compare specs, and get financing—all in one place." %}</p>
 
         <!-- ============================== QUICK CHIPS ============================== -->
         <div class="d-flex flex-wrap gap-2 mt-3">
           {% if quick_chips %}
             {% for chip in quick_chips %}
               <span class="badge rounded-pill wf-pill text-white">
-                {{ chip.title }}
+                {{ chip.title }} {# DB text; translate in DB or via taxonomy if needed #}
               </span>
             {% endfor %}
           {% else %}
-            <span class="badge rounded-pill wf-pill text-white">New arrivals</span>
-            <span class="badge rounded-pill wf-pill text-white">Certified</span>
-            <span class="badge rounded-pill wf-pill text-white">Under $20k</span>
-            <span class="badge rounded-pill wf-pill text-white">SUV</span>
-            <span class="badge rounded-pill wf-pill text-white">Electric</span>
+            <span class="badge rounded-pill wf-pill text-white">{% trans "New arrivals" %}</span>
+            <span class="badge rounded-pill wf-pill text-white">{% trans "Certified" %}</span>
+            <span class="badge rounded-pill wf-pill text-white">{% trans "Under $20k" %}</span>
+            <span class="badge rounded-pill wf-pill text-white">{% trans "SUV" %}</span>
+            <span class="badge rounded-pill wf-pill text-white">{% trans "Electric" %}</span>
           {% endif %}
         </div>
 
         <div class="mt-4 d-flex gap-2">
           <a class="btn btn-primary" href="{% url 'home' %}#results">
-            <i class="bi bi-lightning-charge me-1"></i> Browse Deals
+            <i class="bi bi-lightning-charge me-1"></i> {% trans "Browse Deals" %}
           </a>
           <button class="btn btn-outline-light" data-bs-toggle="offcanvas" data-bs-target="#filtersOffcanvas">
-            <i class="bi bi-sliders me-1"></i> Filters
+            <i class="bi bi-sliders me-1"></i> {% trans "Filters" %}
           </button>
         </div>
       </div>
@@ -97,9 +98,9 @@
             <div class="row g-2 g-md-3">
               <!-- Make -->
               <div class="col-md-6">
-                <label class="form-label text-white">Make</label>
+                <label class="form-label text-white">{% trans "Make" %}</label>
                 <select class="form-select bg-dark text-white border-light" name="make">
-                  <option value="">Any</option>
+                  <option value="">{% trans "Any" %}</option>
                   {% for make in makes %}
                     <option value="{{ make.slug }}" {% if q.make == make.slug %}selected{% endif %}>{{ make.name }}</option>
                   {% endfor %}
@@ -107,19 +108,19 @@
               </div>
               <!-- Model -->
               <div class="col-md-6">
-                <label class="form-label text-white">Model</label>
-                <input class="form-control bg-dark text-white border-light" name="model" value="{{ q.model }}" placeholder="e.g., Corolla">
+                <label class="form-label text-white">{% trans "Model" %}</label>
+                <input class="form-control bg-dark text-white border-light" name="model" value="{{ q.model }}" placeholder="{% trans 'e.g., Corolla' %}">
               </div>
               <!-- Location -->
               <div class="col-md-6">
-                <label class="form-label text-white">Location</label>
-                <input class="form-control bg-dark text-white border-light" name="location" value="{{ q.location }}" placeholder="City or ZIP">
+                <label class="form-label text-white">{% trans "Location" %}</label>
+                <input class="form-control bg-dark text-white border-light" name="location" value="{{ q.location }}" placeholder="{% trans 'City or ZIP' %}">
               </div>
               <!-- Max price -->
               <div class="col-md-6">
-                <label class="form-label text-white">Max price</label>
+                <label class="form-label text-white">{% trans "Max price" %}</label>
                 <select class="form-select bg-dark text-white border-light" name="max_price">
-                  <option value="">No limit</option>
+                  <option value="">{% trans "No limit" %}</option>
                   <option value="10000" {% if q.max_price == "10000" %}selected{% endif %}>$10,000</option>
                   <option value="20000" {% if q.max_price == "20000" %}selected{% endif %}>$20,000</option>
                   <option value="30000" {% if q.max_price == "30000" %}selected{% endif %}>$30,000</option>
@@ -130,12 +131,12 @@
 
             <div class="d-flex align-items-center gap-2 mt-3">
               <button class="btn btn-primary flex-grow-1" type="submit">
-                <i class="bi bi-search me-1"></i> Search
+                <i class="bi bi-search me-1"></i> {% trans "Search" %}
               </button>
-              <button class="btn btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#financeCalcModal" aria-label="Quick Finance">
+              <button class="btn btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#financeCalcModal" aria-label="{% trans 'Quick Finance' %}">
                 <i class="bi bi-calculator"></i>
               </button>
-              <button class="btn btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#sellModal" aria-label="Sell Your Car">
+              <button class="btn btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#sellModal" aria-label="{% trans 'Sell Your Car' %}">
                 <i class="bi bi-cash-coin"></i>
               </button>
             </div>
@@ -154,9 +155,9 @@
   <div class="container">
 
     <div class="d-flex align-items-center justify-content-between mb-3">
-      <h2 class="h4 mb-0">Featured Deals</h2>
+      <h2 class="h4 mb-0">{% trans "Featured Deals" %}</h2>
       <a href="{% url 'home' %}" class="btn btn-sm btn-soft btn-pill btn-soft-primary">
-        <i class="bi bi-lightning-charge me-1"></i> View all
+        <i class="bi bi-lightning-charge me-1"></i> {% trans "View all" %}
       </a>
     </div>
 
@@ -168,19 +169,19 @@
           <!-- Hover quick actions -->
           <div class="position-absolute top-0 end-0 m-2 d-flex gap-1 z-3">
             <button class="btn btn-sm btn-glass icon-chip share-card"
-                    aria-label="Share"
+                    aria-label="{% trans 'Share' %}"
                     data-id="{{ car.id }}"
                     data-url="{% url 'car_detail' car.id %}"
-                    data-bs-toggle="tooltip" title="Share">
+                    data-bs-toggle="tooltip" title="{% trans 'Share' %}">
               <i class="bi bi-share"></i>
             </button>
           </div>
 
           <!-- Badges -->
           <div class="position-absolute start-0 top-0 m-2 d-flex flex-wrap gap-1 z-3">
-            {% if car.is_new %}<span class="badge bg-primary text-white badge-modern new">New</span>{% endif %}
-            {% if car.is_certified %}<span class="badge bg-success badge-modern certified">Certified</span>{% endif %}
-            {% if car.is_hot %}<span class="badge bg-danger badge-modern hot">Hot</span>{% endif %}
+            {% if car.is_new %}<span class="badge bg-primary text-white badge-modern new">{% trans "New" %}</span>{% endif %}
+            {% if car.is_certified %}<span class="badge bg-success badge-modern certified">{% trans "Certified" %}</span>{% endif %}
+            {% if car.is_hot %}<span class="badge bg-danger badge-modern hot">{% trans "Hot" %}</span>{% endif %}
           </div>
 
           <!-- Cover image -->
@@ -202,9 +203,9 @@
 
             <!-- Spec line -->
             <p class="card-text small text-secondary mb-2">
-              {% if car.mileage %}{{ car.mileage|floatformat:0 }} mi{% else %}—{% endif %}
-              • {{ car.transmission|default:"—" }}
-              • {{ car.fuel|default:"—" }}
+              {% if car.mileage %}{{ car.mileage|floatformat:0 }} {% trans "mi" %}{% else %}—{% endif %}
+              • {% if car.get_transmission_display %}{{ car.get_transmission_display }}{% else %}{% if car.transmission %}{% trans car.transmission %}{% else %}—{% endif %}{% endif %}
+              • {% if car.get_fuel_display %}{{ car.get_fuel_display }}{% else %}{% if car.fuel %}{% trans car.fuel %}{% else %}—{% endif %}{% endif %}
             </p>
 
             <!-- Dealer (optional) -->
@@ -212,7 +213,7 @@
               <div class="d-flex align-items-center gap-2 small text-secondary mb-2">
                 <i class="bi bi-shop"></i>
                 <span class="text-truncate" title="{{ car.seller_name }} {{ car.seller_meta }}">
-                  {{ car.seller_name|default:"Dealer" }}{% if car.seller_meta %} • {{ car.seller_meta }}{% endif %}
+                  {{ car.seller_name|default:_("Dealer") }}{% if car.seller_meta %} • {{ car.seller_meta }}{% endif %}
                 </span>
               </div>
             {% endif %}
@@ -223,71 +224,71 @@
                 {% if car.price %}${{ car.price|floatformat:0 }}{% else %}—{% endif %}
               </div>
               {% if car.price %}
-                <span class="badge text-bg-light border">Est. payment</span>
+                <span class="badge text-bg-light border">{% trans "Est. payment" %}</span>
               {% endif %}
             </div>
           </div>
 
-       <div class="card-footer bg-white border-0">
-          <!-- View details (opens modal) -->
-          <button
-            class="btn btn-sm btn-outline-primary w-100 view-details"
-            data-bs-toggle="modal"
-            data-bs-target="#carDetailModal"
-            data-id="{{ car.id }}"
-            data-title="{{ car.title }}"
-            data-price="{{ car.price }}"
-            data-mileage="{{ car.mileage }}"
-            data-transmission="{{ car.transmission }}"
-            data-fuel="{{ car.fuel }}"
-            {% if car.make %}data-make="{{ car.make.name }}"{% endif %}
-            {% if car.model_name %}data-model="{{ car.model_name }}"{% endif %}
-            {% if car.body_type %}data-body="{{ car.body_type.name }}"{% endif %}
-            {% if car.overview %}data-overview="{{ car.overview|escapejs }}"{% endif %}
-            {% if car.history %}data-history="{{ car.history|escapejs }}"{% endif %}
-            {% if car.seller_name %}data-seller-name="{{ car.seller_name|escapejs }}"{% endif %}
-            {% if car.seller_meta %}data-seller-meta="{{ car.seller_meta|escapejs }}"{% endif %}
-            {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}
-            data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
-          >
-            <i class="bi bi-eye me-1"></i> View Details
-          </button>
+          <div class="card-footer bg-white border-0">
+            <!-- View details (opens modal) -->
+            <button
+              class="btn btn-sm btn-outline-primary w-100 view-details"
+              data-bs-toggle="modal"
+              data-bs-target="#carDetailModal"
+              data-id="{{ car.id }}"
+              data-title="{{ car.title }}"
+              data-price="{{ car.price }}"
+              data-mileage="{{ car.mileage }}"
+              data-transmission="{{ car.transmission }}"
+              data-fuel="{{ car.fuel }}"
+              {% if car.make %}data-make="{{ car.make.name }}"{% endif %}
+              {% if car.model_name %}data-model="{{ car.model_name }}"{% endif %}
+              {% if car.body_type %}data-body="{{ car.body_type.name }}"{% endif %}
+              {% if car.overview %}data-overview="{{ car.overview|escapejs }}"{% endif %}
+              {% if car.history %}data-history="{{ car.history|escapejs }}"{% endif %}
+              {% if car.seller_name %}data-seller-name="{{ car.seller_name|escapejs }}"{% endif %}
+              {% if car.seller_meta %}data-seller-meta="{{ car.seller_meta|escapejs }}"{% endif %}
+              {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}
+              data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
+            >
+              <i class="bi bi-eye me-1"></i> {% trans "View Details" %}
+            </button>
 
-          <!-- Inline actions -->
-          <div class="d-flex gap-2 mt-2">
-            <!-- Wishlist -->
-            <form method="post" action="{% url 'toggle_wishlist' car.id %}" class="flex-fill">
-              {% csrf_token %}
-              <button type="submit"
-                      class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
-                <i class="bi bi-heart"></i><span>Wishlist</span>
-              </button>
-            </form>
+            <!-- Inline actions -->
+            <div class="d-flex gap-2 mt-2">
+              <!-- Wishlist -->
+              <form method="post" action="{% url 'toggle_wishlist' car.id %}" class="flex-fill">
+                {% csrf_token %}
+                <button type="submit"
+                        class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
+                  <i class="bi bi-heart"></i><span>{% trans "Wishlist" %}</span>
+                </button>
+              </form>
 
-            <!-- Compare -->
-            <form method="post"
-                  action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
-                  class="flex-fill">
-              {% csrf_token %}
-              <button type="submit"
-                      class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
-                <i class="bi bi-plus-square"></i><span>Compare</span>
-              </button>
-            </form>
+              <!-- Compare -->
+              <form method="post"
+                    action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
+                    class="flex-fill">
+                {% csrf_token %}
+                <button type="submit"
+                        class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
+                  <i class="bi bi-plus-square"></i><span>{% trans "Compare" %}</span>
+                </button>
+              </form>
 
-            <!-- Test drive -->
-            <a class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2"
-               href="{% url 'test_drive' car.id %}">
-              <i class="bi bi-steering-wheel"></i><span>Test drive</span>
-            </a>
+              <!-- Test drive -->
+              <a class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                 href="{% url 'test_drive' car.id %}">
+                <i class="bi bi-steering-wheel"></i><span>{% trans "Test drive" %}</span>
+              </a>
+            </div>
           </div>
-        </div>
 
         </div>
       </div>
       {% empty %}
         <div class="col-12">
-          <div class="alert alert-light border">No featured cars yet.</div>
+          <div class="alert alert-light border">{% trans "No featured cars yet." %}</div>
         </div>
       {% endfor %}
     </div>
@@ -303,10 +304,10 @@
     <!-- Header: title + results count + controls -->
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
       <div class="d-flex align-items-center gap-3">
-        <h2 class="h4 mb-0">All Listings</h2>
+        <h2 class="h4 mb-0">{% trans "All Listings" %}</h2>
         {% if page_obj %}
           <span class="badge text-bg-light border small">
-            Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ paginator.count }} cars
+            {% blocktrans with start=page_obj.start_index end=page_obj.end_index total=paginator.count %}Showing {{ start }}–{{ end }} of {{ total }} cars{% endblocktrans %}
           </span>
         {% endif %}
       </div>
@@ -314,7 +315,7 @@
       <div class="d-flex gap-2 align-items-center">
         <!-- Mobile Filters button -->
         <button class="btn btn-outline-secondary d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#filtersOffcanvas">
-          <i class="bi bi-sliders"></i> Filters
+          <i class="bi bi-sliders"></i> {% trans "Filters" %}
         </button>
 
         <!-- Sort -->
@@ -329,15 +330,15 @@
           {% if q.featured %}<input type="hidden" name="featured" value="{{ q.featured }}">{% endif %}
 
           <select class="form-select form-select-sm" style="width:auto" name="sort" id="sortSelect" onchange="this.form.submit()">
-            <option value="-created" {% if sort == '-created' or not sort %}selected{% endif %}>Sort: Newest</option>
-            <option value="price" {% if sort == 'price' %}selected{% endif %}>Sort: Price (Low → High)</option>
-            <option value="-price" {% if sort == '-price' %}selected{% endif %}>Sort: Price (High → Low)</option>
-            <option value="mileage" {% if sort == 'mileage' %}selected{% endif %}>Sort: Mileage (Low → High)</option>
+            <option value="-created" {% if sort == '-created' or not sort %}selected{% endif %}>{% trans "Sort: Newest" %}</option>
+            <option value="price" {% if sort == 'price' %}selected{% endif %}>{% trans "Sort: Price (Low → High)" %}</option>
+            <option value="-price" {% if sort == '-price' %}selected{% endif %}>{% trans "Sort: Price (High → Low)" %}</option>
+            <option value="mileage" {% if sort == 'mileage' %}selected{% endif %}>{% trans "Sort: Mileage (Low → High)" %}</option>
           </select>
         </form>
 
         <!-- View switch -->
-        <div class="btn-group" role="group" aria-label="View switch">
+        <div class="btn-group" role="group" aria-label="{% trans 'View switch' %}">
           <input type="radio" class="btn-check" name="view" id="gridView" autocomplete="off" checked>
           <label class="btn btn-outline-secondary" for="gridView"><i class="bi bi-grid"></i></label>
           <input type="radio" class="btn-check" name="view" id="listView" autocomplete="off">
@@ -350,23 +351,23 @@
     <div class="d-flex flex-wrap gap-2 mb-3">
       <a class="btn btn-sm btn-outline-dark rounded-pill"
          href="{% url 'home' %}?featured=1#results">
-        <i class="bi bi-star-fill me-1"></i> Featured
+        <i class="bi bi-star-fill me-1"></i> {% trans "Featured" %}
       </a>
       <a class="btn btn-sm btn-outline-dark rounded-pill"
          href="{% url 'home' %}?fuel=Electric#results">
-        <i class="bi bi-lightning-charge me-1"></i> Electric
+        <i class="bi bi-lightning-charge me-1"></i> {% trans "Electric" %}
       </a>
       <a class="btn btn-sm btn-outline-dark rounded-pill"
          href="{% url 'home' %}?max_price=20000#results">
-        <i class="bi bi-cash-coin me-1"></i> Under $20k
+        <i class="bi bi-cash-coin me-1"></i> {% trans "Under $20k" %}
       </a>
       <a class="btn btn-sm btn-outline-dark rounded-pill"
          href="{% url 'home' %}?transmission=Manual#results">
-        <i class="bi bi-gear me-1"></i> Manual
+        <i class="bi bi-gear me-1"></i> {% trans "Manual" %}
       </a>
       <a class="btn btn-sm btn-outline-dark rounded-pill"
          href="{% url 'home' %}#results">
-        Reset
+        {% trans "Reset" %}
       </a>
     </div>
 
@@ -376,48 +377,48 @@
       {% if q.featured == '1' %}
         <a class="badge rounded-pill text-bg-light border text-decoration-none"
            href="{% url 'home' %}?min_price={{ q.min_price }}&max_price={{ q.max_price }}&make={{ q.make }}{% for b in q.body_types %}&body_types={{ b }}{% endfor %}&fuel={{ q.fuel }}&transmission={{ q.transmission }}#results">
-          Featured ×
+          {% trans "Featured ×" %}
         </a>
       {% endif %}
       {% if q.min_price or q.max_price %}
         <a class="badge rounded-pill text-bg-light border text-decoration-none"
            href="{% url 'home' %}?make={{ q.make }}{% for b in q.body_types %}&body_types={{ b }}{% endfor %}&fuel={{ q.fuel }}&transmission={{ q.transmission }}{% if q.featured %}&featured={{ q.featured }}{% endif %}#results">
-          Price: {{ q.min_price|default:"0" }}–{{ q.max_price|default:"∞" }} ×
+          {% blocktrans with min=q.min_price|default:"0" max=q.max_price|default:"∞" %}Price: {{ min }}–{{ max }} ×{% endblocktrans %}
         </a>
       {% endif %}
       {% if q.make %}
         <a class="badge rounded-pill text-bg-light border text-decoration-none"
            href="{% url 'home' %}?min_price={{ q.min_price }}&max_price={{ q.max_price }}{% for b in q.body_types %}&body_types={{ b }}{% endfor %}&fuel={{ q.fuel }}&transmission={{ q.transmission }}{% if q.featured %}&featured={{ q.featured }}{% endif %}#results">
-          Make: {{ q.make }} ×
+          {% blocktrans with m=q.make %}Make: {{ m }} ×{% endblocktrans %}
         </a>
       {% endif %}
       {% for b in q.body_types %}
         <a class="badge rounded-pill text-bg-light border text-decoration-none"
            href="{% url 'home' %}?min_price={{ q.min_price }}&max_price={{ q.max_price }}&make={{ q.make }}{% for b2 in q.body_types %}{% if b2 != b %}&body_types={{ b2 }}{% endif %}{% endfor %}&fuel={{ q.fuel }}&transmission={{ q.transmission }}{% if q.featured %}&featured={{ q.featured }}{% endif %}#results">
-          Body: {{ b }} ×
+          {% blocktrans with body=b %}Body: {{ body }} ×{% endblocktrans %}
         </a>
       {% endfor %}
       {% if q.fuel %}
         <a class="badge rounded-pill text-bg-light border text-decoration-none"
            href="{% url 'home' %}?min_price={{ q.min_price }}&max_price={{ q.max_price }}&make={{ q.make }}{% for b in q.body_types %}&body_types={{ b }}{% endfor %}&transmission={{ q.transmission }}{% if q.featured %}&featured={{ q.featured }}{% endif %}#results">
-          Fuel: {{ q.fuel }} ×
+          {% trans "Fuel:" %} {% trans q.fuel %} ×
         </a>
       {% endif %}
       {% if q.transmission %}
         <a class="badge rounded-pill text-bg-light border text-decoration-none"
            href="{% url 'home' %}?min_price={{ q.min_price }}&max_price={{ q.max_price }}&make={{ q.make }}{% for b in q.body_types %}&body_types={{ b }}{% endfor %}&fuel={{ q.fuel }}{% if q.featured %}&featured={{ q.featured }}{% endif %}#results">
-          Trans: {{ q.transmission }} ×
+          {% trans "Trans:" %} {% trans q.transmission %} ×
         </a>
       {% endif %}
     </div>
     {% endif %}
 
     <div class="row g-4" id="resultsWrap">
-      <!-- Sidebar (desktop) - unchanged + “Clear all” added -->
+      <!-- Sidebar (desktop) -->
       <aside class="col-lg-3 d-none d-lg-block">
         <div class="card bg-white text-dark shadow-sm">
           <div class="card-body text-dark">
-            <h6 class="mb-3 text-dark">Filters</h6>
+            <h6 class="mb-3 text-dark">{% trans "Filters" %}</h6>
             <hr class="border-dark mb-3">
 
             <form id="filtersForm" class="text-dark" method="get" action="{% url 'home' %}#results">
@@ -426,23 +427,23 @@
               <div class="mb-3 form-check">
                 <input class="form-check-input" type="checkbox" id="featuredOnly" name="featured" value="1"
                        {% if q.featured == '1' %}checked{% endif %}>
-                <label class="form-check-label text-dark" for="featuredOnly">Featured only</label>
+                <label class="form-check-label text-dark" for="featuredOnly">{% trans "Featured only" %}</label>
               </div>
 
               <div class="mb-3">
-                <label class="form-label text-dark">Price range ($)</label>
+                <label class="form-label text-dark">{% trans "Price range ($)" %}</label>
                 <div class="d-flex gap-2">
                   <input type="number" class="form-control border-secondary text-dark bg-white"
-                         name="min_price" placeholder="Min" value="{{ q.min_price }}">
+                         name="min_price" placeholder="{% trans 'Min' %}" value="{{ q.min_price }}">
                   <input type="number" class="form-control border-secondary text-dark bg-white"
-                         name="max_price" placeholder="Max" value="{{ q.max_price }}">
+                         name="max_price" placeholder="{% trans 'Max' %}" value="{{ q.max_price }}">
                 </div>
               </div>
 
               <div class="mb-3">
-                <label class="form-label text-dark">Make</label>
+                <label class="form-label text-dark">{% trans "Make" %}</label>
                 <select class="form-select border-secondary bg-white text-dark" name="make">
-                  <option value="">Any</option>
+                  <option value="">{% trans "Any" %}</option>
                   {% for make in makes %}
                     <option value="{{ make.slug }}" {% if q.make == make.slug %}selected{% endif %}>{{ make.name }}</option>
                   {% endfor %}
@@ -450,7 +451,7 @@
               </div>
 
               <div class="mb-3">
-                <label class="form-label text-dark">Body type</label>
+                <label class="form-label text-dark">{% trans "Body type" %}</label>
                 <div class="d-grid gap-2">
                   {% for body in body_types %}
                   <div class="form-check">
@@ -467,28 +468,28 @@
               </div>
 
               <div class="mb-3">
-                <label class="form-label text-dark">Fuel</label>
+                <label class="form-label text-dark">{% trans "Fuel" %}</label>
                 <select class="form-select border-secondary bg-white text-dark" name="fuel">
-                  <option value="">Any</option>
-                  {% for f in fuel_choices %}
-                    <option value="{{ f }}" {% if q.fuel == f %}selected{% endif %}>{{ f }}</option>
+                  <option value="">{% trans "Any" %}</option>
+                  {% for code, label in fuel_choices %}
+                    <option value="{{ code }}" {% if q.fuel == code %}selected{% endif %}>{{ label }}</option>
                   {% endfor %}
                 </select>
               </div>
 
               <div class="mb-3">
-                <label class="form-label text-dark">Transmission</label>
+                <label class="form-label text-dark">{% trans "Transmission" %}</label>
                 <select class="form-select border-secondary bg-white text-dark" name="transmission">
-                  <option value="">Any</option>
-                  {% for t in transmission_choices %}
-                    <option value="{{ t }}" {% if q.transmission == t %}selected{% endif %}>{{ t }}</option>
+                  <option value="">{% trans "Any" %}</option>
+                  {% for code, label in transmission_choices %}
+                    <option value="{{ code }}" {% if q.transmission == code %}selected{% endif %}>{{ label }}</option>
                   {% endfor %}
                 </select>
               </div>
 
               <div class="d-grid gap-2">
-                <button class="btn btn-primary" type="submit">Apply filters</button>
-                <a class="btn btn-outline-secondary" href="{% url 'home' %}#results">Clear all</a>
+                <button class="btn btn-primary" type="submit">{% trans "Apply filters" %}</button>
+                <a class="btn btn-outline-secondary" href="{% url 'home' %}#results">{% trans "Clear all" %}</a>
               </div>
             </form>
           </div>
@@ -504,9 +505,9 @@
 
               <!-- Ribbons -->
               <div class="position-absolute start-0 top-0 m-2 d-flex flex-wrap gap-1 z-3">
-                {% if car.is_featured %}<span class="badge text-bg-warning">Featured</span>{% endif %}
-                {% if car.is_new %}<span class="badge bg-primary text-white badge-new">New</span>{% endif %}
-                {% if car.is_hot %}<span class="badge bg-danger text-white badge-hot">Hot</span>{% endif %}
+                {% if car.is_featured %}<span class="badge text-bg-warning">{% trans "Featured" %}</span>{% endif %}
+                {% if car.is_new %}<span class="badge bg-primary text-white badge-new">{% trans "New" %}</span>{% endif %}
+                {% if car.is_hot %}<span class="badge bg-danger text-white badge-hot">{% trans "Hot" %}</span>{% endif %}
               </div>
 
               <!-- Cover -->
@@ -527,16 +528,16 @@
 
                 <!-- Specs -->
                 <p class="card-text small text-secondary mb-3">
-                  {% if car.mileage %}{{ car.mileage }} mi{% else %}—{% endif %}
-                  • {{ car.transmission|default:"—" }}
-                  • {{ car.fuel|default:"—" }}
+                  {% if car.mileage %}{{ car.mileage }} {% trans "mi" %}{% else %}—{% endif %}
+                  • {% if car.get_transmission_display %}{{ car.get_transmission_display }}{% else %}{% if car.transmission %}{% trans car.transmission %}{% else %}—{% endif %}{% endif %}
+                  • {% if car.get_fuel_display %}{{ car.get_fuel_display }}{% else %}{% if car.fuel %}{% trans car.fuel %}{% else %}—{% endif %}{% endif %}
                 </p>
 
                 <!-- Feature chips (derived) -->
                 <div class="d-flex flex-wrap gap-1 mb-3">
-                  {% if car.fuel == 'Electric' %}<span class="badge text-bg-light border"><i class="bi bi-lightning-charge me-1"></i>EV</span>{% endif %}
-                  {% if car.transmission == 'Manual' %}<span class="badge text-bg-light border"><i class="bi bi-gear me-1"></i>Manual</span>{% endif %}
-                  {% if car.is_certified %}<span class="badge text-bg-light border"><i class="bi bi-patch-check me-1"></i>Certified</span>{% endif %}
+                  {% if car.fuel == 'Electric' %}<span class="badge text-bg-light border"><i class="bi bi-lightning-charge me-1"></i>{% trans "EV" %}</span>{% endif %}
+                  {% if car.transmission == 'Manual' %}<span class="badge text-bg-light border"><i class="bi bi-gear me-1"></i>{% trans "Manual" %}</span>{% endif %}
+                  {% if car.is_certified %}<span class="badge text-bg-light border"><i class="bi bi-patch-check me-1"></i>{% trans "Certified" %}</span>{% endif %}
                 </div>
 
                 <!-- Price + quick actions -->
@@ -548,7 +549,8 @@
                     <div class="d-flex gap-1">
                       <a class="btn btn-sm btn-outline-primary add-wishlist"
                          href="{% url 'toggle_wishlist' car.id %}"
-                         data-id="{{ car.id }}">
+                         data-id="{{ car.id }}"
+                         title="{% trans 'Wishlist' %}">
                         <i class="bi bi-heart"></i>
                       </a>
                       <form method="post"
@@ -558,50 +560,27 @@
                         <button type="submit"
                                 class="btn btn-sm btn-outline-primary add-compare"
                                 data-id="{{ car.id }}"
-                                data-href="{% url 'toggle_compare' car.id %}">
+                                data-href="{% url 'toggle_compare' car.id %}"
+                                title="{% trans 'Compare' %}">
                           <i class="bi bi-plus-square"></i>
                         </button>
                       </form>
                       <button class="btn btn-sm btn-outline-primary share-card"
                               type="button"
                               data-url="{% url 'car_detail' car.id %}"
-                              title="Share">
+                              title="{% trans 'Share' %}">
                         <i class="bi bi-share"></i>
                       </button>
-                      <button class="btn btn-sm btn-primary js-add-to-cart" data-pid="{{ car.id }}" data-qty="1">
+                      <button class="btn btn-sm btn-primary js-add-to-cart" data-pid="{{ car.id }}" data-qty="1" title="{% trans 'Add to cart' %}">
                         <i class="bi bi-cart-plus"></i>
                       </button>
                     </div>
                   </div>
 
                   <div class="d-grid">
-
                     <a href="{{ car.get_absolute_url|default:'#' }}" class="btn btn-sm btn-outline-primary">
-                      <i class="bi bi-eye me-1"></i> View Details
+                      <i class="bi bi-eye me-1"></i> {% trans "View Details" %}
                     </a>
-
-<!--                    <button-->
-<!--                      class="btn btn-outline-primary view-details"-->
-<!--                      data-bs-toggle="modal"-->
-<!--                      data-bs-target="#carDetailModal"-->
-<!--                      data-id="{{ car.id }}"-->
-<!--                      data-title="{{ car.title }}"-->
-<!--                      data-price="{{ car.price }}"-->
-<!--                      data-mileage="{{ car.mileage }}"-->
-<!--                      data-transmission="{{ car.transmission }}"-->
-<!--                      data-fuel="{{ car.fuel }}"-->
-<!--                      {% if car.make %}data-make="{{ car.make.name }}"{% endif %}-->
-<!--                      {% if car.model_name %}data-model="{{ car.model_name }}"{% endif %}-->
-<!--                      {% if car.body_type %}data-body="{{ car.body_type.name }}"{% endif %}-->
-<!--                      {% if car.overview %}data-overview="{{ car.overview|escapejs }}"{% endif %}-->
-<!--                      {% if car.history %}data-history="{{ car.history|escapejs }}"{% endif %}-->
-<!--                      {% if car.seller_name %}data-seller-name="{{ car.seller_name|escapejs }}"{% endif %}-->
-<!--                      {% if car.seller_meta %}data-seller-meta="{{ car.seller_meta|escapejs }}"{% endif %}-->
-<!--                      {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}-->
-<!--                      data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% empty %}{% endfor %}]'-->
-<!--                    >-->
-<!--                      <i class="bi bi-eye me-1"></i> View Details-->
-<!--                    </button>-->
                   </div>
                 </div>
               </div>
@@ -609,21 +588,21 @@
           </div>
           {% empty %}
           <div class="col-12">
-            <div class="alert alert-light border">No cars found.</div>
+            <div class="alert alert-light border">{% trans "No cars found." %}</div>
           </div>
           {% endfor %}
         </div>
 
         <!-- Pagination -->
         {% if is_paginated %}
-        <nav class="mt-4" aria-label="Listings pagination">
+        <nav class="mt-4" aria-label="{% trans 'Listings pagination' %}">
           <ul class="pagination justify-content-center">
             {% if page_obj.has_previous %}
               <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}#results">&laquo; Prev</a>
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}#results">&laquo; {% trans "Prev" %}</a>
               </li>
             {% else %}
-              <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
+              <li class="page-item disabled"><span class="page-link">&laquo; {% trans "Prev" %}</span></li>
             {% endif %}
 
             {% for num in paginator.page_range %}
@@ -638,10 +617,10 @@
 
             {% if page_obj.has_next %}
               <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}&sort={{ sort }}#results">Next &raquo;</a>
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&sort={{ sort }}#results">{% trans "Next" %} &raquo;</a>
               </li>
             {% else %}
-              <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+              <li class="page-item disabled"><span class="page-link">{% trans "Next" %} &raquo;</span></li>
             {% endif %}
           </ul>
         </nav>
@@ -657,40 +636,39 @@
   <div class="container d-flex align-items-center justify-content-between">
     <div class="d-flex align-items-center gap-2" id="compareThumbs"></div>
     <div class="d-flex align-items-center gap-2">
-      <small class="text-secondary" id="compareHint">Select up to 4 to compare</small>
-      <button class="btn btn-outline-secondary" id="clearCompare">Clear</button>
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#compareModal" id="openCompare" disabled>Compare Now</button>
+      <small class="text-secondary" id="compareHint">{% trans "Select up to 4 to compare" %}</small>
+      <button class="btn btn-outline-secondary" id="clearCompare">{% trans "Clear" %}</button>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#compareModal" id="openCompare" disabled>{% trans "Compare Now" %}</button>
     </div>
   </div>
 </div>
 
-
 <!-- ============================== OFFCANVAS FILTERS (mobile) ============================== -->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="filtersOffcanvas" aria-labelledby="filtersOffcanvasLabel">
   <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="filtersOffcanvasLabel">Filters</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    <h5 class="offcanvas-title" id="filtersOffcanvasLabel">{% trans "Filters" %}</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{% trans 'Close' %}"></button>
   </div>
   <div class="offcanvas-body">
     <form id="filtersFormMobile">
       <div class="mb-3">
-        <label class="form-label">Price range ($)</label>
+        <label class="form-label">{% trans "Price range ($)" %}</label>
         <div class="d-flex gap-2">
-          <input class="form-control" name="min_price" placeholder="Min" />
-          <input class="form-control" name="max_price" placeholder="Max" />
+          <input class="form-control" name="min_price" placeholder="{% trans 'Min' %}" />
+          <input class="form-control" name="max_price" placeholder="{% trans 'Max' %}" />
         </div>
       </div>
       <div class="mb-3">
-        <label class="form-label">Make</label>
+        <label class="form-label">{% trans "Make" %}</label>
         <select class="form-select" name="make">
-          <option value="">Any</option>
+          <option value="">{% trans "Any" %}</option>
           {% for make in makes %}
             <option value="{{ make.slug }}">{{ make.name }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="mb-3">
-        <label class="form-label">Body type</label>
+        <label class="form-label">{% trans "Body type" %}</label>
         <div class="d-grid gap-2">
           {% for body in body_types %}
           <label class="form-check">
@@ -701,20 +679,20 @@
         </div>
       </div>
       <div class="mb-3">
-        <label class="form-label">Fuel</label>
+        <label class="form-label">{% trans "Fuel" %}</label>
         <select class="form-select" name="fuel">
-          <option value="">Any</option>
-          <option>Petrol</option><option>Diesel</option><option>Hybrid</option><option>Electric</option>
+          <option value="">{% trans "Any" %}</option>
+          <option>{% trans "Petrol" %}</option><option>{% trans "Diesel" %}</option><option>{% trans "Hybrid" %}</option><option>{% trans "Electric" %}</option>
         </select>
       </div>
       <div class="mb-3">
-        <label class="form-label">Transmission</label>
+        <label class="form-label">{% trans "Transmission" %}</label>
         <select class="form-select" name="transmission">
-          <option value="">Any</option>
-          <option>Automatic</option><option>Manual</option><option>CVT</option>
+          <option value="">{% trans "Any" %}</option>
+          <option>{% trans "Automatic" %}</option><option>{% trans "Manual" %}</option><option>{% trans "CVT" %}</option>
         </select>
       </div>
-      <button class="btn btn-primary w-100" data-bs-dismiss="offcanvas" type="submit">Apply filters</button>
+      <button class="btn btn-primary w-100" data-bs-dismiss="offcanvas" type="submit">{% trans "Apply filters" %}</button>
     </form>
   </div>
 </div>
@@ -725,34 +703,34 @@
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Compare Vehicles</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title">{% trans "Compare Vehicles" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
       </div>
       <div class="modal-body">
         <div class="table-responsive">
           <table class="table align-middle" id="compareTable">
             <thead>
               <tr>
-                <th>Spec</th>
-                <th>Vehicle 1</th>
-                <th>Vehicle 2</th>
-                <th>Vehicle 3</th>
-                <th>Vehicle 4</th>
+                <th>{% trans "Spec" %}</th>
+                <th>{% trans "Vehicle 1" %}</th>
+                <th>{% trans "Vehicle 2" %}</th>
+                <th>{% trans "Vehicle 3" %}</th>
+                <th>{% trans "Vehicle 4" %}</th>
               </tr>
             </thead>
             <tbody class="small text-secondary">
-              <tr><td>Price</td><td data-spec="price-1">—</td><td data-spec="price-2">—</td><td data-spec="price-3">—</td><td data-spec="price-4">—</td></tr>
-              <tr><td>Mileage</td><td data-spec="mileage-1">—</td><td data-spec="mileage-2">—</td><td data-spec="mileage-3">—</td><td data-spec="mileage-4">—</td></tr>
-              <tr><td>Fuel</td><td data-spec="fuel-1">—</td><td data-spec="fuel-2">—</td><td data-spec="fuel-3">—</td><td data-spec="fuel-4">—</td></tr>
-              <tr><td>Transmission</td><td data-spec="trans-1">—</td><td data-spec="trans-2">—</td><td data-spec="trans-3">—</td><td data-spec="trans-4">—</td></tr>
-              <tr><td>Body</td><td data-spec="body-1">—</td><td data-spec="body-2">—</td><td data-spec="body-3">—</td><td data-spec="body-4">—</td></tr>
+              <tr><td>{% trans "Price" %}</td><td data-spec="price-1">—</td><td data-spec="price-2">—</td><td data-spec="price-3">—</td><td data-spec="price-4">—</td></tr>
+              <tr><td>{% trans "Mileage" %}</td><td data-spec="mileage-1">—</td><td data-spec="mileage-2">—</td><td data-spec="mileage-3">—</td><td data-spec="mileage-4">—</td></tr>
+              <tr><td>{% trans "Fuel" %}</td><td data-spec="fuel-1">—</td><td data-spec="fuel-2">—</td><td data-spec="fuel-3">—</td><td data-spec="fuel-4">—</td></tr>
+              <tr><td>{% trans "Transmission" %}</td><td data-spec="trans-1">—</td><td data-spec="trans-2">—</td><td data-spec="trans-3">—</td><td data-spec="trans-4">—</td></tr>
+              <tr><td>{% trans "Body" %}</td><td data-spec="body-1">—</td><td data-spec="body-2">—</td><td data-spec="body-3">—</td><td data-spec="body-4">—</td></tr>
             </tbody>
           </table>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-        <button class="btn btn-primary" id="saveComparison">Save Comparison</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+        <button class="btn btn-primary" id="saveComparison">{% trans "Save Comparison" %}</button>
       </div>
     </div>
   </div>
@@ -763,18 +741,18 @@
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Sell your car</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title">{% trans "Sell your car" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
       </div>
       <div class="modal-body">
-        <p class="text-secondary small">Create a free listing in minutes. Add photos, set a price, and reach verified buyers.</p>
+        <p class="text-secondary small">{% trans "Create a free listing in minutes. Add photos, set a price, and reach verified buyers." %}</p>
         <form class="row g-2" id="sellForm">
-          <div class="col-md-6"><input class="form-control" name="make" placeholder="Make" /></div>
-          <div class="col-md-6"><input class="form-control" name="model" placeholder="Model" /></div>
-          <div class="col-md-6"><input class="form-control" name="year" placeholder="Year" /></div>
-          <div class="col-md-6"><input class="form-control" name="mileage" placeholder="Mileage" /></div>
-          <div class="col-12"><input class="form-control" name="email" placeholder="Your email" /></div>
-          <div class="col-12"><button class="btn btn-primary w-100" type="button" id="startListingBtn">Start Listing</button></div>
+          <div class="col-md-6"><input class="form-control" name="make" placeholder="{% trans 'Make' %}" /></div>
+          <div class="col-md-6"><input class="form-control" name="model" placeholder="{% trans 'Model' %}" /></div>
+          <div class="col-md-6"><input class="form-control" name="year" placeholder="{% trans 'Year' %}" /></div>
+          <div class="col-md-6"><input class="form-control" name="mileage" placeholder="{% trans 'Mileage' %}" /></div>
+          <div class="col-12"><input class="form-control" name="email" placeholder="{% trans 'Your email' %}" /></div>
+          <div class="col-12"><button class="btn btn-primary w-100" type="button" id="startListingBtn">{% trans "Start Listing" %}</button></div>
         </form>
       </div>
     </div>
@@ -786,262 +764,38 @@
   <div class="modal-dialog modal-md modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Quick Finance Calculator</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title">{% trans "Quick Finance Calculator" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
       </div>
       <div class="modal-body">
         <!-- IMPORTANT: method=get and action to the new route -->
         <form id="quickCalcForm" method="get" action="{% url 'finance_offers' %}">
           <div class="mb-2">
-            <label class="form-label">Vehicle Price ($)</label>
+            <label class="form-label">{% trans "Vehicle Price ($)" %}</label>
             <input class="form-control" id="qPrice" name="qPrice" type="number" value="17990" required>
           </div>
           <div class="mb-2">
-            <label class="form-label">Down Payment ($)</label>
+            <label class="form-label">{% trans "Down Payment ($)" %}</label>
             <input class="form-control" id="qDown" name="qDown" type="number" value="3000" min="0">
           </div>
           <div class="mb-2">
-            <label class="form-label">APR %</label>
+            <label class="form-label">{% trans "APR %" %}</label>
             <input class="form-control" id="qApr" name="qApr" type="number" value="6" step="0.01" min="0">
           </div>
           <div class="mb-3">
-            <label class="form-label">Term (months)</label>
+            <label class="form-label">{% trans "Term (months)" %}</label>
             <input class="form-range" id="qTerm" name="qTerm" type="range" min="12" max="84" value="60">
             <div class="d-flex justify-content-between"><small>12</small><small>84</small></div>
           </div>
 
           <!-- Live preview (optional) -->
-          <div class="alert alert-light border">Monthly: <strong id="qMonthly">$0</strong></div>
+          <div class="alert alert-light border">{% trans "Monthly:" %} <strong id="qMonthly">$0</strong></div>
 
-          <button class="btn btn-primary w-100" type="submit">See Offers</button>
+          <button class="btn btn-primary w-100" type="submit">{% trans "See Offers" %}</button>
         </form>
       </div>
     </div>
   </div>
 </div>
 
-
-<!-- ============================== CAR DETAIL MODAL (Full, corrected) ============================== -->
-<div class="modal fade" id="carDetailModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="carModalTitle">Vehicle</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body">
-        <div class="row g-3">
-          <!-- LEFT: Images + Tabs -->
-          <div class="col-lg-7">
-            <!-- Image carousel (unique id) -->
-            <div id="cdCarousel" class="carousel slide wf-card rounded-3">
-              <div class="carousel-inner" id="carModalCarouselInner">
-                <!-- JS will replace; skeletons as fallback -->
-                <div class="carousel-item active"><div class="ratio ratio-16x9 wf-skel"></div></div>
-                <div class="carousel-item"><div class="ratio ratio-16x9 wf-skel"></div></div>
-                <div class="carousel-item"><div class="ratio ratio-16x9 wf-skel"></div></div>
-              </div>
-              <button class="carousel-control-prev" type="button" data-bs-target="#cdCarousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon"></span>
-                <span class="visually-hidden">Prev</span>
-              </button>
-              <button class="carousel-control-next" type="button" data-bs-target="#cdCarousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon"></span>
-                <span class="visually-hidden">Next</span>
-              </button>
-            </div>
-
-            <!-- Tabs -->
-            <ul class="nav nav-tabs mt-3" role="tablist">
-              <li class="nav-item" role="presentation">
-                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabOverview" type="button" role="tab">Overview</button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabSpecs" type="button" role="tab">Specs</button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabHistory" type="button" role="tab">History</button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabSeller" type="button" role="tab">Seller</button>
-              </li>
-            </ul>
-
-            <div class="tab-content p-3 wf-card rounded-bottom-3 border-top-0">
-              <!-- Overview -->
-              <div class="tab-pane fade show active" id="tabOverview" role="tabpanel">
-                <p class="text-secondary small" id="carOverview">—</p>
-                <ul class="small text-secondary mb-0" id="carHighlights"></ul>
-              </div>
-
-              <!-- Specs -->
-              <div class="tab-pane fade" id="tabSpecs" role="tabpanel">
-                <div class="row small" id="carSpecs"></div>
-              </div>
-
-              <!-- History -->
-              <div class="tab-pane fade" id="tabHistory" role="tabpanel">
-                <p class="small text-secondary" id="carHistory">—</p>
-              </div>
-
-              <!-- Seller -->
-              {% if active_car %}
-              <div class="tab-pane fade" id="tabSeller" role="tabpanel">
-                <div class="d-flex align-items-center gap-3">
-                  <!-- Avatar -->
-                  <div class="rounded-circle overflow-hidden border" style="width:56px;height:56px;">
-                    {% if userprofile and userprofile.profile_picture %}
-                      <img src="{{ userprofile.profile_picture.url }}" alt="User Profile Picture"
-                           class="img-fluid rounded-circle" style="width:56px;height:56px;object-fit:cover;">
-                    {% else %}
-                      <img src="{% static 'profiles/default_profile.png' %}" alt="Default Profile Picture"
-                           class="img-fluid rounded-circle" style="width:56px;height:56px;object-fit:cover;">
-                    {% endif %}
-                  </div>
-
-                  <!-- Name + badge -->
-                  <div>
-                    <div class="fw-semibold d-flex align-items-center gap-2" id="sellerName">
-                      {{ car.seller_name|default:"Seller" }}
-
-                      {# Replace the custom tag with a plain conditional #}
-                      {% if seller_verified %}
-                        <span class="badge rounded-pill bg-success d-inline-flex align-items-center gap-1 px-2 py-1" title="Verified seller">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" role="img">
-                            <path fill="currentColor" d="M5.072.56a1.5 1.5 0 0 1 1.13-.515h3.596c.44 0 .862.185 1.16.51l3.12 3.44c.22.243.34.559.34.885v2.784c0 3.58-2.063 6.79-5.295 8.235l-.63.287a1.5 1.5 0 0 1-1.246 0l-.63-.287C3.645 14.46 1.582 11.25 1.582 7.662V4.88c0-.326.12-.642.34-.885L5.072.56Z"/>
-                            <path fill="#fff" d="M6.4 8.7 5.05 7.35a.75.75 0 1 0-1.06 1.06l1.88 1.88a.75.75 0 0 0 1.06 0l3.9-3.9a.75.75 0 1 0-1.06-1.06L6.4 8.7Z"/>
-                          </svg>
-                          <span class="text-white fw-semibold small">Trusted</span>
-                        </span>
-                      {% endif %}
-                    </div>
-                    <div class="small am-muted" id="sellerMeta">{{ car.seller_meta|default:"" }}</div>
-                  </div>
-                </div>
-
-
-                <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
-                  {% with raw=active_car.seller_phone|default:active_car.seller_meta|default_if_none:'' %}
-                    {% with digits=raw|cut:' '|cut:'('|cut:')'|cut:'-'|cut:'.'|cut:'+'|cut:':' %}
-                      {% if digits|length > 6 %}
-                        <a class="btn btn-primary am-btn"
-                           href="https://wa.me/{{ digits }}?text={{ 'Hi! I am interested in '|add:active_car.title|urlencode }}"
-                           target="_blank" rel="noopener">
-                          <i class="bi bi-whatsapp am-icon" aria-hidden="true"></i><span>Message</span>
-                        </a>
-
-                        <button type="button"
-                          class="btn btn-outline-primary am-btn"
-                          data-phone="+{{ active_car.seller_phone|default:active_car.seller_meta|default_if_none:''|cut:' '|cut:'('|cut:')'|cut:'-'|cut:'.'|cut:'+'|cut:':' }}"
-                          onclick="(function(b){
-                            var n=b.dataset.phone; if(!n) return;
-
-                            function toSolid(){
-                              b.classList.remove('btn-outline-primary');
-                              b.classList.add('btn-primary','text-white');
-                            }
-                            function toOutline(){
-                              b.classList.remove('btn-primary','text-white');
-                              b.classList.add('btn-outline-primary');
-                            }
-                            function done(){
-                              toSolid();
-                              b.innerHTML='<i class=&quot;bi bi-clipboard-check am-icon&quot;></i><span>Copied</span>';
-                              setTimeout(function(){
-                                toOutline();
-                                b.innerHTML='<i class=&quot;bi bi-clipboard am-icon&quot;></i><span>Copy number</span>';
-                              },1400);
-                            }
-
-                            if(navigator.clipboard && navigator.clipboard.writeText){
-                              navigator.clipboard.writeText(n).then(done,done);
-                            }else{
-                              var i=document.createElement('input'); i.value=n;
-                              document.body.appendChild(i); i.select();
-                              try{ document.execCommand('copy'); }catch(e){}
-                              document.body.removeChild(i);
-                              done();
-                            }
-                          })(this)">
-                          <i class="bi bi-clipboard am-icon" aria-hidden="true"></i><span>Copy number</span>
-                        </button>
-
-                        <span class="small am-muted ms-1">+{{ digits }}</span>
-                      {% else %}
-                        <span class="small am-muted">No phone number provided.</span>
-                      {% endif %}
-                    {% endwith %}
-                  {% endwith %}
-                </div>
-
-
-              </div>
-              {% endif %}
-            </div>
-          </div>
-
-          <!-- RIGHT: Price + Finance + Actions -->
-          <div class="col-lg-5">
-            <div class="p-3 p-md-4 wf-card rounded-3">
-              <div class="d-flex align-items-center justify-content-between">
-                <div>
-                  <div class="text-secondary small">Price</div>
-                  <div class="h3 mb-0" id="detailPrice">$0</div>
-                </div>
-                <button class="btn btn-outline-secondary" id="modalWishlistBtn" data-id="">
-                  <i class="bi bi-heart"></i>
-                </button>
-              </div>
-
-              <div class="divider my-3"></div>
-
-              <!-- Finance Calculator -->
-              <form id="calcForm" class="small">
-                <div class="row g-2">
-                  <div class="col-6">
-                    <label class="form-label">Down Payment</label>
-                    <input class="form-control" id="downPayment" type="number" placeholder="3000" value="3000" />
-                  </div>
-                  <div class="col-6">
-                    <label class="form-label">APR %</label>
-                    <input class="form-control" id="apr" type="number" placeholder="6" value="6" />
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label">Term (months)</label>
-                    <input class="form-range" id="term" type="range" min="12" max="84" value="60" />
-                    <div class="d-flex justify-content-between"><small>12</small><small>84</small></div>
-                  </div>
-                  <div class="col-12">
-                    <div class="alert alert-light border small mb-2">
-                      Estimated monthly: <span class="fw-bold" id="monthly">$0</span>
-                    </div>
-                    <button class="btn btn-primary w-100" type="submit">Get Finance Offer</button>
-                  </div>
-                </div>
-              </form>
-
-              <div class="divider my-3"></div>
-
-              <div class="d-grid gap-2">
-                <button class="btn btn-outline-secondary" id="start360Btn">
-                  <i class="bi bi-arrows-angle-expand"></i> Start 360° View
-                </button>
-                <button class="btn btn-outline-secondary" id="shareBtn">
-                  <i class="bi bi-share"></i> Share
-                </button>
-              </div>
-            </div>
-          </div>
-          <!-- /RIGHT -->
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <a class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</a>
-        <a class="btn btn-primary" id="contactSellerBtn" href="#">Contact Seller</a>
-      </div>
-    </div>
-  </div>
-</div>
 {% endblock %}

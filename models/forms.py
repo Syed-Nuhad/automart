@@ -1,13 +1,20 @@
 # models/forms.py
 from django import forms
+from .models import TestDriveRequest
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _
 
-from .models import TestDriveRequest
 
-# models/forms.py
-from django import forms
-from .models import TestDriveRequest
+
+
+
+
+class TradeInForm(forms.Form):
+    make = forms.CharField(label=_("Make"))
+    model = forms.CharField(label=_("Model"))
+    year = forms.IntegerField(label=_("Year"))
+    mileage = forms.IntegerField(label=_("Mileage"), help_text=_("Enter total miles on the car."))
 
 class TestDriveForm(forms.ModelForm):
     class Meta:

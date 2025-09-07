@@ -1,0 +1,18 @@
+{% load i18n %}
+
+<html>
+  <body style="font-family:system-ui; padding:24px">
+    {% get_current_language as LC %}
+    <p>LANG={{ LC }}</p>
+
+    <h1>{% trans "Settings" %}</h1>
+    <p>{% trans "Pick a language and click Save. The site reloads in that language." %}</p>
+
+    <p>{{ py_text }}</p>
+
+      {% blocktrans trimmed with amount=amount %}
+        Total: {{ amount }} BDT
+      {% endblocktrans %}
+
+  </body>
+</html>
