@@ -14,7 +14,7 @@ class Order(models.Model):
         ("paypal", "PayPal"),
     ]
 
-    user         = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    user         = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="payment_orders")
     email        = models.EmailField(blank=True)
     currency     = models.CharField(max_length=10, default="usd")
     total_amount = models.PositiveIntegerField(default=0)  # store in cents

@@ -1,15 +1,15 @@
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.db.models import Q
-from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_POST, require_http_methods
-from django.http import Http404, HttpResponseBadRequest
-from django.shortcuts import get_object_or_404, redirect, render
-
+from django.http import HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.http import require_POST
+from django.contrib import messages
+from django.db import transaction
+from django.conf import settings
+from .models import Cart, CartItem
 from .models import CarListing, SellerProfile, SavedSearch
 from .forms import CarListingForm, PhotoFormSet, SellerProfileForm, CarPhotoFormSet, SellerUserForm, \
     SellerOnboardingForm
@@ -375,3 +375,63 @@ def saved_search_list(request):
     return render(request, "marketplace/saved_search_list.html", {"searches": searches})
 
 
+
+
+
+def _get_session_key(request):
+    if not request.session.session_key:
+        request.session.save()
+    return request.session.session_key
+
+def _get_or_create_cart(request):
+    sk = _get_session_key(request)
+    cart, _ = Cart.objects.get_or_create(
+        user=request.user if request.user.is_authenticated else None,
+        session_key=sk
+    )
+    return cart
+
+def cart_view(request):
+    cart = _get_or_create_cart(request)
+    items = cart.items()
+    subtotal_cents = cart.subtotal_cents()
+    return render(request, "cart.html", {
+        "cart": cart,
+        "items": items,
+        "subtotal_cents": subtotal_cents,
+        "subtotal": subtotal_cents / 100.0,
+        "currency": getattr(settings, "DEFAULT_CURRENCY", "usd").upper(),
+    })
+
+@require_POST
+@transaction.atomic
+def cart_add(request, car_id):
+    cart = _get_or_create_cart(request)
+    car = get_object_or_404(CarListing, pk=car_id, is_active=True)
+    item, created = CartItem.objects.select_for_update().get_or_create(cart=cart, car=car, defaults={"qty": 1})
+    if not created:
+        item.qty = min(item.qty + 1, 10)
+    item.save()
+    messages.success(request, "Added to cart.")
+    return redirect("marketplace:cart")
+
+@require_POST
+@transaction.atomic
+def cart_update(request, item_id):
+    cart = _get_or_create_cart(request)
+    item = get_object_or_404(CartItem, pk=item_id, cart=cart)
+    qty = int(request.POST.get("qty", 1))
+    qty = 1 if qty < 1 else 10 if qty > 10 else qty
+    item.qty = qty
+    item.save()
+    messages.info(request, "Cart updated.")
+    return redirect("marketplace:cart")
+
+@require_POST
+@transaction.atomic
+def cart_remove(request, item_id):
+    cart = _get_or_create_cart(request)
+    item = get_object_or_404(CartItem, pk=item_id, cart=cart)
+    item.delete()
+    messages.warning(request, "Removed from cart.")
+    return redirect("marketplace:cart")

@@ -1,14 +1,13 @@
-import hashlib
-import json
-from datetime import timezone
+
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models import Max
+from django.utils import timezone
 from django.utils.text import slugify
 from django.core.exceptions import FieldError
-from django.db.models import Q
 import hashlib, json
 
 from models.models import Car
@@ -388,3 +387,81 @@ class SavedSearchHit(models.Model):
         if self.last_seen_car_created_at and has_created:
             qs = qs.filter(created__gt=self.last_seen_car_created_at)
         return qs
+
+
+class Cart(models.Model):
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+    session_key = models.CharField(max_length=64, blank=True, db_index=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def items(self):
+        return self.cartitem_set.select_related("car")
+
+    def subtotal_cents(self):
+        return sum(i.line_total_cents() for i in self.items())
+
+    def __str__(self): return f"Cart#{self.pk}"
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    car = models.ForeignKey(CarListing, on_delete=models.PROTECT)
+    qty = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(10)])
+    # lock current price to avoid race if seller edits price while in cart
+    unit_price_cents = models.PositiveIntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        if self.unit_price_cents == 0:
+            # source price from listing (assumes listing.price is in dollars)
+            price = (self.car.price or 0)
+            self.unit_price_cents = int(round(float(price) * 100))
+        return super().save(*args, **kwargs)
+
+    def line_total_cents(self): return self.unit_price_cents * self.qty
+
+    def __str__(self): return f"{self.car} x{self.qty}"
+
+class Order(models.Model):
+    STATUS = [
+        ("pending", "Pending"),
+        ("paid", "Paid"),
+        ("failed", "Failed"),
+        ("canceled", "Canceled"),
+    ]
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="marketplace_orders")
+    created = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=16, choices=STATUS, default="pending")
+
+    # snapshot totals (cents)
+    subtotal_cents = models.PositiveIntegerField(default=0)
+    currency = models.CharField(max_length=10, default="usd")
+
+    # PSP refs
+    stripe_payment_intent = models.CharField(max_length=64, blank=True, db_index=True)
+    stripe_checkout_session = models.CharField(max_length=64, blank=True, db_index=True)
+    paypal_order_id = models.CharField(max_length=64, blank=True, db_index=True)
+    paypal_capture_id = models.CharField(max_length=64, blank=True, db_index=True)
+
+    # idempotency keys (what we used when creating charges)
+    stripe_idempotency_key = models.CharField(max_length=80, blank=True)
+    paypal_request_id = models.CharField(max_length=80, blank=True)
+
+    # audit
+    client_ip = models.GenericIPAddressField(null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    def recompute_subtotal(self):
+        self.subtotal_cents = sum(oi.line_total_cents for oi in self.items.all())
+        return self.subtotal_cents
+
+    def __str__(self): return f"Order#{self.pk} {self.status}"
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
+    car = models.ForeignKey(CarListing, on_delete=models.PROTECT)
+    title = models.CharField(max_length=255)
+    unit_price_cents = models.PositiveIntegerField()
+    qty = models.PositiveIntegerField(default=1)
+
+    @property
+    def line_total_cents(self): return self.unit_price_cents * self.qty

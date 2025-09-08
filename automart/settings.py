@@ -22,8 +22,8 @@ INSTALLED_APPS = [
     # app
     "models",
     'marketplace',
-    "payment",
-    "preferences"
+    "preferences",
+    "payment"
 ]
 
 MIDDLEWARE = [
@@ -158,3 +158,4 @@ PAYPAL_API_BASE = (
     if PAYPAL_ENVIRONMENT == "live"
     else "https://api-m.sandbox.paypal.com"
 )
+PAYMENT_CURRENCY = "usd"
