@@ -379,7 +379,7 @@ def saved_search_list(request):
 
 
 
-
+# CART VIEW 🛒
 
 def _get_session_key(request):
     if not request.session.session_key:
@@ -394,54 +394,38 @@ def _get_or_create_cart(request):
     )
     return cart
 
-def cart_view(request):
-    cart = _get_or_create_cart(request)
-    items = cart.items()
-    subtotal_cents = cart.subtotal_cents()
-    return render(request, "payment/cart.html", {
-        "cart": cart,
-        "items": items,
-        "subtotal_cents": subtotal_cents,
-        "subtotal": subtotal_cents / 100.0,
-        "currency": getattr(settings, "DEFAULT_CURRENCY", "usd").upper(),
-    })
-
-
-
 @require_POST
 @transaction.atomic
 def cart_add(request, car_id):
-    # single-click add: ignore qty, force single item per car
-    car = get_object_or_404(Car, pk=car_id)
-    data = _car_to_session_row(car)
-    added = add_item(
-        request,
-        pid=data["pid"],
-        title=data["title"],
-        make=data["make"],
-        model_name=data["model_name"],
-        unit_cents=data["unit_cents"],
-        cover_url=data["cover_url"],
-    )
-    # AJAX support to flip button and badge
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return JsonResponse({
-            "ok": True,
-            "added": added,
-            "already": (not added),
-            "cart_count": cart_count(request),
-            "cart_total_cents": cart_total_cents(request),
-        })
-    # Non-AJAX fallback → back to where user was
-    return redirect(request.META.get("HTTP_REFERER") or "home")
+    """Add once. If already in cart, do NOT increment here."""
+    cart = _get_or_create_cart(request)
+    car  = get_object_or_404(Car, pk=car_id)   # no is_published on Car
 
+    item, created = CartItem.objects.select_for_update().get_or_create(
+        cart=cart, car=car, defaults={"qty": 1}
+    )
+    # requirement: do not increment here — only allow increment on the cart page
+    if not created:
+        pass
+    item.save()
+
+    count = cart.cartitem_set.count()
+    # AJAX?
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({"ok": True, "already": (not created), "cart_count": count})
+
+    messages.success(request, "Added to cart." if created else "Already in cart.")
+    return redirect("cart")
 
 @require_POST
 @transaction.atomic
 def cart_update(request, item_id):
     cart = _get_or_create_cart(request)
     item = get_object_or_404(CartItem, pk=item_id, cart=cart)
-    qty = int(request.POST.get("qty", 1))
+    try:
+        qty = int(request.POST.get("qty", "1"))
+    except ValueError:
+        qty = 1
     qty = 1 if qty < 1 else 10 if qty > 10 else qty
     item.qty = qty
     item.save()
@@ -456,3 +440,32 @@ def cart_remove(request, item_id):
     item.delete()
     messages.warning(request, "Removed from cart.")
     return redirect("cart")
+
+def cart_view(request):
+    cart = _get_or_create_cart(request)
+    items = cart.cartitem_set.select_related("car", "car__make").all()
+
+    rows = []
+    for it in items:
+        c = it.car
+        rows.append({
+            "id": it.id,                         # CartItem id (used by remove/update)
+            "car_id": c.id,
+            "title": c.title,
+            "make": getattr(c.make, "name", ""),
+            "model_name": c.model_name,
+            "qty": it.qty,
+            "unit_cents": it.unit_price_cents or int(round(float(c.price or 0) * 100)),
+            "cover_url": (c.cover.url if getattr(c, "cover", None) else ""),
+        })
+    total_cents = sum(r["unit_cents"] * r["qty"] for r in rows)
+
+    return render(request, "payment/cart.html", {
+        "rows": rows,
+        "total_cents": total_cents,
+        "currency": (getattr(settings, "DEFAULT_CURRENCY", "USD")).upper(),
+    })
+
+
+
+# ENDING!🔚

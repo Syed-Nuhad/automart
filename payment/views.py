@@ -1,19 +1,27 @@
+import uuid
+import json
+from decimal import Decimal, ROUND_HALF_UP
+
+import requests
+from django.conf import settings
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 # ===================== START: payments/views.py =====================
 import hashlib
 import json
 import uuid
 from decimal import Decimal
 
-import requests  # <-- NEW: using REST calls for PayPal
+import requests
 
 # ---------- Stripe ----------
 import stripe
 from django.db import transaction
-from django.shortcuts import get_object_or_404, redirect
-from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt  # already used above
-from django.http import HttpResponseBadRequest, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.contrib import messages
 
 
@@ -26,10 +34,9 @@ from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.conf import settings
 
 from marketplace.models import Cart
-from .models import Order, OrderItem
+from .models import Order
 from .utils import collect_checkout_items, _to_cents
-from .cart import add_item as cart_add_item, remove_item as cart_remove_item, clear as cart_clear, \
-    in_cart as cart_in_cart, total_cents as cart_total_cents, count as cart_count, _car_to_session_row
+from .cart import add_item as cart_add_item, remove_item as cart_remove_item, clear as cart_clear, total_cents as cart_total_cents, count as cart_count, _car_to_session_row
 
 from models.models import  Car
 
@@ -458,22 +465,51 @@ def _new_idem(prefix: str, request) -> str:
     base = f"{prefix}:{request.session.session_key}:{uuid.uuid4()}"
     return hashlib.sha256(base.encode()).hexdigest()[:64]
 
-def _build_snapshot(order: Order, cart: Cart):
-    # create OrderItems snapshot and compute subtotal
-    order.items.all().delete()
+def _build_snapshot(order, cart):
+    """
+    Copy items from the Cart into OrderItem using the fields your model ACTUALLY has:
+    product_id, product_name, unit_amount (cents), quantity.
+    Also set order.total_amount and order.currency.
+    """
+    # clear old snapshot
+    OrderItem.objects.filter(order=order).delete()
+
     subtotal = 0
     for ci in cart.items():
-        oi = OrderItem.objects.create(
-            order=order,
-            car=ci.car,
-            title=ci.car.title,
-            unit_price_cents=ci.unit_price_cents,
-            qty=ci.qty,
+        # try to read from your CartItem shape, but fall back safely
+        product_id = (
+            getattr(ci, "car_id", None)
+            or getattr(ci, "product_id", None)
+            or getattr(ci, "pid", None)
+            or ""
         )
-        subtotal += oi.line_total_cents
-    order.subtotal_cents = subtotal
-    order.currency = getattr(settings, "DEFAULT_CURRENCY", "usd")
-    order.save(update_fields=["subtotal_cents", "currency"])
+        title = (
+            getattr(getattr(ci, "car", None), "title", None)
+            or getattr(ci, "title", None)
+            or "Item"
+        )
+        unit_cents = int(
+            getattr(ci, "unit_price_cents", None)
+            or getattr(ci, "unit_amount", None)
+            or getattr(ci, "unit_cents", None)
+            or 0
+        )
+        qty = int(getattr(ci, "qty", None) or getattr(ci, "quantity", None) or 1)
+
+        OrderItem.objects.create(
+            order=order,
+            product_id=str(product_id),
+            product_name=str(title),
+            unit_amount=unit_cents,   # cents
+            quantity=qty,
+        )
+        subtotal += unit_cents * qty
+
+    # persist order totals/currency using fields your Order model actually has
+    from django.conf import settings
+    order.total_amount = subtotal  # cents
+    order.currency = (getattr(settings, "PAYMENT_CURRENCY", "usd") or "usd").lower()
+    order.save(update_fields=["total_amount", "currency"])
 
 def _verify_amounts(order: Order, paid_amount_cents: int) -> bool:
     # recompute from snapshot & compare to gateway amount
@@ -483,8 +519,7 @@ def _verify_amounts(order: Order, paid_amount_cents: int) -> bool:
 
 # ---------- Stripe ----------
 
-import stripe
-stripe.api_key = settings.STRIPE_SECRET_KEY
+
 
 @require_POST
 @transaction.atomic
@@ -493,33 +528,32 @@ def stripe_start(request):
     if not cart.items().exists():
         return HttpResponseBadRequest("Cart empty")
 
-    # create order (pending) with snapshot
+    # Create a minimal pending order using only existing fields
     order = Order.objects.create(
         user=request.user if request.user.is_authenticated else None,
         status="pending",
-        client_ip=request.META.get("REMOTE_ADDR"),
-        metadata={"source": "stripe"},
+        gateway="stripe",  # safe if gateway exists; remove if your model doesn't have it
     )
+
+    # Build snapshot into OrderItem with correct field names
     _build_snapshot(order, cart)
 
-    # build line items server-side (no client totals)
-    line_items = []
-    for oi in order.items.all():
-        line_items.append({
+    # Build Stripe line_items from OrderItem(product_name, unit_amount, quantity)
+    items = OrderItem.objects.filter(order=order)
+    line_items = [
+        {
             "price_data": {
-                "currency": order.currency,
-                "product_data": { "name": oi.title },
-                "unit_amount": oi.unit_price_cents,
+                "currency": order.currency,                       # e.g. "usd"
+                "product_data": {"name": oi.product_name},
+                "unit_amount": int(oi.unit_amount),               # cents
             },
-            "quantity": oi.qty,
-        })
+            "quantity": int(oi.quantity),
+        }
+        for oi in items
+    ]
 
-    idem = _new_idem("stripe_session", request)
-    order.stripe_idempotency_key = idem
-    order.save(update_fields=["stripe_idempotency_key"])
-
-    success_url = request.build_absolute_uri(reverse("marketplace:checkout_success")) + f"?order={order.pk}"
-    cancel_url = request.build_absolute_uri(reverse("marketplace:checkout_canceled")) + f"?order={order.pk}"
+    success_url = request.build_absolute_uri(reverse("checkout_success")) + f"?order={order.pk}"
+    cancel_url  = request.build_absolute_uri(reverse("checkout_canceled")) + f"?order={order.pk}"
 
     session = stripe.checkout.Session.create(
         mode="payment",
@@ -527,43 +561,55 @@ def stripe_start(request):
         line_items=line_items,
         success_url=success_url,
         cancel_url=cancel_url,
-        allow_promotion_codes=False,
+        client_reference_id=str(order.pk),
         metadata={"order_id": str(order.pk)},
-        expand=["payment_intent"],
-        idempotency_key=idem,  # <-- idempotency
     )
-    order.stripe_checkout_session = session.id
-    if session.payment_intent:
-        order.stripe_payment_intent = session.payment_intent.id
-    order.save(update_fields=["stripe_checkout_session","stripe_payment_intent"])
-    # Front-end redirect to Stripe
+
+    # (Optional) store external id if your Order has this field
+    if hasattr(order, "external_id"):
+        order.external_id = session.id
+        order.save(update_fields=["external_id"])
+
     return JsonResponse({"sessionId": session.id})
 
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
-    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
+    sig = request.META.get("HTTP_STRIPE_SIGNATURE", "")
     try:
-        event = stripe.Webhook.construct_event(
-            payload=payload, sig_header=sig_header, secret=settings.STRIPE_WEBHOOK_SECRET
-        )
+        event = stripe.Webhook.construct_event(payload, sig, settings.STRIPE_WEBHOOK_SECRET)
     except Exception:
         return HttpResponse(status=400)
 
-    if event["type"] == "payment_intent.succeeded":
-        pi = event["data"]["object"]
-        order = Order.objects.filter(stripe_payment_intent=pi["id"]).first()
-        if order and order.status != "paid":
-            amount_received = int(pi.get("amount_received") or 0)
-            # line-item verification
-            if _verify_amounts(order, amount_received):
-                order.status = "paid"
-                order.save(update_fields=["status"])
-            else:
-                order.status = "failed"
-                order.metadata["mismatch"] = {"got": amount_received, "exp": order.subtotal_cents}
-                order.save(update_fields=["status","metadata"])
-    # You can also handle checkout.session.completed if you prefer.
+    if event.get("type") == "checkout.session.completed":
+        data = event["data"]["object"]
+        order_id = data.get("client_reference_id")
+        if not order_id:
+            return HttpResponse(status=200)
+
+        try:
+            order = Order.objects.get(pk=int(order_id))
+        except Order.DoesNotExist:
+            return HttpResponse(status=200)
+
+        # Optional verification: amount_total from Stripe vs our snapshot
+        amount_total = int(data.get("amount_total") or 0)
+        if amount_total:
+            expected = 0
+            for oi in OrderItem.objects.filter(order=order):
+                expected += int(oi.unit_amount) * int(oi.quantity)
+            if expected != amount_total:
+                # mark mismatch as failed, don't crash
+                try:
+                    order.status = "failed"
+                    order.save(update_fields=["status"])
+                except Exception:
+                    pass
+                return HttpResponse(status=200)
+
+        order.status = "paid"
+        order.save(update_fields=["status"])
+
     return HttpResponse(status=200)
 
 def checkout_success(request):
@@ -576,16 +622,7 @@ def checkout_canceled(request):
 
 
 # ===================== PAYPAL (REST) — DROP-IN REPLACEMENT =====================
-import uuid
-import json
-from decimal import Decimal, ROUND_HALF_UP
 
-import requests
-from django.conf import settings
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
 
 from .models import Order, OrderItem  # your payment app models
 # collect_checkout_items(request) must return (items, total_cents),
@@ -824,4 +861,127 @@ def paypal_webhook(request):
             order.save(update_fields=["status"])
 
     return HttpResponse(status=200)
+
+
+
+
+# ---- PayPal REDIRECT flow ----
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+from django.http import HttpResponseBadRequest
+from django.urls import reverse
+import requests
+from django.conf import settings
+
+@login_required
+def paypal_start(request):
+    """
+    Create a local pending Order + PayPal Order, then redirect the user
+    to PayPal's approval URL.
+    """
+    items, total_cents = collect_checkout_items(request)
+    if total_cents <= 0 or not items:
+        # nothing to pay
+        return redirect("cart")
+
+    # 1) Local pending order
+    order = Order.objects.create(
+        user=request.user,
+        email=getattr(request.user, "email", "") or "",
+        currency=(getattr(settings, "PAYMENT_CURRENCY", "usd") or "usd").lower(),
+        total_amount=total_cents,
+        status="pending",
+        gateway="paypal",
+    )
+    for it in items:
+        OrderItem.objects.create(
+            order=order,
+            product_id=it.get("product_id", ""),
+            product_name=it["name"],
+            unit_amount=int(it["unit_amount"]),  # cents
+            quantity=int(it["quantity"]),
+        )
+
+    # 2) Create PayPal Order (with return/cancel URLs)
+    currency = order.currency.upper()
+    decimal_total = f"{total_cents/100:.2f}"
+    body = {
+        "intent": "CAPTURE",
+        "purchase_units": [
+            {
+                "custom_id": str(order.id),
+                "invoice_id": f"am-{order.id}",
+                "amount": {
+                    "currency_code": currency,
+                    "value": decimal_total,
+                },
+            }
+        ],
+        "application_context": {
+            "shipping_preference": "NO_SHIPPING",
+            "return_url": request.build_absolute_uri(reverse("paypal_return")),
+            "cancel_url": request.build_absolute_uri(reverse("checkout_canceled")),
+        },
+    }
+
+    access = _paypal_access_token()
+    res = requests.post(
+        f"{PAYPAL_API_BASE}/v2/checkout/orders",
+        json=body,
+        headers={"Authorization": f"Bearer {access}", "Content-Type": "application/json"},
+        timeout=20,
+    )
+    res.raise_for_status()
+    data = res.json()
+    pp_id = data.get("id")
+    order.external_id = pp_id
+    order.save(update_fields=["external_id"])
+
+    # 3) Find approval URL and redirect
+    approve_url = ""
+    for link in data.get("links", []):
+        if link.get("rel") in ("approve", "payer-action"):
+            approve_url = link.get("href")
+            break
+    if not approve_url:
+        return HttpResponseBadRequest("PayPal approval link missing.")
+    return redirect(approve_url)
+
+
+@login_required
+def paypal_return(request):
+    """
+    PayPal sends the user back here after approval (GET with ?token=...).
+    We capture the order and send them to your success/canceled pages.
+    """
+    token = request.GET.get("token")  # PayPal order id
+    if not token:
+        return HttpResponseBadRequest("Missing token")
+
+    # Optional: find local order
+    order = Order.objects.filter(external_id=token, gateway="paypal").first()
+
+    # Capture on server
+    access = _paypal_access_token()
+    res = requests.post(
+        f"{PAYPAL_API_BASE}/v2/checkout/orders/{token}/capture",
+        headers={"Authorization": f"Bearer {access}", "Content-Type": "application/json"},
+        timeout=20,
+    )
+    if res.ok:
+        if order:
+            order.status = "paid"
+            order.save(update_fields=["status"])
+        return redirect(reverse("checkout_success") + (f"?order_id={order.id}&gateway=paypal" if order else ""))
+    else:
+        if order:
+            order.status = "failed"
+            order.save(update_fields=["status"]))
+        return redirect(reverse("checkout_canceled") + (f"?order_id={order.id}" if order else ""))
+
+
+
+
+
+
 # ===================== END PAYPAL (REST) =====================

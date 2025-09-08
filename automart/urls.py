@@ -19,7 +19,7 @@ urlpatterns = [
     path("", v.index, name="home"),
     path("car/<int:pk>/", v.car_detail, name="car_detail"),
 
-    # Wishlist / Compare / Finance (your existing)
+    # Wishlist / Compare / Finance
     path("wishlist/<int:pk>/toggle/", v.toggle_wishlist, name="toggle_wishlist"),
     path("wishlist/", v.wishlist_page, name="wishlist_page"),
     path("wishlist/clear/", v.clear_wishlist, name="clear_wishlist"),
@@ -40,33 +40,32 @@ urlpatterns = [
     path("seller/become/", mviews.seller_become, name="seller_become"),
     path("seller/account/", mviews.seller_account_edit, name="seller_account_edit"),
 
-    # ---- CART (single source of truth) ----
+    # ---- CART ----
     path("cart/", mviews.cart_view, name="cart"),
     path("cart/add/<int:car_id>/", mviews.cart_add, name="cart_add"),
     path("cart/update/<int:item_id>/", mviews.cart_update, name="cart_update"),
     path("cart/remove/<int:item_id>/", mviews.cart_remove, name="cart_remove"),
 
-    # Stripe / PayPal / result pages (as you had)
-    path("api/stripe/session/", payment_views.api_create_stripe_session, name="api_create_stripe_session"),
-    path("checkout/stripe/start/", payment_views.stripe_start, name="stripe_start"),
-    path("webhooks/stripe/", payment_views.stripe_webhook, name="stripe_webhook"),
-    path("api/paypal/create/",  payment_views.api_paypal_create_order,  name="api_paypal_create_order"),
-    path("api/paypal/capture/", payment_views.api_paypal_capture_order, name="api_paypal_capture_order"),
-    path("webhooks/paypal/",    payment_views.paypal_webhook,           name="paypal_webhook"),
-    path("checkout/success/", payment_views.checkout_success, name="checkout_success"),
-    path("checkout/canceled/", payment_views.checkout_cancel, name="checkout_canceled"),
+    # ---- PAYPAL ONLY ----
+    path("checkout/paypal/start/",  payment_views.paypal_start,  name="paypal_start"),
+    path("checkout/paypal/return/", payment_views.paypal_return, name="paypal_return"),
+    path("api/paypal/create/",      payment_views.api_paypal_create_order,  name="api_paypal_create_order"),
+    path("api/paypal/capture/",     payment_views.api_paypal_capture_order, name="api_paypal_capture_order"),
+    path("webhooks/paypal/",        payment_views.paypal_webhook,           name="paypal_webhook"),
+    path("checkout/success/",       payment_views.checkout_success,         name="checkout_success"),
+    path("checkout/canceled/",      payment_views.checkout_cancel,          name="checkout_canceled"),
 
     # Auth + prefs
     path("accounts/login/",  auth_views.LoginView.as_view(template_name="auth/login.html"), name="login"),
     path("accounts/signup/", v.signup, name="signup"),
     path("logout/",          auth_views.LogoutView.as_view(next_page="home"), name="logout"),
-    path("set-currency/", set_currency, name="set_currency"),
-    path("settings/", pref_views.settings_page, name="settings_page"),
+    path("set-currency/",    set_currency, name="set_currency"),
+    path("settings/",        pref_views.settings_page, name="settings_page"),
     path("settings/update/", pref_views.update_settings, name="update_settings"),
-    path("i18n/setlang/", set_language, name="set_language"),
-    path("i18n/test/", pref_views.i18n_test, name="i18n_test"),
+    path("i18n/setlang/",    set_language, name="set_language"),
+    path("i18n/test/",       pref_views.i18n_test, name="i18n_test"),
 
-    # Optional other marketplace routes
+    # Marketplace
     path("marketplace/", include("marketplace.urls")),
 ]
 

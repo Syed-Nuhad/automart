@@ -138,11 +138,9 @@
                   </div>
 
                   <!-- Cover image -->
-                  <img
-                    class="card-img-top car-img wf-skel"
-                    src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
-                    alt="{{ car.title }}"
-                    style="aspect-ratio:16/10;object-fit:cover;" loading="lazy">
+                  <img class="card-img-top car-img wf-skel"
+                       src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
+                       alt="{{ car.title }}" style="aspect-ratio:16/10;object-fit:cover;" loading="lazy">
 
                   <div class="card-body">
                     <h5 class="card-title mb-1">{{ car.title }}</h5>
@@ -179,61 +177,53 @@
                         <span class="badge text-bg-light border">{% trans "Est. payment" %}</span>
                       {% endif %}
                     </div>
-                  </div>
 
-                  <div class="card-footer bg-white border-0">
-                    <!-- View details (opens modal) -->
-                    <button
-                      class="btn btn-sm btn-outline-primary w-100 view-details"
-                      data-bs-toggle="modal"
-                      data-bs-target="#carDetailModal"
-                      data-id="{{ car.id }}"
-                      data-title="{{ car.title }}"
-                      data-price="{{ car.price }}"
-                      data-mileage="{{ car.mileage }}"
-                      data-transmission="{{ car.transmission }}"
-                      data-fuel="{{ car.fuel }}"
-                      {% if car.make %}data-make="{{ car.make.name }}"{% endif %}
-                      {% if car.model_name %}data-model="{{ car.model_name }}"{% endif %}
-                      {% if car.body_type %}data-body="{{ car.body_type.name }}"{% endif %}
-                      {% if car.overview %}data-overview="{{ car.overview|escapejs }}"{% endif %}
-                      {% if car.history %}data-history="{{ car.history|escapejs }}"{% endif %}
-                      {% if car.seller_name %}data-seller-name="{{ car.seller_name|escapejs }}"{% endif %}
-                      {% if car.seller_meta %}data-seller-meta="{{ car.seller_meta|escapejs }}"{% endif %}
-                      {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}
-                      data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
-                    >
-                      <i class="bi bi-eye me-1"></i> {% trans "View Details" %}
-                    </button>
-
-                    <!-- Inline actions -->
-                    <div class="d-flex gap-2 mt-2">
-                      <!-- Wishlist -->
-                      <form method="post" action="{% url 'toggle_wishlist' car.id %}" class="flex-fill">
+                    <!-- Inline actions (moved inside .card-body) -->
+                    <div class="card-actions d-flex gap-2 mt-2">
+                      <form method="post" action="{% url 'cart_add' car_id=car.id %}" class="js-add-cart" data-pid="{{ car.id }}">
                         {% csrf_token %}
-                        <button type="submit"
-                                class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
-                          <i class="bi bi-heart"></i><span>{% trans "Wishlist" %}</span>
+                        <button type="submit" class="btn btn-sm btn-outline-primary btn-icon" data-bs-toggle="tooltip" data-bs-title="{% trans 'Add to cart' %}">
+                          <i class="bi bi-cart-plus"></i>
                         </button>
                       </form>
 
-                      <!-- Compare -->
-                      <form method="post"
-                            action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
-                            class="flex-fill">
+                      <form method="post" action="{% url 'cart_add' car.id %}" class="js-add-cart">
                         {% csrf_token %}
-                        <button type="submit"
-                                class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
-                          <i class="bi bi-plus-square"></i><span>{% trans "Compare" %}</span>
+                        <button type="submit" class="btn btn-sm btn-outline-primary btn-icon" data-bs-toggle="tooltip" data-bs-title="{% trans 'Compare' %}">
+                          <i class="bi bi-plus-square"></i>
                         </button>
                       </form>
 
-                      <!-- Test drive -->
-                      <a class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2"
-                         href="{% url 'test_drive' car.id %}">
+                      <a class="btn btn-sm btn-outline-primary btn-icon"
+                         href="{% url 'test_drive' car.id %}"
+                         data-bs-toggle="tooltip"
+                         data-bs-title="{% trans 'Request A Test Drive' %}">
                         <i class="bi bi-car-front-fill"></i>
                       </a>
                     </div>
+                  </div> <!-- /card-body -->
+
+                  <div class="card-footer bg-white border-0">
+                    <button class="btn btn-sm btn-outline-primary w-100 view-details"
+                            data-bs-toggle="modal"
+                            data-bs-target="#carDetailModal"
+                            data-id="{{ car.id }}"
+                            data-title="{{ car.title }}"
+                            data-price="{{ car.price }}"
+                            data-mileage="{{ car.mileage }}"
+                            data-transmission="{{ car.transmission }}"
+                            data-fuel="{{ car.fuel }}"
+                            {% if car.make %}data-make="{{ car.make.name }}"{% endif %}
+                            {% if car.model_name %}data-model="{{ car.model_name }}"{% endif %}
+                            {% if car.body_type %}data-body="{{ car.body_type.name }}"{% endif %}
+                            {% if car.overview %}data-overview="{{ car.overview|escapejs }}"{% endif %}
+                            {% if car.history %}data-history="{{ car.history|escapejs }}"{% endif %}
+                            {% if car.seller_name %}data-seller-name="{{ car.seller_name|escapejs }}"{% endif %}
+                            {% if car.seller_meta %}data-seller-meta="{{ car.seller_meta|escapejs }}"{% endif %}
+                            {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}
+                            data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}]'>
+                      <i class="bi bi-eye me-1"></i> {% trans "View Details" %}
+                    </button>
                   </div>
 
                 </div>
@@ -274,11 +264,9 @@
             </div>
 
             <!-- Cover image -->
-            <img
-              class="card-img-top car-img wf-skel"
-              src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
-              alt="{{ car.title }}"
-              style="aspect-ratio:16/10;object-fit:cover;" loading="lazy">
+            <img class="card-img-top car-img wf-skel"
+                 src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
+                 alt="{{ car.title }}" style="aspect-ratio:16/10;object-fit:cover;" loading="lazy">
 
             <div class="card-body">
               <h5 class="card-title mb-1">{{ car.title }}</h5>
@@ -315,68 +303,53 @@
                   <span class="badge text-bg-light border">{% trans "Est. payment" %}</span>
                 {% endif %}
               </div>
-            </div>
 
-            <div class="card-footer bg-white border-0">
-              <!-- View details (opens modal) -->
-              <button
-                class="btn btn-sm btn-outline-primary w-100 view-details"
-                data-bs-toggle="modal"
-                data-bs-target="#carDetailModal"
-                data-id="{{ car.id }}"
-                data-title="{{ car.title }}"
-                data-price="{{ car.price }}"
-                data-mileage="{{ car.mileage }}"
-                data-transmission="{{ car.transmission }}"
-                data-fuel="{{ car.fuel }}"
-                {% if car.make %}data-make="{{ car.make.name }}"{% endif %}
-                {% if car.model_name %}data-model="{{ car.model_name }}"{% endif %}
-                {% if car.body_type %}data-body="{{ car.body_type.name }}"{% endif %}
-                {% if car.overview %}data-overview="{{ car.overview|escapejs }}"{% endif %}
-                {% if car.history %}data-history="{{ car.history|escapejs }}"{% endif %}
-                {% if car.seller_name %}data-seller-name="{{ car.seller_name|escapejs }}"{% endif %}
-                {% if car.seller_meta %}data-seller-meta="{{ car.seller_meta|escapejs }}"{% endif %}
-                {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}
-                data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
-              >
-                <i class="bi bi-eye me-1"></i> {% trans "View Details" %}
-              </button>
-
-              <!-- Inline actions -->
-              <div class="card-actions d-flex gap-2 mt-2 align-items-stretch">
-                <!-- Wishlist -->
-                <form method="post" action="{% url 'toggle_wishlist' car.id %}" class="m-0">
+              <!-- Inline actions (moved inside .card-body) -->
+              <div class="card-actions d-flex gap-2 mt-2">
+                <form method="post" action="{% url 'cart_add' car_id=car.id %}" class="js-add-cart" data-pid="{{ car.id }}">
                   {% csrf_token %}
-                  <button type="submit"
-                          class="btn btn-sm btn-outline-primary btn-action d-inline-flex align-items-center justify-content-center"
-                          data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
-                          data-bs-title="Add to wishlist" aria-label="Add to wishlist">
-                    <i class="fa-regular fa-heart"></i>
+                  <button type="submit" class="btn btn-sm btn-outline-primary btn-icon" data-bs-toggle="tooltip" data-bs-title="{% trans 'Add to cart' %}">
+                    <i class="bi bi-cart-plus"></i>
                   </button>
                 </form>
 
-                <!-- Compare -->
-                <form method="post"
-                      action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
-                      class="m-0">
+                <form method="post" action="{% url 'cart_add' car.id %}" class="js-add-cart">
                   {% csrf_token %}
-                  <button type="submit"
-                          class="btn btn-sm btn-outline-primary btn-action d-inline-flex align-items-center justify-content-center"
-                          data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
-                          data-bs-title="Compare Car" aria-label="Compare Car">
-                    <i class="bi bi-arrow-left-right"></i>
+                  <button type="submit" class="btn btn-sm btn-outline-primary btn-icon" data-bs-toggle="tooltip" data-bs-title="{% trans 'Compare' %}">
+                    <i class="bi bi-plus-square"></i>
                   </button>
                 </form>
 
-                <!-- Test drive -->
-                <a class="btn btn-sm btn-outline-primary btn-action d-inline-flex align-items-center justify-content-center"
+                <a class="btn btn-sm btn-outline-primary btn-icon"
                    href="{% url 'test_drive' car.id %}"
-                   data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
-                   data-bs-title="Request A Test Drive" aria-label="Request A Test Drive">
+                   data-bs-toggle="tooltip"
+                   data-bs-title="{% trans 'Request A Test Drive' %}">
                   <i class="bi bi-car-front-fill"></i>
                 </a>
               </div>
+            </div> <!-- /card-body -->
 
+            <div class="card-footer bg-white border-0">
+              <button class="btn btn-sm btn-outline-primary w-100 view-details"
+                      data-bs-toggle="modal"
+                      data-bs-target="#carDetailModal"
+                      data-id="{{ car.id }}"
+                      data-title="{{ car.title }}"
+                      data-price="{{ car.price }}"
+                      data-mileage="{{ car.mileage }}"
+                      data-transmission="{{ car.transmission }}"
+                      data-fuel="{{ car.fuel }}"
+                      {% if car.make %}data-make="{{ car.make.name }}"{% endif %}
+                      {% if car.model_name %}data-model="{{ car.model_name }}"{% endif %}
+                      {% if car.body_type %}data-body="{{ car.body_type.name }}"{% endif %}
+                      {% if car.overview %}data-overview="{{ car.overview|escapejs }}"{% endif %}
+                      {% if car.history %}data-history="{{ car.history|escapejs }}"{% endif %}
+                      {% if car.seller_name %}data-seller-name="{{ car.seller_name|escapejs }}"{% endif %}
+                      {% if car.seller_meta %}data-seller-meta="{{ car.seller_meta|escapejs }}"{% endif %}
+                      {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}
+                      data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}]'>
+                <i class="bi bi-eye me-1"></i> {% trans "View Details" %}
+              </button>
             </div>
 
           </div>
@@ -664,30 +637,41 @@
                   </div>
 
                   <div class="card-actions">
-                    <form method="post" action="{% url 'cart_add' car_id=car.id %}" class="d-inline">
+
+                    <!-- CART -->
+                    <form method="post"
+                          action="{% url 'cart_add' car_id=car.id %}"
+                          class="js-add-cart"
+                          data-pid="{{ car.id }}">
                       {% csrf_token %}
                       <button type="submit"
-                              class="btn btn-sm btn-gradient btn-action"
-                              aria-label="Add to cart"
-                              data-bs-toggle="tooltip" data-bs-title="Add to cart">
+                              class="btn btn-sm btn-outline-primary btn-icon"
+                              data-bs-toggle="tooltip"
+                              data-bs-title="{% trans 'Add to cart' %}">
                         <i class="bi bi-cart-plus"></i>
                       </button>
                     </form>
 
-                    <!-- Compare (POST) -->
-                    <form method="post" action="{% url 'cart_add' car.id %}" class="js-add-cart d-inline">
+                    <!-- Compare -->
+                    <form method="post"
+                          action="{% url 'cart_add' car.id %}"
+                          class="js-add-cart">
                       {% csrf_token %}
-                      <button type="submit" class="btn btn-sm btn-gradient btn-action add-compare" data-bs-toggle="tooltip" data-bs-title="{% trans 'Compare' %}"
+                      <button type="submit"
+                              class="btn btn-sm btn-outline-primary btn-icon"
+                              data-bs-toggle="tooltip"
+                              data-bs-title="{% trans 'Compare' %}"
                               aria-label="{% trans 'Compare' %}">
                         <i class="bi bi-plus-square"></i>
                       </button>
                     </form>
 
-                    <!-- Share (copy link) -->
-                    <button class="btn btn-sm btn-gradient btn-action share-card"
-                            type="button"
+                    <!-- Share -->
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary btn-icon"
                             data-url="{% url 'car_detail' car.id %}"
-                            data-bs-toggle="tooltip" data-bs-title="{% trans 'Copy link' %}"
+                            data-bs-toggle="tooltip"
+                            data-bs-title="{% trans 'Copy link' %}"
                             aria-label="{% trans 'Copy link' %}">
                       <i class="bi bi-share"></i>
                     </button>

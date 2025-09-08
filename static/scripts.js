@@ -836,37 +836,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-(function(){
-  function getCSRF(){
-    const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
-    return m ? decodeURIComponent(m[1]) : "";
-  }
-  document.addEventListener('click', async function(e){
-    const form = e.target.closest('.js-add-cart');
-    if (!form) return;
-    e.preventDefault();
-    const pid = form.getAttribute('data-pid');
-    const res = await fetch(form.getAttribute('action'), {
-      method: 'POST',
-      headers: { 'X-CSRFToken': getCSRF(), 'X-Requested-With': 'XMLHttpRequest' }
-    });
-    const data = await res.json();
-    if (data && data.ok) {
-      // flip button
-      form.innerHTML = '<button class="btn btn-success btn-sm" disabled>Added to cart</button>';
-      // update badge
-      const badge = document.getElementById('cart-count');
-      if (badge && typeof data.cart_count === 'number') {
-        badge.textContent = data.cart_count;
-      }
-    } else {
-      alert('Could not add to cart');
-    }
-  });
-})();
-
-
-
 
 
 (function() {
@@ -918,6 +887,24 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 })();
+
+
+fetch(form.getAttribute('action'), {
+  method: 'POST',
+  headers: { 'X-CSRFToken': getCSRF(), 'X-Requested-With': 'XMLHttpRequest' },
+  credentials: 'same-origin'     // <--- important to always send session cookies
+})
+.then(r => r.json())
+.then(data => {
+  if (data && data.ok) {
+    form.innerHTML = '<button class="btn btn-success btn-sm" disabled>Added to cart</button>';
+    const badge = document.getElementById('cart-count');
+    if (badge && typeof data.cart_count === 'number') badge.textContent = data.cart_count;
+  } else {
+    alert('Could not add to cart');
+  }
+})
+.catch(() => alert('Could not add to cart'));
 
 
 

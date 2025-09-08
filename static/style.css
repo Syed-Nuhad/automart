@@ -732,3 +732,23 @@ label:hover ~ input:checked ~ label{
 
 /* Pagination cosmetics */
 .pagination .page-link{ border-radius:.5rem; }
+
+
+.card-actions{ display:flex; align-items:center; justify-content:flex-start; gap:.5rem; }
+
+/* Stop equal-width columns */
+.card-actions > *{ flex:0 0 auto !important; min-width:0 !important; }
+
+/* Make all three buttons square & equal */
+.card-actions .btn.btn-icon{
+  --btn-icon-size:40px;
+  width:var(--btn-icon-size);
+  height:var(--btn-icon-size);
+  padding:0 !important;
+  display:inline-flex; align-items:center; justify-content:center;
+  border-radius:.5rem; line-height:1;
+}
+.card-actions .btn.btn-icon i{ font-size:1.1rem; line-height:1; }
+
+/* Neutralize any old full-width rule */
+.card-actions .btn-action{ width:auto !important; }

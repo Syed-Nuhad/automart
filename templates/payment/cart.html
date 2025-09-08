@@ -5,7 +5,6 @@
 
 {% block content %}
 <div class="container py-5">
-  <form class="d-none">{% csrf_token %}</form>
 
   <div class="row g-4">
     <!-- Items -->
@@ -33,11 +32,23 @@
                   <div class="text-muted small">{{ r.make }}{% if r.model_name %} • {{ r.model_name }}{% endif %}</div>
                 </div>
 
-                <div class="ms-auto text-end">
-                  <div class="small text-muted">Price</div>
+                <div class="text-end">
+                  <div class="small text-muted">Unit price</div>
                   <div class="fw-semibold">{{ r.unit_cents|cents_to_money }} {{ currency }}</div>
                 </div>
 
+                <!-- Qty (change only here) -->
+                <div class="ms-auto">
+                  <form action="{% url 'cart_update' r.id %}" method="post" class="d-flex align-items-center gap-2">
+                    {% csrf_token %}
+                    <label class="small text-muted">Qty</label>
+                    <input type="number" name="qty" class="form-control form-control-sm"
+                           value="{{ r.qty }}" min="1" max="10" style="width:80px">
+                    <button class="btn btn-sm btn-outline-primary">Update</button>
+                  </form>
+                </div>
+
+                <!-- Remove -->
                 <div>
                   <form action="{% url 'cart_remove' r.id %}" method="post">
                     {% csrf_token %}
@@ -80,14 +91,12 @@
             <hr class="my-3">
             <div class="d-grid gap-2">
               {% if rows %}
-                <a class="btn btn-primary" href="{% url 'checkout_page' %}">Proceed to Checkout</a>
-                <form action="{% url 'cart_clear' %}" method="post">
+                <form action="{% url 'paypal_start' %}" method="post">
                   {% csrf_token %}
-                  <button class="btn btn-outline-secondary w-100">Clear Cart</button>
+                  <button class="btn btn-primary w-100">Proceed to Checkout</button>
                 </form>
               {% else %}
                 <button class="btn btn-primary" disabled>Proceed to Checkout</button>
-                <button class="btn btn-outline-secondary" disabled>Clear Cart</button>
               {% endif %}
             </div>
             <div class="small text-muted mt-3">
@@ -98,50 +107,8 @@
       </div>
     </div>
 
-  </div> <!-- /row -->
+  </div><!-- /row -->
 </div>
 {% endblock %}
 
-
-{% block extra_scripts %}
-  // Fill per-row subtotals from unit price x qty (display only).
-  function renderSubtotals(){
-    document.querySelectorAll('.cart-update-form').forEach(function(form){
-      var row = form.closest('.card');
-      var unitEl = row.querySelector('.js-unit');
-      var unit = parseFloat((unitEl && unitEl.textContent || "0").replace(/[,]/g,'')) || 0;
-      var qtyInput = form.querySelector('.qty-input');
-      var qty = parseInt(qtyInput && qtyInput.value ? qtyInput.value : '1', 10);
-      var sub = (unit * qty).toFixed(2);
-      var out = row.querySelector('.js-subtotal');
-      if (out) out.textContent = sub;
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    renderSubtotals();
-    // qty stepper submits the form (server recomputes totals)
-    document.querySelectorAll('.cart-update-form').forEach(function(form){
-      var minus = form.querySelector('.js-qty-minus');
-      var plus  = form.querySelector('.js-qty-plus');
-      var input = form.querySelector('.qty-input');
-
-      function clamp(){
-        var v = Math.max(1, parseInt(input.value || "1", 10));
-        input.value = v;
-      }
-      if (minus) minus.addEventListener('click', function(){
-        input.value = Math.max(1, (parseInt(input.value || "1", 10) - 1));
-        form.requestSubmit();
-      });
-      if (plus) plus.addEventListener('click', function(){
-        input.value = Math.max(1, (parseInt(input.value || "1", 10) + 1));
-        form.requestSubmit();
-      });
-      input.addEventListener('change', function(){
-        clamp();
-        form.requestSubmit();
-      });
-    });
-  });
-{% endblock %}
+{% block extra_scripts %}{% endblock %}
