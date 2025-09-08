@@ -594,3 +594,141 @@ label:hover ~ input:checked ~ label{
 .am-avatar{ width:56px; height:56px; border-radius:50%; overflow:hidden;
             background:#f3f4f6; border:1px solid var(--am-border); }
 .am-avatar-img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+      .card-neo {
+        border: 0;
+        border-radius: 1rem;
+        overflow: hidden;
+        background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.85));
+        backdrop-filter: blur(6px);
+        transition: transform .25s ease, box-shadow .25s ease;
+        box-shadow: 0 6px 18px rgba(0,0,0,.06);
+      }
+      .card-neo:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,.12); }
+      .card-neo .card-img-top { border-bottom: 1px solid rgba(0,0,0,.06); }
+      .icon-chip {
+        display:inline-flex; align-items:center; gap:.35rem;
+        padding:.2rem .5rem; border-radius:999px; background:rgba(0,0,0,.04);
+      }
+      .btn-glass {
+        backdrop-filter: blur(8px);
+        background: rgba(255,255,255,.6);
+        border: 1px solid rgba(255,255,255,.7);
+      }
+      .badge-modern { border-radius: 999px; padding:.35rem .5rem; font-weight:600; }
+      .badge-modern.new { background: linear-gradient(90deg,#4f46e5,#22d3ee)!important; }
+      .badge-modern.certified { background: linear-gradient(90deg,#059669,#34d399)!important; }
+      .badge-modern.hot { background: linear-gradient(90deg,#ef4444,#f59e0b)!important; }
+      .price.h5 { font-weight: 800; letter-spacing: .2px; }
+      .car-img { background:#f6f7f9; }
+      .wf-skel { position:relative; }
+      .wf-skel[loading="lazy"]::after{
+        content:"";position:absolute;inset:0;
+        background:linear-gradient(90deg,rgba(0,0,0,0),rgba(255,255,255,.35),rgba(0,0,0,0));
+        transform:translateX(-100%); animation:shimmer 1.2s infinite;
+      }
+      @keyframes shimmer { 100% { transform: translateX(100%); } }
+
+      /* Swiper cosmetics */
+      .swiper { overflow: visible; }
+      .swiper-slide { height: auto; }
+      .swiper-button-prev, .swiper-button-next {
+        width: 38px; height: 38px; border-radius: 999px;
+        background: rgba(255,255,255,.9); box-shadow: 0 6px 18px rgba(0,0,0,.12);
+        border: 1px solid rgba(0,0,0,.06);
+      }
+      .swiper-button-prev:after, .swiper-button-next:after { font-size: 16px; color:#111; }
+      .swiper-pagination-bullet { background:#bbb; opacity:.8; }
+      .swiper-pagination-bullet-active { background:#111; }
+
+
+
+/* Make all three siblings equal width */
+.card-actions > * {
+  flex: 1 0 0 !important;   /* equal thirds, ignore content width */
+  min-width: 0;             /* allow shrinking evenly */
+}
+
+/* Normalize height & centering for the buttons */
+.btn-action{
+  height: 42px;             /* pick 38–44 to taste; consistent across sm buttons */
+  width: 100%;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 .75rem;
+}
+
+/* FA vs Bootstrap Icons baseline/size */
+.btn-action i{
+  font-size: 1.05rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* Kill stray default margins on forms */
+.card-actions form { margin: 0 !important; }
+
+/* ===== Modern cards ===== */
+.wf-card{
+  border:0;border-radius:1rem;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.92));
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+  transition:transform .22s ease, box-shadow .22s ease;
+}
+.wf-card:hover{ transform:translateY(-3px); box-shadow:0 14px 34px rgba(0,0,0,.14); }
+
+.car-img{ aspect-ratio:16/10; object-fit:cover; background:#f5f7fb; }
+.wf-skel{ position:relative; }
+.wf-skel[loading="lazy"]::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.36),rgba(255,255,255,0));
+  transform:translateX(-100%);animation:shimmer 1.2s infinite;
+}
+@keyframes shimmer{ 100%{ transform:translateX(100%); } }
+
+.badge-new{ background:linear-gradient(90deg,#4f46e5,#22d3ee)!important; }
+.badge-hot{ background:linear-gradient(90deg,#ef4444,#f59e0b)!important; }
+
+.card-title{ font-weight:700; }
+.clamp-2{
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; text-overflow:ellipsis; min-height:2.6em;
+}
+
+/* meta chip */
+.chip{
+  display:inline-flex; align-items:center; gap:.35rem;
+  padding:.15rem .5rem; border-radius:999px; background:rgba(0,0,0,.04);
+}
+
+/* Inline actions: equal size */
+.card-actions{ display:flex; gap:.5rem; align-items:stretch; }
+.card-actions > *{ flex:1 0 0!important; min-width:0; }
+.card-actions form{ margin:0!important; }
+
+.btn-action{
+  height:42px; width:100%;
+  display:flex; align-items:center; justify-content:center;
+  line-height:1; padding:0 .75rem; border-radius:.75rem;
+}
+.btn-action i{ font-size:1.05rem; line-height:1; vertical-align:middle; }
+
+/* Gradient buttons */
+.btn-gradient{
+  background:linear-gradient(90deg,#4f46e5,#22d3ee);
+  color:#fff!important; border:1px solid transparent;
+  box-shadow:0 6px 18px rgba(34,211,238,.25);
+  transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+.btn-gradient:hover{
+  filter:brightness(.97); box-shadow:0 10px 26px rgba(34,211,238,.35); transform:translateY(-1px);
+}
+.btn-gradient:active{ transform:translateY(0); box-shadow:0 4px 12px rgba(34,211,238,.25); }
+
+/* Price emphasis */
+.price.h5{ font-weight:800; letter-spacing:.2px; }
+
+/* Pagination cosmetics */
+.pagination .page-link{ border-radius:.5rem; }

@@ -7,6 +7,9 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Max
 from django.utils.text import slugify
+from django.core.exceptions import FieldError
+from django.db.models import Q
+import hashlib, json
 
 from models.models import Car
 
@@ -105,7 +108,6 @@ class CarListing(models.Model):
 
     # SEO
     slug = models.SlugField(max_length=180, unique=True, blank=True)
-    seller = models.ForeignKey(Seller, on_delete=models.PROTECT, related_name="cars")
     class Meta:
         ordering = ['-created_at']
 
@@ -263,3 +265,126 @@ class SavedSearch(models.Model):
 
     def newest_car_created(self):
         return self.queryset().aggregate(mx=Max("created"))["mx"]
+
+
+class SavedSearchHit(models.Model):
+    saved_search = models.ForeignKey(SavedSearch, on_delete=models.CASCADE, related_name="hits")
+    car = models.ForeignKey(Car, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    notified = models.BooleanField(default=True)  # True if an alert was sent for this hit
+    last_seen_car_created_at = models.DateTimeField(null=True, blank=True)
+    class Meta:
+        unique_together = (('saved_search', 'car'),)
+        indexes = [
+            models.Index(fields=['saved_search', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f"Hit for {self.saved_search.name or 'Search'} – Car #{self.car.id}"
+
+
+    @staticmethod
+    def hash_for(params: dict) -> str:
+        """
+        Stable SHA-1 over normalized params dict.
+        """
+        return hashlib.sha1(
+            json.dumps(params or {}, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+
+    def set_params(self, params: dict) -> None:
+        """
+        Normalize and store params + params_hash.
+        Allowed keys match your filters.
+        """
+        allowed = {
+            "make", "model_name", "body_type", "transmission", "fuel",
+            "price_min", "price_max", "mileage_max",
+            "is_featured", "is_new", "is_certified", "is_hot",
+        }
+        cleaned = {}
+        for k, v in (params or {}).items():
+            if k in allowed:
+                s = str(v).strip()
+                if s != "":
+                    cleaned[k] = s
+        self.params = cleaned
+        self.params_hash = self.hash_for(cleaned)
+
+    def queryset(self):
+        """
+        Build the base queryset from self.params using your field names:
+          make, model_name, body_type, transmission, fuel,
+          price_min, price_max, mileage_max, is_featured, is_new, is_certified, is_hot
+        NOTE: This references CarListing defined earlier in this file.
+        """
+        # CarListing is defined above in this same module
+        qs = CarListing.objects.filter(is_active=True)
+        p = (self.params or self.query_json or {})  # keep backward-compat
+
+        # helpers
+        def to_int(v):
+            try:
+                return int(str(v).replace(",", ""))
+            except Exception:
+                return None
+
+        def truthy(key):
+            return str(p.get(key, "")).lower() in {"1", "true", "yes", "on"}
+
+        # make (works whether CharField or FK to a Make with 'name')
+        if p.get("make"):
+            val = p["make"]
+            try:
+                qs = qs.filter(make__name__iexact=val)
+            except FieldError:
+                try:
+                    qs = qs.filter(make__iexact=val)
+                except FieldError:
+                    pass
+
+        # exact text fields
+        if p.get("model_name"):
+            qs = qs.filter(model_name__iexact=p["model_name"])
+        if p.get("body_type"):
+            qs = qs.filter(body_type__iexact=p["body_type"])
+        if p.get("transmission"):
+            qs = qs.filter(transmission__iexact=p["transmission"])
+        if p.get("fuel"):
+            qs = qs.filter(fuel__iexact=p["fuel"])
+
+        # numeric ranges
+        v = to_int(p.get("price_min"))
+        if v is not None:
+            qs = qs.filter(price__gte=v)
+        v = to_int(p.get("price_max"))
+        if v is not None:
+            qs = qs.filter(price__lte=v)
+        v = to_int(p.get("mileage_max"))
+        if v is not None:
+            qs = qs.filter(mileage__lte=v)
+
+        # boolean flags
+        if truthy("is_featured"):
+            qs = qs.filter(is_featured=True)
+        if truthy("is_new"):
+            qs = qs.filter(is_new=True)
+        if truthy("is_certified"):
+            qs = qs.filter(is_certified=True)
+        if truthy("is_hot"):
+            qs = qs.filter(is_hot=True)
+
+        # ordering: prefer '-created' if that field exists, else '-id'
+        has_created = any(f.name == "created" for f in CarListing._meta.fields)
+        return qs.order_by("-created" if has_created else "-id")
+
+    def new_matches_qs(self):
+        """
+        Return only listings newer than the watermark.
+        If no watermark, return the base queryset.
+        """
+        qs = self.queryset()
+        has_created = any(f.name == "created" for f in CarListing._meta.fields)
+        if self.last_seen_car_created_at and has_created:
+            qs = qs.filter(created__gt=self.last_seen_car_created_at)
+        return qs

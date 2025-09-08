@@ -35,4 +35,10 @@ urlpatterns = [
     path("listing/<slug:slug>/edit/", views.edit_listing, name="edit_listing_slug"),
     path("listing/<slug:slug>/delete/", views.delete_listing, name="delete_listing_slug"),
     path("listing/<slug:slug>/publish-toggle/", views.toggle_publish, name="toggle_publish_slug"),
+
+    path("saved-searches/", ssv.saved_search_list, name="saved_search_list"),
+    path("saved-search/create/", ssv.saved_search_create, name="saved_search_create"),
+    path("saved-search/<int:pk>/delete/", ssv.saved_search_delete, name="saved_search_delete"),
+    path("saved-searches/<int:pk>/new", ssv.saved_search_new, name="saved_search_new"),
+    path("saved-searches/<int:pk>/mark-read", ssv.saved_search_mark_read, name="saved_search_mark_read"),
 ]

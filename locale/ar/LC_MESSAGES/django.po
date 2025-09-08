@@ -1,9 +1,9 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: automart\n"
+"Project-Id-Version: AutoMart 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-07 18:05+0600\n"
-"PO-Revision-Date: 2025-09-07 18:05+0600\n"
+"POT-Creation-Date: 2025-09-07 19:26+0600\n"
+"PO-Revision-Date: 2025-09-07 00:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: bn\n"
@@ -12,266 +12,670 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-# --- index.html essentials ---
-msgid "Home – AutoMart"
-msgstr "হোম – অটোমার্ট"
+#: .\marketplace\admin.py:9 .\marketplace\admin.py:10
+msgid "Automart Admin"
+msgstr "অটোমার্ট অ্যাডমিন"
 
-msgid "Hero background carousel"
-msgstr "হিরো ব্যাকগ্রাউন্ড ক্যারাউসেল"
+#: .\marketplace\admin.py:11
+msgid "Dashboard"
+msgstr "ড্যাশবোর্ড"
 
-msgid "Find your next car with confidence."
-msgstr "নিশ্চিন্তে আপনার পরের গাড়িটি খুঁজে নিন।"
-
-msgid "Search thousands of verified listings, compare specs, and get financing—all in one place."
-msgstr "হাজারো যাচাইকৃত তালিকা খুঁজুন, স্পেক তুলনা করুন, আর ফাইন্যান্সিং পান—সব এক জায়গায়।"
-
-msgid "Browse Deals"
-msgstr "ডিল দেখুন"
-
-msgid "Filters"
-msgstr "ফিল্টার"
-
-msgid "Make"
-msgstr "মেক"
-
+#: .\marketplace\admin.py:38 .\models\forms.py:15 .\models\models.py:53
+#: .\templates\index.html:111 .\templates\index.html:751
 msgid "Model"
 msgstr "মডেল"
 
-msgid "Any"
-msgstr "যে-কোনো"
-
-msgid "e.g., Corolla"
-msgstr "যেমন: করোলা"
-
-msgid "Location"
-msgstr "অবস্থান"
-
-msgid "City or ZIP"
-msgstr "শহর বা জিপ"
-
-msgid "Max price"
-msgstr "সর্বোচ্চ দাম"
-
-msgid "No limit"
-msgstr "সীমাহীন"
-
-msgid "Search"
-msgstr "খুঁজুন"
-
-msgid "Quick Finance"
-msgstr "দ্রুত ফাইন্যান্স"
-
-msgid "Sell Your Car"
-msgstr "আপনার গাড়ি বিক্রি করুন"
-
-msgid "Featured Deals"
-msgstr "ফিচারড ডিল"
-
-msgid "View all"
-msgstr "সব দেখুন"
-
-msgid "New"
-msgstr "নতুন"
-
-msgid "Certified"
-msgstr "সার্টিফায়েড"
-
-msgid "Hot"
-msgstr "হট"
-
-msgid "mi"
-msgstr "মাইল"
-
-msgid "Dealer"
-msgstr "ডিলার"
-
-msgid "Est. payment"
-msgstr "আনুমানিক কিস্তি"
-
-msgid "View Details"
-msgstr "বিস্তারিত দেখুন"
-
-msgid "Wishlist"
-msgstr "ইচ্ছেতালিকা"
-
-msgid "Compare"
-msgstr "তুলনা"
-
-msgid "Test drive"
-msgstr "টেস্ট ড্রাইভ"
-
-msgid "No featured cars yet."
-msgstr "এখনও ফিচারড গাড়ি নেই।"
-
-msgid "All Listings"
-msgstr "সব লিস্টিং"
-
-msgid "Sort: Newest"
-msgstr "সাজান: নতুন আগে"
-
-msgid "Sort: Price (Low → High)"
-msgstr "সাজান: দাম (কম → বেশি)"
-
-msgid "Sort: Price (High → Low)"
-msgstr "সাজান: দাম (বেশি → কম)"
-
-msgid "Sort: Mileage (Low → High)"
-msgstr "সাজান: মাইলেজ (কম → বেশি)"
-
-msgid "View switch"
-msgstr "ভিউ পরিবর্তন"
-
-msgid "Featured"
-msgstr "ফিচারড"
-
-msgid "Under $20k"
-msgstr "$২০ হাজারের নিচে"
-
-msgid "Electric"
-msgstr "ইলেকট্রিক"
-
-msgid "Manual"
-msgstr "ম্যানুয়াল"
-
-msgid "Reset"
-msgstr "রিসেট"
-
-msgid "Featured ×"
-msgstr "ফিচারড ×"
-
-msgid "Fuel:"
-msgstr "জ্বালানি:"
-
-msgid "Trans:"
-msgstr "ট্রান্সমিশন:"
-
-msgid "Featured only"
-msgstr "শুধু ফিচারড"
-
-msgid "Price range ($)"
-msgstr "দাম সীমা ($)"
-
-msgid "Min"
-msgstr "সর্বনিম্ন"
-
-msgid "Max"
-msgstr "সর্বোচ্চ"
-
-msgid "Body type"
-msgstr "বডি টাইপ"
-
-msgid "Fuel"
-msgstr "জ্বালানি"
-
-msgid "Transmission"
-msgstr "ট্রান্সমিশন"
-
-msgid "Apply filters"
-msgstr "ফিল্টার প্রয়োগ করুন"
-
-msgid "Clear all"
-msgstr "সব মুছে দিন"
-
-msgid "EV"
-msgstr "ইভি"
-
-msgid "Add to cart"
-msgstr "কার্টে নিন"
-
-msgid "No cars found."
-msgstr "কোনও গাড়ি পাওয়া যায়নি।"
-
-msgid "Listings pagination"
-msgstr "লিস্টিং পেজিনেশন"
-
-msgid "Prev"
-msgstr "পূর্ববর্তী"
-
-msgid "Next"
-msgstr "পরবর্তী"
-
-msgid "Select up to 4 to compare"
-msgstr "তুলনার জন্য সর্বোচ্চ ৪টি বাছুন"
-
-msgid "Clear"
-msgstr "মুছুন"
-
-msgid "Compare Now"
-msgstr "এখন তুলনা করুন"
-
-msgid "Close"
-msgstr "বন্ধ"
-
-msgid "Compare Vehicles"
-msgstr "গাড়ি তুলনা"
-
-msgid "Spec"
-msgstr "স্পেস"
-
-msgid "Vehicle 1"
-msgstr "যানবাহন ১"
-
-msgid "Vehicle 2"
-msgstr "যানবাহন ২"
-
-msgid "Vehicle 3"
-msgstr "যানবাহন ৩"
-
-msgid "Vehicle 4"
-msgstr "যানবাহন ৪"
-
-msgid "Body"
-msgstr "বডি"
-
-msgid "Save Comparison"
-msgstr "তুলনা সংরক্ষণ"
-
-msgid "Sell your car"
-msgstr "আপনার গাড়ি বিক্রি করুন"
-
-msgid "Create a free listing in minutes. Add photos, set a price, and reach verified buyers."
-msgstr "কয়েক মিনিটেই ফ্রি লিস্টিং করুন। ছবি দিন, দাম ঠিক করুন, আর যাচাইকৃত ক্রেতাদের কাছে পৌঁছান।"
-
-msgid "Your email"
-msgstr "আপনার ইমেইল"
-
-msgid "Start Listing"
-msgstr "লিস্টিং শুরু করুন"
-
-msgid "Quick Finance Calculator"
-msgstr "দ্রুত ফাইন্যান্স ক্যালকুলেটর"
-
-msgid "Vehicle Price ($)"
-msgstr "যানবাহনের দাম ($)"
-
-msgid "Down Payment ($)"
-msgstr "ডাউন পেমেন্ট ($)"
-
-# keep double percent in python-format strings
-msgid "APR %%"
-msgstr "এপিআর %%"
-
-msgid "Term (months)"
-msgstr "মেয়াদ (মাস)"
-
-msgid "Monthly:"
-msgstr "মাসিক:"
-
-msgid "See Offers"
-msgstr "অফার দেখুন"
-
-# fuel/transmission labels used as values
+#: .\marketplace\admin.py:63
+msgid "Approve selected sellers"
+msgstr "নির্বাচিত বিক্রেতাদের অনুমোদন করুন"
+
+#: .\marketplace\admin.py:67
+msgid "Reject selected sellers"
+msgstr "নির্বাচিত বিক্রেতাদের বাতিল করুন"
+
+#: .\marketplace\admin.py:80
+msgid "Basic"
+msgstr "বেসিক"
+
+#: .\marketplace\admin.py:81 .\templates\index.html:89
+#: .\templates\index.html:318 .\templates\index.html:421
+#: .\templates\index.html:649
+msgid "Filters"
+msgstr "ফিল্টার"
+
+#: .\marketplace\admin.py:82
+msgid "System"
+msgstr "সিস্টেম"
+
+#: .\marketplace\admin.py:85
+msgid "New matches"
+msgstr "নতুন মিল"
+
+#: .\marketplace\admin.py:93
+msgid "Mark selected sellers as VERIFIED"
+msgstr "নির্বাচিত বিক্রেতাদের যাচাইকৃত হিসেবে চিহ্নিত করুন"
+
+#: .\marketplace\admin.py:97
+msgid "Mark selected sellers as UNVERIFIED"
+msgstr "নির্বাচিত বিক্রেতাদের অযাচাইকৃত হিসেবে চিহ্নিত করুন"
+
+#: .\models\forms.py:14 .\templates\index.html:101 .\templates\index.html:444
+#: .\templates\index.html:662 .\templates\index.html:750
+msgid "Make"
+msgstr "ব্র্যান্ড"
+
+#: .\models\forms.py:16 .\templates\index.html:752
+msgid "Year"
+msgstr "বছর"
+
+#: .\models\forms.py:17 .\models\models.py:58 .\templates\index.html:723
+#: .\templates\index.html:753
+msgid "Mileage"
+msgstr "মাইলেজ"
+
+#: .\models\forms.py:17
+msgid "Enter total miles on the car."
+msgstr "গাড়ির মোট মাইল লিখুন।"
+
+#: .\models\models.py:39 .\models\views.py:144 .\templates\index.html:692
 msgid "Automatic"
 msgstr "অটোমেটিক"
 
+#: .\models\models.py:40 .\models\views.py:145 .\templates\index.html:366
+#: .\templates\index.html:539 .\templates\index.html:692
+msgid "Manual"
+msgstr "ম্যানুয়াল"
+
+#: .\models\models.py:41 .\models\views.py:146 .\templates\index.html:692
 msgid "CVT"
 msgstr "সিভিটি"
 
+#: .\models\models.py:44 .\models\views.py:138 .\templates\index.html:685
 msgid "Petrol"
-msgstr "পেট্রোল"
+msgstr "পেট্রল"
 
+#: .\models\models.py:45 .\models\views.py:139 .\templates\index.html:685
 msgid "Diesel"
 msgstr "ডিজেল"
 
+#: .\models\models.py:46 .\models\views.py:140 .\templates\index.html:685
 msgid "Hybrid"
 msgstr "হাইব্রিড"
+
+#: .\models\models.py:47 .\models\views.py:141 .\models\views.py:166
+#: .\templates\index.html:80 .\templates\index.html:358
+#: .\templates\index.html:685
+msgid "Electric"
+msgstr "ইলেকট্রিক"
+
+#: .\models\models.py:51
+msgid "Title"
+msgstr "শিরোনাম"
+
+#: .\models\models.py:57 .\templates\index.html:722
+msgid "Price"
+msgstr "মূল্য"
+
+#: .\models\models.py:58
+msgid "Miles"
+msgstr "মাইল"
+
+#: .\models\models.py:59 .\templates\index.html:481 .\templates\index.html:689
+#: .\templates\index.html:725
+msgid "Transmission"
+msgstr "ট্রান্সমিশন"
+
+#: .\models\models.py:60 .\templates\index.html:471 .\templates\index.html:682
+#: .\templates\index.html:724
+msgid "Fuel"
+msgstr "জ্বালানি"
+
+#: .\models\models.py:66 .\templates\index.html:354 .\templates\index.html:508
+msgid "Featured"
+msgstr "বৈশিষ্ট্যযুক্ত"
+
+#: .\models\models.py:66
+msgid "Show this car in the Featured section"
+msgstr "এই গাড়িটি বৈশিষ্ট্যযুক্ত অংশে দেখান"
+
+#: .\models\models.py:67 .\templates\index.html:182 .\templates\index.html:509
+msgid "New"
+msgstr "নতুন"
+
+#: .\models\models.py:68 .\models\views.py:163 .\templates\index.html:77
+#: .\templates\index.html:183 .\templates\index.html:540
+msgid "Certified"
+msgstr "সার্টিফায়েড"
+
+#: .\models\models.py:69 .\templates\index.html:184 .\templates\index.html:510
+msgid "Hot"
+msgstr "জনপ্রিয়"
+
+#: .\models\models.py:72
+msgid "Overview"
+msgstr "সংক্ষিপ্ত বিবরণ"
+
+#: .\models\models.py:73
+msgid "History"
+msgstr "ইতিহাস"
+
+#: .\models\models.py:74
+msgid "Seller name"
+msgstr "বিক্রেতার নাম"
+
+#: .\models\models.py:75
+msgid "Seller info"
+msgstr "বিক্রেতার তথ্য"
+
+#: .\models\models.py:76
+msgid "Seller email"
+msgstr "বিক্রেতার ইমেইল"
+
+#: .\models\models.py:77
+msgid "Seller phone"
+msgstr "বিক্রেতার ফোন"
+
+#: .\models\models.py:83 .\models\views.py:641
+msgid "Car"
+msgstr "গাড়ি"
+
+#: .\models\models.py:84
+msgid "Cars"
+msgstr "গাড়িসমূহ"
+
+#: .\models\models.py:96
+msgid "Helpful"
+msgstr "সহায়ক"
+
+#: .\models\models.py:97
+msgid "Report"
+msgstr "রিপোর্ট"
+
+#: .\models\views.py:162 .\templates\index.html:76
+msgid "New arrivals"
+msgstr "নতুন আগমন"
+
+#: .\models\views.py:164 .\templates\index.html:78 .\templates\index.html:362
+msgid "Under $20k"
+msgstr "$20k-এর নিচে"
+
+#: .\models\views.py:165 .\templates\index.html:79
+msgid "SUV"
+msgstr "এসইউভি"
+
+#: .\models\views.py:270
+msgid "Car not found"
+msgstr "গাড়ি পাওয়া যায়নি"
+
+#: .\models\views.py:474
+#, python-format
+msgid "Hi! I am interested in %(title)s"
+msgstr "হ্যালো! আমি %(title)s-এ আগ্রহী"
+
+#: .\models\views.py:475
+msgid "this car"
+msgstr "এই গাড়িটি"
+
+#: .\models\views.py:524
+msgid "Missing car id"
+msgstr "গাড়ির আইডি অনুপস্থিত"
+
+#: .\models\views.py:540
+msgid "Thank you! Your review has been updated."
+msgstr "ধন্যবাদ! আপনার রিভিউ আপডেট করা হয়েছে।"
+
+#: .\models\views.py:550
+msgid "Thank you! Your review has been submitted."
+msgstr "ধন্যবাদ! আপনার রিভিউ জমা হয়েছে।"
+
+#: .\models\views.py:562
+msgid "Please enter a recipient email."
+msgstr "অনুগ্রহ করে প্রাপকের ইমেইল লিখুন।"
+
+#: .\models\views.py:567
+msgid "That doesn't look like a valid email address."
+msgstr "এটি বৈধ ইমেইল ঠিকানার মতো দেখাচ্ছে না।"
+
+#: .\models\views.py:571
+#, python-format
+msgid "Check this car: %(title)s"
+msgstr "এই গাড়িটি দেখুন: %(title)s"
+
+#: .\models\views.py:573
+msgid "Someone"
+msgstr "কেউ একজন"
+
+#: .\models\views.py:576
+#, python-format
+msgid "%(who)s wanted to share this car with you:"
+msgstr "%(who)s আপনার সাথে এই গাড়িটি শেয়ার করতে চেয়েছে:"
+
+#: .\models\views.py:582
+msgid "Message:"
+msgstr "বার্তা:"
+
+#: .\models\views.py:587
+msgid "Shared by email."
+msgstr "ইমেইলে শেয়ার করা হয়েছে।"
+
+#: .\models\views.py:639
+#, python-format
+msgid "New Test Drive Request — %(title)s"
+msgstr "নতুন টেস্ট ড্রাইভ অনুরোধ — %(title)s"
+
+#: .\models\views.py:642
+msgid "Name"
+msgstr "নাম"
+
+#: .\models\views.py:643
+msgid "Email"
+msgstr "ইমেইল"
+
+#: .\models\views.py:644
+msgid "Phone"
+msgstr "ফোন"
+
+#: .\models\views.py:645
+msgid "When"
+msgstr "কবে"
+
+#: .\models\views.py:646
+msgid "Notes"
+msgstr "নোট"
+
+#: .\models\views.py:759
+msgid "Marked helpful."
+msgstr "সহায়ক হিসেবে চিহ্নিত করা হয়েছে।"
+
+#: .\models\views.py:762
+msgid "Removed your like."
+msgstr "আপনার পছন্দ মুছে ফেলা হয়েছে।"
+
+#: .\models\views.py:782
+msgid "Reported."
+msgstr "রিপোর্ট করা হয়েছে।"
+
+#: .\models\views.py:785
+msgid "Removed your report."
+msgstr "আপনার রিপোর্ট মুছে ফেলা হয়েছে।"
+
+#: .\preferences\views.py:40
+msgid "Hello from Python"
+msgstr "পাইথন থেকে শুভেচ্ছা"
+
+#: .\templates\index.html:7
+msgid "Home – AutoMart"
+msgstr "হোম – অটোমার্ট"
+
+#: .\templates\index.html:19
+msgid "Hero background carousel"
+msgstr "হিরো ব্যাকগ্রাউন্ড ক্যারোসেল"
+
+#: .\templates\index.html:23
+#, python-format
+msgid "Hero slide %(n)s"
+msgstr "হিরো স্লাইড %(n)s"
+
+#: .\templates\index.html:28
+msgid "Default hero"
+msgstr "ডিফল্ট হিরো"
+
+#: .\templates\index.html:41
+#, python-format
+msgid "Slide %(n)s"
+msgstr "স্লাইড %(n)s"
+
+#: .\templates\index.html:47
+msgid "Previous slide"
+msgstr "পূর্বের স্লাইড"
+
+#: .\templates\index.html:50
+msgid "Next slide"
+msgstr "পরবর্তী স্লাইড"
+
+#: .\templates\index.html:64
+msgid "Find your next car with confidence."
+msgstr "আত্মবিশ্বাসের সাথে আপনার পরবর্তী গাড়ি খুঁজুন।"
+
+#: .\templates\index.html:65
+msgid ""
+"Search thousands of verified listings, compare specs, and get financing—all "
+"in one place."
+msgstr ""
+"হাজারো যাচাইকৃত তালিকা অনুসন্ধান করুন, স্পেসিফিকেশন তুলনা করুন এবং ফাইন্যান্সিং পান—"
+"সব এক জায়গায়।"
+
+#: .\templates\index.html:86
+msgid "Browse Deals"
+msgstr "ডিল দেখুন"
+
+#: .\templates\index.html:103 .\templates\index.html:446
+#: .\templates\index.html:473 .\templates\index.html:483
+#: .\templates\index.html:664 .\templates\index.html:684
+#: .\templates\index.html:691
+msgid "Any"
+msgstr "যেকোনো"
+
+#: .\templates\index.html:112
+msgid "e.g., Corolla"
+msgstr "উদাহরণ: Corolla"
+
+#: .\templates\index.html:116
+msgid "Location"
+msgstr "অবস্থান"
+
+#: .\templates\index.html:117
+msgid "City or ZIP"
+msgstr "শহর বা ZIP"
+
+#: .\templates\index.html:121
+msgid "Max price"
+msgstr "সর্বোচ্চ দাম"
+
+#: .\templates\index.html:123
+msgid "No limit"
+msgstr "সীমাহীন"
+
+#: .\templates\index.html:134
+msgid "Search"
+msgstr "অনুসন্ধান"
+
+#: .\templates\index.html:136
+msgid "Quick Finance"
+msgstr "দ্রুত অর্থায়ন"
+
+#: .\templates\index.html:139
+msgid "Sell Your Car"
+msgstr "আপনার গাড়ি বিক্রি করুন"
+
+#: .\templates\index.html:158
+msgid "Featured Deals"
+msgstr "বৈশিষ্ট্যযুক্ত ডিল"
+
+#: .\templates\index.html:160
+msgid "View all"
+msgstr "সব দেখুন"
+
+#: .\templates\index.html:172 .\templates\index.html:175
+#: .\templates\index.html:571
+msgid "Share"
+msgstr "শেয়ার"
+
+#: .\templates\index.html:206 .\templates\index.html:531
+msgid "mi"
+msgstr "মাইল"
+
+#: .\templates\index.html:216
+msgid "Dealer"
+msgstr "বিক্রেতা"
+
+#: .\templates\index.html:227
+msgid "Est. payment"
+msgstr "আনুমানিক কিস্তি"
+
+#: .\templates\index.html:254 .\templates\index.html:582
+msgid "View Details"
+msgstr "বিস্তারিত দেখুন"
+
+#: .\templates\index.html:264 .\templates\index.html:553
+msgid "Wishlist"
+msgstr "ইচ্ছেতালিকা"
+
+#: .\templates\index.html:275 .\templates\index.html:564
+msgid "Compare"
+msgstr "তুলনা করুন"
+
+#: .\templates\index.html:282
+msgid "Test drive"
+msgstr "টেস্ট ড্রাইভ"
+
+#: .\templates\index.html:291
+msgid "No featured cars yet."
+msgstr "এখনো কোন বৈশিষ্ট্যযুক্ত গাড়ি নেই।"
+
+#: .\templates\index.html:307
+msgid "All Listings"
+msgstr "সমস্ত লিস্টিং"
+
+#: .\templates\index.html:310
+#, python-format
+msgid "Showing %(start)s–%(end)s of %(total)s cars"
+msgstr "মোট %(total)s গাড়ির মধ্যে %(start)s–%(end)s দেখানো হচ্ছে"
+
+#: .\templates\index.html:333
+msgid "Sort: Newest"
+msgstr "সাজানো: নতুন প্রথম"
+
+#: .\templates\index.html:334
+msgid "Sort: Price (Low → High)"
+msgstr "সাজানো: দাম (কম → বেশি)"
+
+#: .\templates\index.html:335
+msgid "Sort: Price (High → Low)"
+msgstr "সাজানো: দাম (বেশি → কম)"
+
+#: .\templates\index.html:336
+msgid "Sort: Mileage (Low → High)"
+msgstr "সাজানো: মাইলেজ (কম → বেশি)"
+
+#: .\templates\index.html:341
+msgid "View switch"
+msgstr "ভিউ পরিবর্তন"
+
+#: .\templates\index.html:370
+msgid "Reset"
+msgstr "রিসেট"
+
+#: .\templates\index.html:380
+msgid "Featured ×"
+msgstr "বৈশিষ্ট্যযুক্ত ×"
+
+#: .\templates\index.html:386
+#, python-format
+msgid "Price: %(min)s–%(max)s ×"
+msgstr "দাম: %(min)s–%(max)s ×"
+
+#: .\templates\index.html:392
+#, python-format
+msgid "Make: %(m)s ×"
+msgstr "ব্র্যান্ড: %(m)s ×"
+
+#: .\templates\index.html:398
+#, python-format
+msgid "Body: %(body)s ×"
+msgstr "বডি: %(body)s ×"
+
+#: .\templates\index.html:404
+msgid "Fuel:"
+msgstr "জ্বালানি:"
+
+#: .\templates\index.html:410
+msgid "Trans:"
+msgstr "ট্রান্স:"
+
+#: .\templates\index.html:430
+msgid "Featured only"
+msgstr "শুধুমাত্র বৈশিষ্ট্যযুক্ত"
+
+#: .\templates\index.html:434 .\templates\index.html:655
+msgid "Price range ($)"
+msgstr "মূল্য পরিসর ($)"
+
+#: .\templates\index.html:437 .\templates\index.html:657
+msgid "Min"
+msgstr "ন্যূনতম"
+
+#: .\templates\index.html:439 .\templates\index.html:658
+msgid "Max"
+msgstr "সর্বোচ্চ"
+
+#: .\templates\index.html:454 .\templates\index.html:671
+msgid "Body type"
+msgstr "বডি টাইপ"
+
+#: .\templates\index.html:491 .\templates\index.html:695
+msgid "Apply filters"
+msgstr "ফিল্টার প্রয়োগ করুন"
+
+#: .\templates\index.html:492
+msgid "Clear all"
+msgstr "সব মুছে ফেলুন"
+
+#: .\templates\index.html:538
+msgid "EV"
+msgstr "ইভি"
+
+#: .\templates\index.html:574
+msgid "Add to cart"
+msgstr "কার্টে যুক্ত করুন"
+
+#: .\templates\index.html:591
+msgid "No cars found."
+msgstr "কোনো গাড়ি পাওয়া যায়নি।"
+
+#: .\templates\index.html:598
+msgid "Listings pagination"
+msgstr "তালিকা পেজিং"
+
+#: .\templates\index.html:602 .\templates\index.html:605
+msgid "Prev"
+msgstr "পূর্ববর্তী"
+
+#: .\templates\index.html:620 .\templates\index.html:623
+msgid "Next"
+msgstr "পরবর্তী"
+
+#: .\templates\index.html:639
+msgid "Select up to 4 to compare"
+msgstr "তুলনা করার জন্য সর্বোচ্চ ৪টি নির্বাচন করুন"
+
+#: .\templates\index.html:640
+msgid "Clear"
+msgstr "পরিষ্কার"
+
+#: .\templates\index.html:641
+msgid "Compare Now"
+msgstr "এখনই তুলনা করুন"
+
+#: .\templates\index.html:650 .\templates\index.html:707
+#: .\templates\index.html:732 .\templates\index.html:745
+#: .\templates\index.html:768
+msgid "Close"
+msgstr "বন্ধ করুন"
+
+#: .\templates\index.html:706
+msgid "Compare Vehicles"
+msgstr "গাড়ি তুলনা করুন"
+
+#: .\templates\index.html:714
+msgid "Spec"
+msgstr "স্পেসিফিকেশন"
+
+#: .\templates\index.html:715
+msgid "Vehicle 1"
+msgstr "যান ১"
+
+#: .\templates\index.html:716
+msgid "Vehicle 2"
+msgstr "যান ২"
+
+#: .\templates\index.html:717
+msgid "Vehicle 3"
+msgstr "যান ৩"
+
+#: .\templates\index.html:718
+msgid "Vehicle 4"
+msgstr "যান ৪"
+
+#: .\templates\index.html:726
+msgid "Body"
+msgstr "বডি"
+
+#: .\templates\index.html:733
+msgid "Save Comparison"
+msgstr "তুলনা সংরক্ষণ করুন"
+
+#: .\templates\index.html:744
+msgid "Sell your car"
+msgstr "আপনার গাড়ি বিক্রি করুন"
+
+#: .\templates\index.html:748
+msgid ""
+"Create a free listing in minutes. Add photos, set a price, and reach "
+"verified buyers."
+msgstr ""
+"মিনিটের মধ্যে একটি বিনামূল্যের লিস্টিং তৈরি করুন। ছবি যোগ করুন, মূল্য নির্ধারণ করুন "
+"এবং যাচাইকৃত ক্রেতাদের কাছে পৌঁছান।"
+
+#: .\templates\index.html:754
+msgid "Your email"
+msgstr "আপনার ইমেইল"
+
+#: .\templates\index.html:755
+msgid "Start Listing"
+msgstr "লিস্টিং শুরু করুন"
+
+#: .\templates\index.html:767
+msgid "Quick Finance Calculator"
+msgstr "দ্রুত ফাইন্যান্স ক্যালকুলেটর"
+
+#: .\templates\index.html:774
+msgid "Vehicle Price ($)"
+msgstr "গাড়ির মূল্য ($)"
+
+#: .\templates\index.html:778
+msgid "Down Payment ($)"
+msgstr "অগ্রিম প্রদান ($)"
+
+#: .\templates\index.html:782
+#, python-format
+msgid "APR %%"
+msgstr "এপিআর %%"
+
+#: .\templates\index.html:786
+msgid "Term (months)"
+msgstr "মেয়াদ (মাস)"
+
+#: .\templates\index.html:792
+msgid "Monthly:"
+msgstr "মাসিক:"
+
+#: .\templates\index.html:794
+msgid "See Offers"
+msgstr "অফার দেখুন"
+
+#: .\templates\preferences\i18n_test.html:8
+#: .\templates\preferences\settings.html:4
+#: .\templates\preferences\settings.html:8
+msgid "Settings"
+msgstr "সেটিংস"
+
+#: .\templates\preferences\i18n_test.html:9
+#: .\templates\preferences\settings.html:35
+msgid "Pick a language and click Save. The site reloads in that language."
+msgstr "ভাষা বেছে নিয়ে সেভ করুন। সাইটটি সেই ভাষায় পুনরায় লোড হবে।"
+
+#: .\templates\preferences\i18n_test.html:13
+#, python-format
+msgid "Total: %(amount)s BDT"
+msgstr "মোট: %(amount)s টাকা"
+
+#: .\templates\preferences\settings.html:16
+msgid "Language"
+msgstr "ভাষা"
+
+#: .\templates\preferences\settings.html:31
+msgid "Save Language"
+msgstr "ভাষা সংরক্ষণ"
+
+#: .\templates\preferences\settings.html:45
+msgid "Currency"
+msgstr "মুদ্রা"
+
+#: .\templates\preferences\settings.html:54
+msgid "Save Currency"
+msgstr "মুদ্রা সংরক্ষণ"
+
+#: .\templates\preferences\settings.html:58
+msgid "Prices on the site will display using this currency symbol."
+msgstr "সাইটে এই মুদ্রার প্রতীক ব্যবহার করে দাম দেখানো হবে।"

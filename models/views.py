@@ -134,8 +134,17 @@ def index(request):
         "userprofile": userprofile,
         "body_types": m.BodyType.objects.all(),
         # Choice tuples: (code, label) → template shows translated label but submits code
-        "fuel_choices": m.Car.FUEL_CHOICES,
-        "transmission_choices": m.Car.TRANSMISSION_CHOICES,
+        "fuel_choices": [
+            ("Petrol", _("Petrol")),
+            ("Diesel", _("Diesel")),
+            ("Hybrid", _("Hybrid")),
+            ("Electric", _("Electric")),
+        ],
+        "transmission_choices": [
+            ("Automatic", _("Automatic")),
+            ("Manual", _("Manual")),
+            ("CVT", _("CVT")),
+        ],
         "active_car": active_car,
         "seller_image": seller_image,
         "q": {

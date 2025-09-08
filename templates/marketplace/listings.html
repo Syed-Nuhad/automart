@@ -4,6 +4,40 @@
 <div class="container py-4">
   <h1 class="h4 mb-3">Cars for sale</h1>
 
+  {# ===== Save this search (toolbar) ===== #}
+  <div class="d-flex justify-content-end mb-3">
+    {% if user.is_authenticated %}
+      <button class="btn btn-outline-primary no-print"
+              onclick="document.getElementById('saveSearchForm').submit()">
+        <i class="bi bi-bell"></i> Save this search
+      </button>
+    {% else %}
+      <a class="btn btn-outline-primary no-print"
+         href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">
+        Sign in to save search
+      </a>
+    {% endif %}
+  </div>
+
+  {% if user.is_authenticated %}
+  <form id="saveSearchForm"
+        action="{% url 'marketplace:saved_search_create' %}"
+        method="post" class="d-none">
+    {% csrf_token %}
+    <input type="hidden" name="name" value="{{ request.GET.q|default:'My search' }}">
+
+    {# mirror your current GET filter keys #}
+    {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+    {% if request.GET.make %}<input type="hidden" name="make" value="{{ request.GET.make }}">{% endif %}
+    {% if request.GET.model %}<input type="hidden" name="model" value="{{ request.GET.model }}">{% endif %}
+    {% if request.GET.mileage_max %}<input type="hidden" name="mileage_max" value="{{ request.GET.mileage_max }}">{% endif %}
+    {% if request.GET.price_min %}<input type="hidden" name="price_min" value="{{ request.GET.price_min }}">{% endif %}
+    {% if request.GET.price_max %}<input type="hidden" name="price_max" value="{{ request.GET.price_max }}">{% endif %}
+    {% if request.GET.fuel %}<input type="hidden" name="fuel" value="{{ request.GET.fuel }}">{% endif %}
+    {% if request.GET.trans %}<input type="hidden" name="trans" value="{{ request.GET.trans }}">{% endif %}
+  </form>
+  {% endif %}
+
   <form class="row g-2 mb-3" method="get">
     <div class="col-sm-6 col-md-3">
       <input type="text" name="q" value="{{ query.q }}" class="form-control" placeholder="Search title, make, model">

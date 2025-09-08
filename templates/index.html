@@ -91,66 +91,12 @@
         </div>
       </div>
 
-      <!-- Right: Primary search form -->
-      <div class="col-lg-6">
-        <div class="p-3 p-md-4 wf-card wf-shadow rounded-3" style="background-color: rgba(0,0,0,.35);">
-          <form id="primarySearchForm" method="get" action="{% url 'home' %}#results">
-            <div class="row g-2 g-md-3">
-              <!-- Make -->
-              <div class="col-md-6">
-                <label class="form-label text-white">{% trans "Make" %}</label>
-                <select class="form-select bg-dark text-white border-light" name="make">
-                  <option value="">{% trans "Any" %}</option>
-                  {% for make in makes %}
-                    <option value="{{ make.slug }}" {% if q.make == make.slug %}selected{% endif %}>{{ make.name }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <!-- Model -->
-              <div class="col-md-6">
-                <label class="form-label text-white">{% trans "Model" %}</label>
-                <input class="form-control bg-dark text-white border-light" name="model" value="{{ q.model }}" placeholder="{% trans 'e.g., Corolla' %}">
-              </div>
-              <!-- Location -->
-              <div class="col-md-6">
-                <label class="form-label text-white">{% trans "Location" %}</label>
-                <input class="form-control bg-dark text-white border-light" name="location" value="{{ q.location }}" placeholder="{% trans 'City or ZIP' %}">
-              </div>
-              <!-- Max price -->
-              <div class="col-md-6">
-                <label class="form-label text-white">{% trans "Max price" %}</label>
-                <select class="form-select bg-dark text-white border-light" name="max_price">
-                  <option value="">{% trans "No limit" %}</option>
-                  <option value="10000" {% if q.max_price == "10000" %}selected{% endif %}>$10,000</option>
-                  <option value="20000" {% if q.max_price == "20000" %}selected{% endif %}>$20,000</option>
-                  <option value="30000" {% if q.max_price == "30000" %}selected{% endif %}>$30,000</option>
-                  <option value="50000" {% if q.max_price == "50000" %}selected{% endif %}>$50,000</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="d-flex align-items-center gap-2 mt-3">
-              <button class="btn btn-primary flex-grow-1" type="submit">
-                <i class="bi bi-search me-1"></i> {% trans "Search" %}
-              </button>
-              <button class="btn btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#financeCalcModal" aria-label="{% trans 'Quick Finance' %}">
-                <i class="bi bi-calculator"></i>
-              </button>
-              <button class="btn btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#sellModal" aria-label="{% trans 'Sell Your Car' %}">
-                <i class="bi bi-cash-coin"></i>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
     </div>
   </div>
 </section>
 
 
-
-<!-- ============================== FEATURED ============================== -->
+{# ============================== FEATURED ============================== #}
 <section class="py-5">
   <div class="container">
 
@@ -161,141 +107,290 @@
       </a>
     </div>
 
-    <div class="row g-3 g-md-4">
-      {% for car in featured_cars %}
-      <div class="col-sm-6 col-lg-3">
-        <div class="card h-100 card-neo position-relative overflow-hidden">
 
-          <!-- Hover quick actions -->
-          <div class="position-absolute top-0 end-0 m-2 d-flex gap-1 z-3">
-            <button class="btn btn-sm btn-glass icon-chip share-card"
-                    aria-label="{% trans 'Share' %}"
-                    data-id="{{ car.id }}"
-                    data-url="{% url 'car_detail' car.id %}"
-                    data-bs-toggle="tooltip" title="{% trans 'Share' %}">
-              <i class="bi bi-share"></i>
-            </button>
-          </div>
 
-          <!-- Badges -->
-          <div class="position-absolute start-0 top-0 m-2 d-flex flex-wrap gap-1 z-3">
-            {% if car.is_new %}<span class="badge bg-primary text-white badge-modern new">{% trans "New" %}</span>{% endif %}
-            {% if car.is_certified %}<span class="badge bg-success badge-modern certified">{% trans "Certified" %}</span>{% endif %}
-            {% if car.is_hot %}<span class="badge bg-danger badge-modern hot">{% trans "Hot" %}</span>{% endif %}
-          </div>
+    {% if featured_cars|length > 4 %}
+      {# ===== Carousel mode (more than 4) ===== #}
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
+      <div class="position-relative">
+        <div id="featuredSwiper" class="swiper">
+          <div class="swiper-wrapper">
+            {% for car in featured_cars %}
+              <div class="swiper-slide">
+                <div class="card h-100 card-neo position-relative overflow-hidden">
 
-          <!-- Cover image -->
-          <img
-            class="card-img-top car-img wf-skel"
-            src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
-            alt="{{ car.title }}"
-            style="aspect-ratio:16/10;object-fit:cover;"
-          >
+                  <!-- Hover quick actions -->
+                  <div class="position-absolute top-0 end-0 m-2 d-flex gap-1 z-3">
+                    <button class="btn btn-sm btn-glass icon-chip share-card"
+                            aria-label="{% trans 'Share' %}"
+                            data-id="{{ car.id }}"
+                            data-url="{% url 'car_detail' car.id %}"
+                            data-bs-toggle="tooltip" title="{% trans 'Share' %}">
+                      <i class="bi bi-share"></i>
+                    </button>
+                  </div>
 
-          <div class="card-body">
-            <h5 class="card-title mb-1">{{ car.title }}</h5>
+                  <!-- Badges -->
+                  <div class="position-absolute start-0 top-0 m-2 d-flex flex-wrap gap-1 z-3">
+                    {% if car.is_new %}<span class="badge bg-primary text-white badge-modern new">{% trans "New" %}</span>{% endif %}
+                    {% if car.is_certified %}<span class="badge bg-success badge-modern certified">{% trans "Certified" %}</span>{% endif %}
+                    {% if car.is_hot %}<span class="badge bg-danger badge-modern hot">{% trans "Hot" %}</span>{% endif %}
+                  </div>
 
-            <!-- Tiny meta -->
-            <div class="small text-secondary mb-2 d-flex flex-wrap gap-2">
-              {% if car.make %}<span class="icon-chip"><i class="bi bi-buildings"></i>{{ car.make.name }}</span>{% endif %}
-              {% if car.body_type %}<span class="icon-chip"><i class="bi bi-truck"></i>{{ car.body_type.name }}</span>{% endif %}
-            </div>
+                  <!-- Cover image -->
+                  <img
+                    class="card-img-top car-img wf-skel"
+                    src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
+                    alt="{{ car.title }}"
+                    style="aspect-ratio:16/10;object-fit:cover;" loading="lazy">
 
-            <!-- Spec line -->
-            <p class="card-text small text-secondary mb-2">
-              {% if car.mileage %}{{ car.mileage|floatformat:0 }} {% trans "mi" %}{% else %}—{% endif %}
-              • {% if car.get_transmission_display %}{{ car.get_transmission_display }}{% else %}{% if car.transmission %}{% trans car.transmission %}{% else %}—{% endif %}{% endif %}
-              • {% if car.get_fuel_display %}{{ car.get_fuel_display }}{% else %}{% if car.fuel %}{% trans car.fuel %}{% else %}—{% endif %}{% endif %}
-            </p>
+                  <div class="card-body">
+                    <h5 class="card-title mb-1">{{ car.title }}</h5>
 
-            <!-- Dealer (optional) -->
-            {% if car.seller_name or car.seller_meta %}
-              <div class="d-flex align-items-center gap-2 small text-secondary mb-2">
-                <i class="bi bi-shop"></i>
-                <span class="text-truncate" title="{{ car.seller_name }} {{ car.seller_meta }}">
-                  {{ car.seller_name|default:_("Dealer") }}{% if car.seller_meta %} • {{ car.seller_meta }}{% endif %}
-                </span>
+                    <!-- Tiny meta -->
+                    <div class="small text-secondary mb-2 d-flex flex-wrap gap-2">
+                      {% if car.make %}<span class="icon-chip"><i class="bi bi-buildings"></i>{{ car.make.name }}</span>{% endif %}
+                      {% if car.body_type %}<span class="icon-chip"><i class="bi bi-truck"></i>{{ car.body_type.name }}</span>{% endif %}
+                    </div>
+
+                    <!-- Spec line -->
+                    <p class="card-text small text-secondary mb-2">
+                      {% if car.mileage %}{{ car.mileage|floatformat:0 }} {% trans "mi" %}{% else %}—{% endif %}
+                      • {% if car.get_transmission_display %}{{ car.get_transmission_display }}{% else %}{% if car.transmission %}{% trans car.transmission %}{% else %}—{% endif %}{% endif %}
+                      • {% if car.get_fuel_display %}{{ car.get_fuel_display }}{% else %}{% if car.fuel %}{% trans car.fuel %}{% else %}—{% endif %}{% endif %}
+                    </p>
+
+                    <!-- Dealer (optional) -->
+                    {% if car.seller_name or car.seller_meta %}
+                      <div class="d-flex align-items-center gap-2 small text-secondary mb-2">
+                        <i class="bi bi-shop"></i>
+                        <span class="text-truncate" title="{{ car.seller_name }} {{ car.seller_meta }}">
+                          {{ car.seller_name|default:_("Dealer") }}{% if car.seller_meta %} • {{ car.seller_meta }}{% endif %}
+                        </span>
+                      </div>
+                    {% endif %}
+
+                    <!-- Price -->
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="price h5 mb-0">
+                        {% if car.price %}${{ car.price|floatformat:0 }}{% else %}—{% endif %}
+                      </div>
+                      {% if car.price %}
+                        <span class="badge text-bg-light border">{% trans "Est. payment" %}</span>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div class="card-footer bg-white border-0">
+                    <!-- View details (opens modal) -->
+                    <button
+                      class="btn btn-sm btn-outline-primary w-100 view-details"
+                      data-bs-toggle="modal"
+                      data-bs-target="#carDetailModal"
+                      data-id="{{ car.id }}"
+                      data-title="{{ car.title }}"
+                      data-price="{{ car.price }}"
+                      data-mileage="{{ car.mileage }}"
+                      data-transmission="{{ car.transmission }}"
+                      data-fuel="{{ car.fuel }}"
+                      {% if car.make %}data-make="{{ car.make.name }}"{% endif %}
+                      {% if car.model_name %}data-model="{{ car.model_name }}"{% endif %}
+                      {% if car.body_type %}data-body="{{ car.body_type.name }}"{% endif %}
+                      {% if car.overview %}data-overview="{{ car.overview|escapejs }}"{% endif %}
+                      {% if car.history %}data-history="{{ car.history|escapejs }}"{% endif %}
+                      {% if car.seller_name %}data-seller-name="{{ car.seller_name|escapejs }}"{% endif %}
+                      {% if car.seller_meta %}data-seller-meta="{{ car.seller_meta|escapejs }}"{% endif %}
+                      {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}
+                      data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
+                    >
+                      <i class="bi bi-eye me-1"></i> {% trans "View Details" %}
+                    </button>
+
+                    <!-- Inline actions -->
+                    <div class="d-flex gap-2 mt-2">
+                      <!-- Wishlist -->
+                      <form method="post" action="{% url 'toggle_wishlist' car.id %}" class="flex-fill">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
+                          <i class="bi bi-heart"></i><span>{% trans "Wishlist" %}</span>
+                        </button>
+                      </form>
+
+                      <!-- Compare -->
+                      <form method="post"
+                            action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
+                            class="flex-fill">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
+                          <i class="bi bi-plus-square"></i><span>{% trans "Compare" %}</span>
+                        </button>
+                      </form>
+
+                      <!-- Test drive -->
+                      <a class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                         href="{% url 'test_drive' car.id %}">
+                        <i class="bi bi-car-front-fill"></i>
+                      </a>
+                    </div>
+                  </div>
+
+                </div>
               </div>
-            {% endif %}
-
-            <!-- Price -->
-            <div class="d-flex align-items-center justify-content-between">
-              <div class="price h5 mb-0">
-                {% if car.price %}${{ car.price|floatformat:0 }}{% else %}—{% endif %}
-              </div>
-              {% if car.price %}
-                <span class="badge text-bg-light border">{% trans "Est. payment" %}</span>
-              {% endif %}
-            </div>
+            {% endfor %}
           </div>
 
-          <div class="card-footer bg-white border-0">
-            <!-- View details (opens modal) -->
-            <button
-              class="btn btn-sm btn-outline-primary w-100 view-details"
-              data-bs-toggle="modal"
-              data-bs-target="#carDetailModal"
-              data-id="{{ car.id }}"
-              data-title="{{ car.title }}"
-              data-price="{{ car.price }}"
-              data-mileage="{{ car.mileage }}"
-              data-transmission="{{ car.transmission }}"
-              data-fuel="{{ car.fuel }}"
-              {% if car.make %}data-make="{{ car.make.name }}"{% endif %}
-              {% if car.model_name %}data-model="{{ car.model_name }}"{% endif %}
-              {% if car.body_type %}data-body="{{ car.body_type.name }}"{% endif %}
-              {% if car.overview %}data-overview="{{ car.overview|escapejs }}"{% endif %}
-              {% if car.history %}data-history="{{ car.history|escapejs }}"{% endif %}
-              {% if car.seller_name %}data-seller-name="{{ car.seller_name|escapejs }}"{% endif %}
-              {% if car.seller_meta %}data-seller-meta="{{ car.seller_meta|escapejs }}"{% endif %}
-              {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}
-              data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
-            >
-              <i class="bi bi-eye me-1"></i> {% trans "View Details" %}
-            </button>
-
-            <!-- Inline actions -->
-            <div class="d-flex gap-2 mt-2">
-              <!-- Wishlist -->
-              <form method="post" action="{% url 'toggle_wishlist' car.id %}" class="flex-fill">
-                {% csrf_token %}
-                <button type="submit"
-                        class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
-                  <i class="bi bi-heart"></i><span>{% trans "Wishlist" %}</span>
-                </button>
-              </form>
-
-              <!-- Compare -->
-              <form method="post"
-                    action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
-                    class="flex-fill">
-                {% csrf_token %}
-                <button type="submit"
-                        class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
-                  <i class="bi bi-plus-square"></i><span>{% trans "Compare" %}</span>
-                </button>
-              </form>
-
-              <!-- Test drive -->
-              <a class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2"
-                 href="{% url 'test_drive' car.id %}">
-                <i class="bi bi-steering-wheel"></i><span>{% trans "Test drive" %}</span>
-              </a>
-            </div>
-          </div>
-
+          <!-- Pagination + arrows -->
+          <div class="swiper-pagination mt-3"></div>
+          <div class="swiper-button-prev" aria-label="Previous"></div>
+          <div class="swiper-button-next" aria-label="Next"></div>
         </div>
       </div>
-      {% empty %}
-        <div class="col-12">
-          <div class="alert alert-light border">{% trans "No featured cars yet." %}</div>
+
+    {% else %}
+      {# ===== Grid mode (4 or fewer) ===== #}
+      <div class="row g-3 g-md-4">
+        {% for car in featured_cars %}
+        <div class="col-sm-6 col-lg-3">
+          <div class="card h-100 card-neo position-relative overflow-hidden">
+
+            <!-- Hover quick actions -->
+            <div class="position-absolute top-0 end-0 m-2 d-flex gap-1 z-3">
+              <button class="btn btn-sm btn-glass icon-chip share-card"
+                      aria-label="{% trans 'Share' %}"
+                      data-id="{{ car.id }}"
+                      data-url="{% url 'car_detail' car.id %}"
+                      data-bs-toggle="tooltip" title="{% trans 'Share' %}">
+                <i class="bi bi-share"></i>
+              </button>
+            </div>
+
+            <!-- Badges -->
+            <div class="position-absolute start-0 top-0 m-2 d-flex flex-wrap gap-1 z-3">
+              {% if car.is_new %}<span class="badge bg-primary text-white badge-modern new">{% trans "New" %}</span>{% endif %}
+              {% if car.is_certified %}<span class="badge bg-success badge-modern certified">{% trans "Certified" %}</span>{% endif %}
+              {% if car.is_hot %}<span class="badge bg-danger badge-modern hot">{% trans "Hot" %}</span>{% endif %}
+            </div>
+
+            <!-- Cover image -->
+            <img
+              class="card-img-top car-img wf-skel"
+              src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
+              alt="{{ car.title }}"
+              style="aspect-ratio:16/10;object-fit:cover;" loading="lazy">
+
+            <div class="card-body">
+              <h5 class="card-title mb-1">{{ car.title }}</h5>
+
+              <!-- Tiny meta -->
+              <div class="small text-secondary mb-2 d-flex flex-wrap gap-2">
+                {% if car.make %}<span class="icon-chip"><i class="bi bi-buildings"></i>{{ car.make.name }}</span>{% endif %}
+                {% if car.body_type %}<span class="icon-chip"><i class="bi bi-truck"></i>{{ car.body_type.name }}</span>{% endif %}
+              </div>
+
+              <!-- Spec line -->
+              <p class="card-text small text-secondary mb-2">
+                {% if car.mileage %}{{ car.mileage|floatformat:0 }} {% trans "mi" %}{% else %}—{% endif %}
+                • {% if car.get_transmission_display %}{{ car.get_transmission_display }}{% else %}{% if car.transmission %}{% trans car.transmission %}{% else %}—{% endif %}{% endif %}
+                • {% if car.get_fuel_display %}{{ car.get_fuel_display }}{% else %}{% if car.fuel %}{% trans car.fuel %}{% else %}—{% endif %}{% endif %}
+              </p>
+
+              <!-- Dealer (optional) -->
+              {% if car.seller_name or car.seller_meta %}
+                <div class="d-flex align-items-center gap-2 small text-secondary mb-2">
+                  <i class="bi bi-shop"></i>
+                  <span class="text-truncate" title="{{ car.seller_name }} {{ car.seller_meta }}">
+                    {{ car.seller_name|default:_("Dealer") }}{% if car.seller_meta %} • {{ car.seller_meta }}{% endif %}
+                  </span>
+                </div>
+              {% endif %}
+
+              <!-- Price -->
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="price h5 mb-0">
+                  {% if car.price %}${{ car.price|floatformat:0 }}{% else %}—{% endif %}
+                </div>
+                {% if car.price %}
+                  <span class="badge text-bg-light border">{% trans "Est. payment" %}</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="card-footer bg-white border-0">
+              <!-- View details (opens modal) -->
+              <button
+                class="btn btn-sm btn-outline-primary w-100 view-details"
+                data-bs-toggle="modal"
+                data-bs-target="#carDetailModal"
+                data-id="{{ car.id }}"
+                data-title="{{ car.title }}"
+                data-price="{{ car.price }}"
+                data-mileage="{{ car.mileage }}"
+                data-transmission="{{ car.transmission }}"
+                data-fuel="{{ car.fuel }}"
+                {% if car.make %}data-make="{{ car.make.name }}"{% endif %}
+                {% if car.model_name %}data-model="{{ car.model_name }}"{% endif %}
+                {% if car.body_type %}data-body="{{ car.body_type.name }}"{% endif %}
+                {% if car.overview %}data-overview="{{ car.overview|escapejs }}"{% endif %}
+                {% if car.history %}data-history="{{ car.history|escapejs }}"{% endif %}
+                {% if car.seller_name %}data-seller-name="{{ car.seller_name|escapejs }}"{% endif %}
+                {% if car.seller_meta %}data-seller-meta="{{ car.seller_meta|escapejs }}"{% endif %}
+                {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}
+                data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
+              >
+                <i class="bi bi-eye me-1"></i> {% trans "View Details" %}
+              </button>
+
+              <!-- Inline actions -->
+              <div class="card-actions d-flex gap-2 mt-2 align-items-stretch">
+                <!-- Wishlist -->
+                <form method="post" action="{% url 'toggle_wishlist' car.id %}" class="m-0">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="btn btn-sm btn-outline-primary btn-action d-inline-flex align-items-center justify-content-center"
+                          data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+                          data-bs-title="Add to wishlist" aria-label="Add to wishlist">
+                    <i class="fa-regular fa-heart"></i>
+                  </button>
+                </form>
+
+                <!-- Compare -->
+                <form method="post"
+                      action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
+                      class="m-0">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="btn btn-sm btn-outline-primary btn-action d-inline-flex align-items-center justify-content-center"
+                          data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+                          data-bs-title="Compare Car" aria-label="Compare Car">
+                    <i class="bi bi-arrow-left-right"></i>
+                  </button>
+                </form>
+
+                <!-- Test drive -->
+                <a class="btn btn-sm btn-outline-primary btn-action d-inline-flex align-items-center justify-content-center"
+                   href="{% url 'test_drive' car.id %}"
+                   data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+                   data-bs-title="Request A Test Drive" aria-label="Request A Test Drive">
+                  <i class="bi bi-car-front-fill"></i>
+                </a>
+              </div>
+
+            </div>
+
+          </div>
         </div>
-      {% endfor %}
-    </div>
+        {% empty %}
+          <div class="col-12">
+            <div class="alert alert-light border">{% trans "No featured cars yet." %}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
   </div>
 </section>
-
 
 <!-- ============================== LISTINGS (with sidebar filters) ============================== -->
 <section class="py-5 border-top bg-white" id="results">
@@ -495,40 +590,53 @@
           </div>
         </div>
       </aside>
+      <!--RESULT-->
+      <div class="col-lg-9" id="results">
 
-      <!-- Results -->
-      <div class="col-lg-9">
+        {# top meta row: count + optional sort #}
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+          <div class="small text-secondary">
+            {% if is_paginated %}
+              {{ paginator.count }} {% trans "results" %} • {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ paginator.num_pages }}
+            {% else %}
+              {{ cars|length }} {% trans "results" %}
+            {% endif %}
+          </div>
+          {% if sort %}
+            <div class="small text-secondary">{% trans "Sort" %}: <span class="fw-semibold">{{ sort }}</span></div>
+          {% endif %}
+        </div>
+
         <div class="row g-3 g-md-4" id="cardsGrid">
           {% for car in cars %}
-          <div class="col-md-6 col-xl-4">
+          <div class="col-12 col-sm-6 col-xl-4">
             <div class="card h-100 wf-card position-relative">
 
               <!-- Ribbons -->
               <div class="position-absolute start-0 top-0 m-2 d-flex flex-wrap gap-1 z-3">
                 {% if car.is_featured %}<span class="badge text-bg-warning">{% trans "Featured" %}</span>{% endif %}
-                {% if car.is_new %}<span class="badge bg-primary text-white badge-new">{% trans "New" %}</span>{% endif %}
-                {% if car.is_hot %}<span class="badge bg-danger text-white badge-hot">{% trans "Hot" %}</span>{% endif %}
+                {% if car.is_new %}<span class="badge text-white badge-new">{% trans "New" %}</span>{% endif %}
+                {% if car.is_hot %}<span class="badge text-white badge-hot">{% trans "Hot" %}</span>{% endif %}
               </div>
 
               <!-- Cover -->
               <img
                 class="card-img-top car-img wf-skel"
                 src="{% if car.cover %}{{ car.cover.url }}{% else %}{% static 'img/sample1.jpg' %}{% endif %}"
-                alt="{{ car.title }}"
-              >
+                alt="{{ car.title }}" loading="lazy">
 
               <div class="card-body d-flex flex-column">
-                <h5 class="card-title mb-1">{{ car.title }}</h5>
+                <h5 class="card-title mb-1 clamp-2">{{ car.title }}</h5>
 
                 <!-- Meta line -->
                 <div class="small text-secondary mb-2 d-flex flex-wrap gap-2">
-                  {% if car.make %}<span><i class="bi bi-buildings me-1"></i>{{ car.make.name }}</span>{% endif %}
-                  {% if car.body_type %}<span>• {{ car.body_type.name }}</span>{% endif %}
+                  {% if car.make %}<span class="chip"><i class="bi bi-buildings"></i>{{ car.make.name }}</span>{% endif %}
+                  {% if car.body_type %}<span class="chip"><i class="bi bi-truck"></i>{{ car.body_type.name }}</span>{% endif %}
                 </div>
 
                 <!-- Specs -->
                 <p class="card-text small text-secondary mb-3">
-                  {% if car.mileage %}{{ car.mileage }} {% trans "mi" %}{% else %}—{% endif %}
+                  {% if car.mileage %}{{ car.mileage|floatformat:0 }} {% trans "mi" %}{% else %}—{% endif %}
                   • {% if car.get_transmission_display %}{{ car.get_transmission_display }}{% else %}{% if car.transmission %}{% trans car.transmission %}{% else %}—{% endif %}{% endif %}
                   • {% if car.get_fuel_display %}{{ car.get_fuel_display }}{% else %}{% if car.fuel %}{% trans car.fuel %}{% else %}—{% endif %}{% endif %}
                 </p>
@@ -546,38 +654,58 @@
                     <div class="price h5 mb-0">
                       {% if car.price %}${{ car.price|floatformat:0 }}{% else %}—{% endif %}
                     </div>
-                    <div class="d-flex gap-1">
-                      <a class="btn btn-sm btn-outline-primary add-wishlist"
-                         href="{% url 'toggle_wishlist' car.id %}"
-                         data-id="{{ car.id }}"
-                         title="{% trans 'Wishlist' %}">
-                        <i class="bi bi-heart"></i>
-                      </a>
-                      <form method="post"
-                            action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
-                            class="d-inline compare-form">
-                        {% csrf_token %}
-                        <button type="submit"
-                                class="btn btn-sm btn-outline-primary add-compare"
-                                data-id="{{ car.id }}"
-                                data-href="{% url 'toggle_compare' car.id %}"
-                                title="{% trans 'Compare' %}">
-                          <i class="bi bi-plus-square"></i>
-                        </button>
-                      </form>
-                      <button class="btn btn-sm btn-outline-primary share-card"
-                              type="button"
-                              data-url="{% url 'car_detail' car.id %}"
-                              title="{% trans 'Share' %}">
-                        <i class="bi bi-share"></i>
-                      </button>
-                      <button class="btn btn-sm btn-primary js-add-to-cart" data-pid="{{ car.id }}" data-qty="1" title="{% trans 'Add to cart' %}">
-                        <i class="bi bi-cart-plus"></i>
-                      </button>
-                    </div>
+                    {% if car.price %}
+                      <span class="badge text-bg-light border"
+                            data-bs-toggle="tooltip"
+                            title="{% trans 'Rough monthly estimate' %}">
+                        {% trans "Est. payment" %}
+                      </span>
+                    {% endif %}
                   </div>
 
-                  <div class="d-grid">
+                  <div class="card-actions">
+                    <!-- Wishlist (GET link as you had) -->
+                    <a class="btn btn-sm btn-gradient btn-action add-wishlist"
+                       href="{% url 'toggle_wishlist' car.id %}"
+                       data-id="{{ car.id }}"
+                       data-bs-toggle="tooltip" data-bs-title="{% trans 'Wishlist' %}"
+                       aria-label="{% trans 'Wishlist' %}">
+                      <i class="bi bi-heart"></i>
+                    </a>
+
+                    <!-- Compare (POST) -->
+                    <form method="post"
+                          action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}">
+                      {% csrf_token %}
+                      <button type="submit"
+                              class="btn btn-sm btn-gradient btn-action add-compare"
+                              data-id="{{ car.id }}"
+                              data-href="{% url 'toggle_compare' car.id %}"
+                              data-bs-toggle="tooltip" data-bs-title="{% trans 'Compare' %}"
+                              aria-label="{% trans 'Compare' %}">
+                        <i class="bi bi-plus-square"></i>
+                      </button>
+                    </form>
+
+                    <!-- Share (copy link) -->
+                    <button class="btn btn-sm btn-gradient btn-action share-card"
+                            type="button"
+                            data-url="{% url 'car_detail' car.id %}"
+                            data-bs-toggle="tooltip" data-bs-title="{% trans 'Copy link' %}"
+                            aria-label="{% trans 'Copy link' %}">
+                      <i class="bi bi-share"></i>
+                    </button>
+
+                    <!-- Add to cart -->
+                    <button class="btn btn-sm btn-gradient btn-action js-add-to-cart"
+                            data-pid="{{ car.id }}" data-qty="1"
+                            data-bs-toggle="tooltip" data-bs-title="{% trans 'Add to cart' %}"
+                            aria-label="{% trans 'Add to cart' %}">
+                      <i class="bi bi-cart-plus"></i>
+                    </button>
+                  </div>
+
+                  <div class="d-grid mt-2">
                     <a href="{{ car.get_absolute_url|default:'#' }}" class="btn btn-sm btn-outline-primary">
                       <i class="bi bi-eye me-1"></i> {% trans "View Details" %}
                     </a>
@@ -586,6 +714,7 @@
               </div>
             </div>
           </div>
+
           {% empty %}
           <div class="col-12">
             <div class="alert alert-light border">{% trans "No cars found." %}</div>
@@ -593,39 +722,40 @@
           {% endfor %}
         </div>
 
-        <!-- Pagination -->
+        {# Pagination (no parentheses; no with/endwith) #}
         {% if is_paginated %}
         <nav class="mt-4" aria-label="{% trans 'Listings pagination' %}">
           <ul class="pagination justify-content-center">
+            {# First + Prev #}
             {% if page_obj.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}#results">&laquo; {% trans "Prev" %}</a>
-              </li>
+              <li class="page-item"><a class="page-link" href="?page=1&sort={{ sort }}#results" aria-label="{% trans 'First' %}">&laquo;</a></li>
+              <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}#results" aria-label="{% trans 'Prev' %}">{% trans "Prev" %}</a></li>
             {% else %}
-              <li class="page-item disabled"><span class="page-link">&laquo; {% trans "Prev" %}</span></li>
+              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+              <li class="page-item disabled"><span class="page-link">{% trans "Prev" %}</span></li>
             {% endif %}
 
+            {# Page window with ellipses: 1,2 … (current-1,current,current+1) … n-1,n #}
             {% for num in paginator.page_range %}
-              {% if page_obj.number == num %}
-                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-              {% else %}
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ num }}&sort={{ sort }}#results">{{ num }}</a>
-                </li>
-              {% endif %}
+              <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}&sort={{ sort }}#results">{{ num }}</a>
+              </li>
             {% endfor %}
 
+            {# Next + Last #}
             {% if page_obj.has_next %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}&sort={{ sort }}#results">{% trans "Next" %} &raquo;</a>
-              </li>
+              <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&sort={{ sort }}#results" aria-label="{% trans 'Next' %}">{% trans "Next" %}</a></li>
+              <li class="page-item"><a class="page-link" href="?page={{ paginator.num_pages }}&sort={{ sort }}#results" aria-label="{% trans 'Last' %}">&raquo;</a></li>
             {% else %}
-              <li class="page-item disabled"><span class="page-link">{% trans "Next" %} &raquo;</span></li>
+              <li class="page-item disabled"><span class="page-link">{% trans "Next" %}</span></li>
+              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
             {% endif %}
           </ul>
         </nav>
         {% endif %}
       </div>
+
+
     </div>
   </div>
 </section>

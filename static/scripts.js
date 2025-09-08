@@ -869,3 +869,52 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
+(function() {
+  var el = document.getElementById('featuredSwiper');
+  if (!el) return;
+  new Swiper(el, {
+    slidesPerView: 1.1,
+    spaceBetween: 12,
+    loop: false,
+    keyboard: { enabled: true },
+    navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+    pagination: { el: '.swiper-pagination', clickable: true },
+    breakpoints: {
+      576: { slidesPerView: 2, spaceBetween: 16 },
+      768: { slidesPerView: 3, spaceBetween: 18 },
+      992: { slidesPerView: 4, spaceBetween: 20 }
+    }
+  });
+})();
+
+// Bootstrap 5 tooltips
+(function () {
+  if (!window.bootstrap) return;
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+    new bootstrap.Tooltip(el);
+  });
+})();
+
+// Share: copy URL (Web Share API if available, fallback to clipboard)
+(function () {
+  document.querySelectorAll('.share-card').forEach(function (btn) {
+    btn.addEventListener('click', async function () {
+      const url = btn.getAttribute('data-url');
+      const abs = /^https?:\/\//i.test(url) ? url : (location.origin + url);
+      try {
+        if (navigator.share) { await navigator.share({ url: abs }); }
+        else if (navigator.clipboard) { await navigator.clipboard.writeText(abs); }
+
+        // quick feedback via tooltip if available
+        if (window.bootstrap) {
+          const tip = bootstrap.Tooltip.getInstance(btn) || new bootstrap.Tooltip(btn);
+          const prev = btn.getAttribute('data-bs-title') || btn.getAttribute('title') || 'Copy link';
+          btn.setAttribute('data-bs-title', 'Copied!');
+          tip.setContent({ '.tooltip-inner': 'Copied!' });
+          tip.show();
+          setTimeout(() => { btn.setAttribute('data-bs-title', prev); tip.hide(); }, 1200);
+        }
+      } catch (e) { /* no-op */ }
+    });
+  });
+})();
