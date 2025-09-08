@@ -9,6 +9,9 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import transaction
 from django.conf import settings
+
+from payment.cart import _car_to_session_row, add_item, remove_item as cart_remove_item, clear as cart_clear, \
+    in_cart as cart_in_cart, total_cents as cart_total_cents, count as cart_count, _car_to_session_row
 from .models import Cart, CartItem
 from .models import CarListing, SellerProfile, SavedSearch
 from .forms import CarListingForm, PhotoFormSet, SellerProfileForm, CarPhotoFormSet, SellerUserForm, \
@@ -408,24 +411,27 @@ def cart_view(request):
 @require_POST
 @transaction.atomic
 def cart_add(request, car_id):
-    cart = _get_or_create_cart(request)
-
-    from models.models import Car
+    # single-click add: ignore qty, force single item per car
     car = get_object_or_404(Car, pk=car_id)
-
-    # Add once only; don't auto-increment here
-    item, created = CartItem.objects.select_for_update().get_or_create(
-        cart=cart, car=car, defaults={"qty": 1}
+    data = _car_to_session_row(car)
+    added = add_item(
+        request,
+        pid=data["pid"],
+        title=data["title"],
+        make=data["make"],
+        model_name=data["model_name"],
+        unit_cents=data["unit_cents"],
+        cover_url=data["cover_url"],
     )
-
-    # AJAX path (preferred)
+    # AJAX support to flip button and badge
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({
             "ok": True,
-            "already": (not created),
-            "cart_count": cart.items().count(),   # distinct cars
+            "added": added,
+            "already": (not added),
+            "cart_count": cart_count(request),
+            "cart_total_cents": cart_total_cents(request),
         })
-
     # Non-AJAX fallback → back to where user was
     return redirect(request.META.get("HTTP_REFERER") or "home")
 
