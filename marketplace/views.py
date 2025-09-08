@@ -3,7 +3,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.utils import timezone
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -395,7 +395,7 @@ def cart_view(request):
     cart = _get_or_create_cart(request)
     items = cart.items()
     subtotal_cents = cart.subtotal_cents()
-    return render(request, "cart.html", {
+    return render(request, "payment/cart.html", {
         "cart": cart,
         "items": items,
         "subtotal_cents": subtotal_cents,
@@ -403,17 +403,32 @@ def cart_view(request):
         "currency": getattr(settings, "DEFAULT_CURRENCY", "usd").upper(),
     })
 
+
+
 @require_POST
 @transaction.atomic
 def cart_add(request, car_id):
     cart = _get_or_create_cart(request)
-    car = get_object_or_404(CarListing, pk=car_id, is_active=True)
-    item, created = CartItem.objects.select_for_update().get_or_create(cart=cart, car=car, defaults={"qty": 1})
-    if not created:
-        item.qty = min(item.qty + 1, 10)
-    item.save()
-    messages.success(request, "Added to cart.")
-    return redirect("marketplace:cart")
+
+    from models.models import Car
+    car = get_object_or_404(Car, pk=car_id)
+
+    # Add once only; don't auto-increment here
+    item, created = CartItem.objects.select_for_update().get_or_create(
+        cart=cart, car=car, defaults={"qty": 1}
+    )
+
+    # AJAX path (preferred)
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({
+            "ok": True,
+            "already": (not created),
+            "cart_count": cart.items().count(),   # distinct cars
+        })
+
+    # Non-AJAX fallback → back to where user was
+    return redirect(request.META.get("HTTP_REFERER") or "home")
+
 
 @require_POST
 @transaction.atomic
@@ -425,7 +440,7 @@ def cart_update(request, item_id):
     item.qty = qty
     item.save()
     messages.info(request, "Cart updated.")
-    return redirect("marketplace:cart")
+    return redirect("cart")
 
 @require_POST
 @transaction.atomic
@@ -434,4 +449,4 @@ def cart_remove(request, item_id):
     item = get_object_or_404(CartItem, pk=item_id, cart=cart)
     item.delete()
     messages.warning(request, "Removed from cart.")
-    return redirect("marketplace:cart")
+    return redirect("cart")

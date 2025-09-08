@@ -405,11 +405,14 @@ class Cart(models.Model):
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
-    car = models.ForeignKey(CarListing, on_delete=models.PROTECT)
+    car = models.ForeignKey(Car, on_delete=models.PROTECT)
     qty = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(10)])
     # lock current price to avoid race if seller edits price while in cart
     unit_price_cents = models.PositiveIntegerField(default=0)
 
+
+    class Meta:
+        unique_together = (("cart", "car"),)
     def save(self, *args, **kwargs):
         if self.unit_price_cents == 0:
             # source price from listing (assumes listing.price is in dollars)
@@ -458,7 +461,7 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
-    car = models.ForeignKey(CarListing, on_delete=models.PROTECT)
+    car = models.ForeignKey(Car, on_delete=models.PROTECT)
     title = models.CharField(max_length=255)
     unit_price_cents = models.PositiveIntegerField()
     qty = models.PositiveIntegerField(default=1)

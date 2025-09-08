@@ -664,24 +664,20 @@
                   </div>
 
                   <div class="card-actions">
-                    <!-- Wishlist (GET link as you had) -->
-                    <a class="btn btn-sm btn-gradient btn-action add-wishlist"
-                       href="{% url 'toggle_wishlist' car.id %}"
-                       data-id="{{ car.id }}"
-                       data-bs-toggle="tooltip" data-bs-title="{% trans 'Wishlist' %}"
-                       aria-label="{% trans 'Wishlist' %}">
-                      <i class="bi bi-heart"></i>
-                    </a>
-
-                    <!-- Compare (POST) -->
-                    <form method="post"
-                          action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}">
+                    <form method="post" action="{% url 'cart_add' car_id=car.id %}" class="d-inline">
                       {% csrf_token %}
                       <button type="submit"
-                              class="btn btn-sm btn-gradient btn-action add-compare"
-                              data-id="{{ car.id }}"
-                              data-href="{% url 'toggle_compare' car.id %}"
-                              data-bs-toggle="tooltip" data-bs-title="{% trans 'Compare' %}"
+                              class="btn btn-sm btn-gradient btn-action"
+                              aria-label="Add to cart"
+                              data-bs-toggle="tooltip" data-bs-title="Add to cart">
+                        <i class="bi bi-cart-plus"></i>
+                      </button>
+                    </form>
+
+                    <!-- Compare (POST) -->
+                    <form method="post" action="{% url 'cart_add' car.id %}" class="js-add-cart d-inline">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-gradient btn-action add-compare" data-bs-toggle="tooltip" data-bs-title="{% trans 'Compare' %}"
                               aria-label="{% trans 'Compare' %}">
                         <i class="bi bi-plus-square"></i>
                       </button>
@@ -696,13 +692,6 @@
                       <i class="bi bi-share"></i>
                     </button>
 
-                    <!-- Add to cart -->
-                    <button class="btn btn-sm btn-gradient btn-action js-add-to-cart"
-                            data-pid="{{ car.id }}" data-qty="1"
-                            data-bs-toggle="tooltip" data-bs-title="{% trans 'Add to cart' %}"
-                            aria-label="{% trans 'Add to cart' %}">
-                      <i class="bi bi-cart-plus"></i>
-                    </button>
                   </div>
 
                   <div class="d-grid mt-2">

@@ -133,12 +133,11 @@
 
           <!--Cart-->
           <li>
-            <a href="{% url 'cart_page' %}" class="btn btn-outline-primary class position-relative">
+            <a href="{% url 'cart' %}" class="btn btn-outline-primary position-relative" aria-label="Cart">
               <i class="bi bi-cart3"></i>
-              <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
-                {{ cart_count|default:0 }}
-              </span>
+              <span id="cart-count">{{ cart_count|default:0 }}</span>
             </a>
+
           </li>
 
 
