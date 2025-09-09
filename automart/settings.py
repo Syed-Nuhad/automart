@@ -58,6 +58,7 @@ TEMPLATES = [
                 "preferences.context_processors.ui_currency",
                 "django.template.context_processors.request",
                 "django.template.context_processors.i18n",
+                "marketplace.context_processors.nav_counts",
             ],
         },
     },

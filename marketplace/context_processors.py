@@ -1,4 +1,4 @@
-from marketplace.models import SellerProfile, SavedSearch
+from marketplace.models import SellerProfile, SavedSearch, Cart
 
 
 def seller_flags(request):
@@ -23,3 +23,14 @@ def saved_search_badge(request):
             has_new = True
             break
     return {"has_new_saved_searches": has_new}
+
+
+
+def nav_counts(request):
+    # safe default if sessions not ready (e.g., during some system checks)
+    try:
+        cart = Cart.for_request(request)
+        count = cart.total_quantity
+    except Exception:
+        count = 0
+    return {"cart_count": count}

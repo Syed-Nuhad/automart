@@ -98,11 +98,17 @@
             {% if user.is_authenticated %}
               <li class="nav-item">
                 <a class="nav-link {% if current == 'sell_car' %}active{% endif %}"
-                   href="{% url 'marketplace:sell_car' %}">Sell your car</a>
+                   href="{% url 'marketplace:sell_car' %}"
+                   {% if current == 'sell_car' %}aria-current="page"{% endif %}>
+                  Sell your car
+                </a>
               </li>
               <li class="nav-item">
                 <a class="nav-link {% if current == 'my_listings' %}active{% endif %}"
-                   href="{% url 'marketplace:my_listings' %}">My Listings</a>
+                   href="{% url 'marketplace:my_listings' %}"
+                   {% if current == 'my_listings' %}aria-current="page"{% endif %}>
+                  My Listings
+                </a>
               </li>
             {% else %}
               <li class="nav-item">
@@ -306,8 +312,6 @@
     </div>
   </footer>
 
-  <!-- Bootstrap Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
 /* ------------ Helpers ------------ */
@@ -485,8 +489,8 @@ if (modalEl) {
         const n = parseInt(badge.textContent || "0", 10);
         badge.textContent = String(Math.max(0, n + 1));
       }
-      this.classList.toggle("btn-outline-secondary");
-      this.classList.toggle("btn-secondary");
+      this.classList.toggle("btn-outline-primary");
+      this.classList.toggle("btn-primary");
     } catch (_) {}
   });
 
@@ -609,8 +613,8 @@ document.addEventListener("click", async (e) => {
         const n = parseInt(badge.textContent || "0", 10);
         badge.textContent = String(Math.max(0, n + 1));
       }
-      compareBtn.classList.toggle("btn-outline-secondary");
-      compareBtn.classList.toggle("btn-secondary");
+      compareBtn.classList.toggle("btn-outline-primary");
+      compareBtn.classList.toggle("btn-primary");
     } catch (_) {}
     return;
   }
@@ -656,10 +660,6 @@ if (primarySearchForm) {
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
 <script async src="https://static.addtoany.com/menu/page.js"></script>
-
-<!-- Your site-wide JS (move the long inline script into here if you can) -->
-<script src="{% static 'scripts.js' %}"></script>
-
 
 <!-- Page-specific JS goes LAST (dealer-map.js, etc.) -->
 {% block extra_script %}{% endblock %}

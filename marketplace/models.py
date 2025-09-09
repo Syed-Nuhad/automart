@@ -1,10 +1,11 @@
-
+from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from django.db.models import Max
+from django.db.models import Max, Sum
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.text import slugify
 from django.core.exceptions import FieldError
@@ -395,25 +396,100 @@ class Cart(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    # ---------- Convenience accessors ----------
     def items(self):
         return self.cartitem_set.select_related("car")
 
-    def subtotal_cents(self):
+    def subtotal_cents(self) -> int:
         return sum(i.line_total_cents() for i in self.items())
 
-    def __str__(self): return f"Cart#{self.pk}"
+    @property
+    def subtotal(self) -> Decimal:
+        """Money (Decimal) from subtotal_cents."""
+        return Decimal(self.subtotal_cents()) / Decimal("100")
+
+    @property
+    def total_lines(self) -> int:
+        """Number of distinct items (rows) in cart."""
+        return self.items().count()
+
+    @property
+    def total_quantity(self) -> int:
+        """Sum of qty across all rows (this is what you want for the badge)."""
+        return self.items().aggregate(
+            n=Coalesce(Sum("qty"), 0)
+        )["n"]
+
+    # alias used by your navbar badge / counters API
+    @property
+    def nav_count(self) -> int:
+        return self.total_quantity
+
+    # ---------- Mutations ----------
+    def add(self, car, qty: int = 1, *, max_qty: int = 10):
+        """Add a car to the cart or bump its qty."""
+        item, created = CartItem.objects.get_or_create(cart=self, car=car)
+        new_qty = max(1, min(max_qty, (item.qty if not created else 0) + max(1, int(qty))))
+        item.qty = new_qty
+        item.save()
+        return item
+
+    def set_qty(self, car, qty: int, *, max_qty: int = 10):
+        item, _ = CartItem.objects.get_or_create(cart=self, car=car)
+        item.qty = max(1, min(max_qty, int(qty)))
+        item.save()
+        return item
+
+    def remove(self, car):
+        CartItem.objects.filter(cart=self, car=car).delete()
+
+    # ---------- Utilities ----------
+    @classmethod
+    def for_request(cls, request):
+        """
+        Get/create a cart bound to this request. Always returns a cart with a session_key.
+        If the user logs in, you can optionally attach/merge carts here later.
+        """
+        # Ensure session exists
+        if not request.session.session_key:
+            request.session.save()
+        key = request.session.session_key
+
+        cart, _ = cls.objects.get_or_create(
+            session_key=key,
+            defaults={"user": request.user if request.user.is_authenticated else None},
+        )
+
+        # Attach user if not already set
+        if request.user.is_authenticated and cart.user_id is None:
+            cart.user = request.user
+            cart.save(update_fields=["user"])
+        return cart
+
+    def __str__(self):
+        return f"Cart#{self.pk}"
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
-    car  = models.ForeignKey(Car, on_delete=models.PROTECT)   # CHANGED
-    qty  = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(10)])
+    car  = models.ForeignKey("models.Car", on_delete=models.PROTECT)  # keep your import path
+    qty  = models.PositiveIntegerField(
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
     unit_price_cents = models.PositiveIntegerField(default=0)
 
     def save(self, *args, **kwargs):
         if self.unit_price_cents == 0:
-            price = float(self.car.price or 0)
-            self.unit_price_cents = int(round(price * 100))
+            # fall back to car.price, which may be Decimal/None
+            price = Decimal(self.car.price or 0)
+            self.unit_price_cents = int(price * 100)
         super().save(*args, **kwargs)
+
+    def line_total_cents(self) -> int:
+        return self.unit_price_cents * self.qty
+
+    def __str__(self):
+        return f"{self.car} ×{self.qty}"
 
 class Order(models.Model):
     STATUS = [

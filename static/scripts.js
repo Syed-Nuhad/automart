@@ -172,8 +172,8 @@
     try{
       const data = await postToggle(url);
       const active = data.in_compare === true;
-      btn.classList.toggle('btn-success', active);
-      btn.classList.toggle('btn-outline-secondary', !active);
+      btn.classList.toggle('btn-primary', active);
+      btn.classList.toggle('btn-outline-primary', !active);
     }catch(err){
       console.error('Compare toggle error:', err);
       // Fallback: allow hard navigation if you added GET support
@@ -388,7 +388,7 @@ document.addEventListener("click", (e) => {
       if (data.ok) {
         document.getElementById("wishlistCount").textContent = data.count;
         btn.classList.toggle("btn-success", data.in_wishlist);
-        btn.classList.toggle("btn-outline-secondary", !data.in_wishlist);
+        btn.classList.toggle("btn-outline-primary", !data.in_wishlist);
       }
     });
 });

@@ -118,7 +118,6 @@
             {% for car in featured_cars %}
               <div class="swiper-slide">
                 <div class="card h-100 card-neo position-relative overflow-hidden">
-
                   <!-- Hover quick actions -->
                   <div class="position-absolute top-0 end-0 m-2 d-flex gap-1 z-3">
                     <button class="btn btn-sm btn-glass icon-chip share-card"
@@ -308,14 +307,21 @@
               <div class="card-actions d-flex gap-2 mt-2">
                 <form method="post" action="{% url 'cart_add' car_id=car.id %}" class="js-add-cart" data-pid="{{ car.id }}">
                   {% csrf_token %}
-                  <button type="submit" class="btn btn-sm btn-outline-primary btn-icon" data-bs-toggle="tooltip" data-bs-title="{% trans 'Add to cart' %}">
-                    <i class="bi bi-cart-plus"></i>
-                  </button>
+                  <a class="btn btn-outline-primary add-wishlist"
+                         href="{% url 'toggle_wishlist' car.id %}"
+                         data-id="{{ car.id }}">
+                        <i class="bi bi-heart"></i>
+                      </a>
                 </form>
 
-                <form method="post" action="{% url 'cart_add' car.id %}" class="js-add-cart">
+                <form method="post"
+                      action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
+                      class="d-inline compare-form">
                   {% csrf_token %}
-                  <button type="submit" class="btn btn-sm btn-outline-primary btn-icon" data-bs-toggle="tooltip" data-bs-title="{% trans 'Compare' %}">
+                  <button type="submit"
+                          class="btn btn-outline-primary add-compare"
+                          data-id="{{ car.id }}"
+                          data-href="{% url 'toggle_compare' car.id %}">
                     <i class="bi bi-plus-square"></i>
                   </button>
                 </form>
@@ -329,27 +335,10 @@
               </div>
             </div> <!-- /card-body -->
 
-            <div class="card-footer bg-white border-0">
-              <button class="btn btn-sm btn-outline-primary w-100 view-details"
-                      data-bs-toggle="modal"
-                      data-bs-target="#carDetailModal"
-                      data-id="{{ car.id }}"
-                      data-title="{{ car.title }}"
-                      data-price="{{ car.price }}"
-                      data-mileage="{{ car.mileage }}"
-                      data-transmission="{{ car.transmission }}"
-                      data-fuel="{{ car.fuel }}"
-                      {% if car.make %}data-make="{{ car.make.name }}"{% endif %}
-                      {% if car.model_name %}data-model="{{ car.model_name }}"{% endif %}
-                      {% if car.body_type %}data-body="{{ car.body_type.name }}"{% endif %}
-                      {% if car.overview %}data-overview="{{ car.overview|escapejs }}"{% endif %}
-                      {% if car.history %}data-history="{{ car.history|escapejs }}"{% endif %}
-                      {% if car.seller_name %}data-seller-name="{{ car.seller_name|escapejs }}"{% endif %}
-                      {% if car.seller_meta %}data-seller-meta="{{ car.seller_meta|escapejs }}"{% endif %}
-                      {% if car.cover %}data-cover="{{ car.cover.url }}"{% endif %}
-                      data-images='[{% for img in car.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}]'>
-                <i class="bi bi-eye me-1"></i> {% trans "View Details" %}
-              </button>
+            <div class="card-footer bg-white border-0 ">
+              <a href="{{ car.get_absolute_url|default:'#' }}" class="btn w-100 btn-sm btn-outline-primary">
+                <i class="bi bi-eye me-1"></i> View Details
+              </a>
             </div>
 
           </div>
@@ -584,7 +573,16 @@
           {% for car in cars %}
           <div class="col-12 col-sm-6 col-xl-4">
             <div class="card h-100 wf-card position-relative">
-
+            <!-- Hover quick actions -->
+            <div class="position-absolute top-0 end-0 m-2 d-flex gap-1 z-3">
+              <button class="btn btn-sm btn-glass icon-chip share-card"
+                      aria-label="{% trans 'Share' %}"
+                      data-id="{{ car.id }}"
+                      data-url="{% url 'car_detail' car.id %}"
+                      data-bs-toggle="tooltip" title="{% trans 'Share' %}">
+                <i class="bi bi-share"></i>
+              </button>
+            </div>
               <!-- Ribbons -->
               <div class="position-absolute start-0 top-0 m-2 d-flex flex-wrap gap-1 z-3">
                 {% if car.is_featured %}<span class="badge text-bg-warning">{% trans "Featured" %}</span>{% endif %}
@@ -654,26 +652,92 @@
 
                     <!-- Compare -->
                     <form method="post"
-                          action="{% url 'cart_add' car.id %}"
-                          class="js-add-cart">
+                            action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
+                            class="d-inline compare-form">
                       {% csrf_token %}
                       <button type="submit"
-                              class="btn btn-sm btn-outline-primary btn-icon"
+                              class="btn btn-sm btn-outline-primary btn-icon add-compare"
                               data-bs-toggle="tooltip"
+                              data-id="{{ car.id }}"
+                              data-href="{% url 'toggle_compare' car.id %}"
                               data-bs-title="{% trans 'Compare' %}"
                               aria-label="{% trans 'Compare' %}">
                         <i class="bi bi-plus-square"></i>
                       </button>
                     </form>
 
-                    <!-- Share -->
-                    <button type="button"
-                            class="btn btn-sm btn-outline-primary btn-icon"
-                            data-url="{% url 'car_detail' car.id %}"
-                            data-bs-toggle="tooltip"
-                            data-bs-title="{% trans 'Copy link' %}"
-                            aria-label="{% trans 'Copy link' %}">
-                      <i class="bi bi-share"></i>
+
+
+                    <!-- Share / Copy link -->
+                    <button
+                      id="copyLinkBtn-{{ car.id }}"
+                      type="button"
+                      class="btn btn-sm btn-outline-primary btn-icon"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      data-bs-title="Copy link"
+                      data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'car_detail' car.id %}"
+                      onclick="(function(b){
+                        var url = b.dataset.url || location.href;
+
+                        function showTip(msg){
+                          var tip = bootstrap.Tooltip.getInstance(b);
+                          if(!tip){
+                            tip = new bootstrap.Tooltip(b, { trigger:'manual' });
+                          }
+                          // Update tooltip content, show, then restore after a moment
+                          if (tip.setContent) {
+                            tip.setContent({'.tooltip-inner': msg});
+                          } else {
+                            // Fallback for older Bootstrap 5 builds
+                            b.setAttribute('data-bs-original-title', msg);
+                          }
+                          tip.show();
+                          setTimeout(function(){
+                            tip.hide();
+                            var orig = b.getAttribute('data-bs-title') || 'Copy link';
+                            if (tip.setContent) {
+                              tip.setContent({'.tooltip-inner': orig});
+                            } else {
+                              b.setAttribute('data-bs-original-title', orig);
+                            }
+                          }, 1500);
+                        }
+
+                        function done(){
+                          // Visual feedback
+                          b.classList.remove('btn-outline-primary');
+                          b.classList.add('btn-primary','text-white');
+                          b.innerHTML = '<i class=&quot;bi bi-clipboard-check am-icon&quot;></i>';
+
+                          showTip('Link copied!');
+
+                          setTimeout(function(){
+                            b.classList.remove('btn-primary','text-white');
+                            b.classList.add('btn-outline-primary');
+                            b.innerHTML = '<i class=&quot;bi bi-clipboard am-icon&quot;></i>';
+                          }, 1600);
+                        }
+
+                        function fallbackCopy(){
+                          try{
+                            var i=document.createElement('input');
+                            i.value=url; document.body.appendChild(i); i.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(i);
+                            done();
+                          }catch(e){
+                            console.error('Copy failed:', e);
+                          }
+                        }
+
+                        if(navigator.clipboard && navigator.clipboard.writeText){
+                          navigator.clipboard.writeText(url).then(done, fallbackCopy);
+                        } else {
+                          fallbackCopy();
+                        }
+                      })(this)">
+                      <i class="bi bi-clipboard am-icon" aria-hidden="true"></i>
                     </button>
 
                   </div>
