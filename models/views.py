@@ -25,6 +25,7 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 from marketplace.models import SellerProfile
 from . import models as m
 from .forms import SignUpForm, TestDriveForm
+from .models import Car
 
 
 @ensure_csrf_cookie
@@ -513,9 +514,26 @@ def car_detail(request, pk: int):
             "seller_phone_digits": phone_digits,
             "seller_has_phone": seller_has_phone,
             "whatsapp_text": whatsapp_text,
+
+            "seller_point": car.seller_point(),  # None or dict {lat,lng,name,address,phone}
+            "default_center": [37.0902, -95.7129, 4],
         },
     )
+def car_geo(request, pk: int):
+    car = get_object_or_404(Car, pk=pk)
+    if car.seller_lat is None or car.seller_lng is None:
+        return JsonResponse({"ok": False, "error": "no_coords"}, status=404)
 
+    return JsonResponse({
+        "ok": True,
+        "id": car.id,
+        "name": car.seller_name or car.title,
+        "address": car.seller_address or car.seller_meta or "",
+        "phone": car.seller_phone or "",
+        "lat": float(car.seller_lat),
+        "lng": float(car.seller_lng),
+        "url": reverse("car_detail", args=[car.id]),
+    })
 
 @login_required
 def submit_review(request, pk=None, car_id=None):

@@ -233,6 +233,24 @@
               <span class="small am-muted">No phone number provided.</span>
             {% endif %}
           </div>
+
+          <hr class="my-3">
+
+          <h6 class="mb-2">Location</h6>
+          <div id="seller-map"
+               class="rounded border mt-3"
+               style="height:320px;min-height:280px;overflow:hidden"
+               data-lat="{{ car.seller_lat|default:'' }}"
+               data-lng="{{ car.seller_lng|default:'' }}"
+               data-name="{{ car.seller_name|default:'Seller' }}"
+               data-address="{{ car.seller_address|default:car.seller_meta|default:'' }}"
+               data-phone="{{ car.seller_phone|default:'' }}">
+          </div>
+          <div id="seller-map-msg" class="small text-muted mt-2"></div>
+
+
+
+
         </div>
       </div>
     </div>
@@ -635,6 +653,92 @@
 
 
 
+
+
+{% endblock %}
+
+{% block extra_scripts %}
+(function(){
+  const el      = document.getElementById('seller-map');
+  const pane    = document.getElementById('tabSeller');
+  const trigger = document.querySelector('[data-bs-target="#tabSeller"], #tabSeller-tab');
+  const msg     = document.getElementById('seller-map-msg');
+
+  if (!el) return;
+
+  // 1) Wait for Leaflet to be loaded (your base loads it later)
+  function waitForLeaflet(cb, tries=0){
+    if (window.L && L.map) return cb();
+    if (tries > 200) { console.warn('Leaflet never loaded'); return; }
+    setTimeout(() => waitForLeaflet(cb, tries+1), 25);
+  }
+
+  // 2) Wait until the element is actually visible & has size (tab shown)
+  function whenVisible(target, cb){
+    function check(){
+      const r = target.getBoundingClientRect();
+      const visible = r.width > 50 && r.height > 50 &&
+                      getComputedStyle(target).display !== 'none' &&
+                      getComputedStyle(target).visibility !== 'hidden';
+      if (visible) cb(); else requestAnimationFrame(check);
+    }
+    requestAnimationFrame(check);
+  }
+
+  function init(){
+    if (el.dataset._init === '1') return; // idempotent
+    el.dataset._init = '1';
+
+    // Robust parse (handle commas from some locales)
+    const lat = parseFloat(String(el.dataset.lat || '').replace(',', '.'));
+    const lng = parseFloat(String(el.dataset.lng || '').replace(',', '.'));
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      if (msg) msg.textContent = 'No seller coordinates on this listing.';
+      console.warn('No seller lat/lng');
+      return;
+    }
+
+    const map = L.map(el, { zoomControl:true, zoomAnimation:false, fadeAnimation:false });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:'\u00A9 OpenStreetMap contributors',
+      maxZoom:19, updateWhenIdle:true, updateWhenZooming:false, keepBuffer:2
+    }).addTo(map);
+
+    const esc = s => String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    const popup = `
+      <div class="small">
+        <strong>${esc(el.dataset.name || 'Seller')}</strong><br>
+        ${esc(el.dataset.address || '')}<br>
+        ${el.dataset.phone ? `<a href="tel:${esc(el.dataset.phone)}">${esc(el.dataset.phone)}</a>` : ''}
+      </div>`;
+    L.marker([lat, lng]).addTo(map).bindPopup(popup, { maxWidth: 260 });
+    map.setView([lat, lng], 12);
+
+    // 3) Aggressive refresh to kill grey/white area
+    const refresh = () => { try { map.invalidateSize(false); } catch(_){} };
+    requestAnimationFrame(refresh);
+    for (const t of [40, 120, 240, 400]) setTimeout(refresh, t);
+    setTimeout(() => { try { map.panBy([1,0]); map.panBy([-1,0]); } catch(_){} }, 480);
+    window.addEventListener('resize', refresh);
+
+    // If this is inside a Bootstrap modal as well, refresh when shown
+    const modal = el.closest('.modal');
+    if (modal) modal.addEventListener('shown.bs.modal', () => setTimeout(refresh, 30));
+  }
+
+  // Start logic: wait for Leaflet, then wait until the pane is visible
+  const start = () => whenVisible(el, () => waitForLeaflet(init));
+
+  // If Seller tab already visible, start now; else start when the tab is shown
+  if (pane && (pane.classList.contains('show') || pane.classList.contains('active'))) {
+    start();
+  } else if (trigger) {
+    trigger.addEventListener('shown.bs.tab', start, { once:true });
+  } else {
+    // No tabs? just do it when the element is visible on page load
+    start();
+  }
+})();
 
 
 {% endblock %}

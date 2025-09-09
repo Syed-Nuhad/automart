@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
-
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Make(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -45,8 +45,8 @@ class Car(models.Model):
         ("Diesel",   _("Diesel")),
         ("Hybrid",   _("Hybrid")),
         ("Electric", _("Electric")),
-
     ]
+
     # basic
     title = models.CharField(_("Title"), max_length=200)
     make = models.ForeignKey('Make', on_delete=models.PROTECT, related_name="cars")
@@ -68,26 +68,63 @@ class Car(models.Model):
     is_certified = models.BooleanField(_("Certified"), default=False)
     is_hot = models.BooleanField(_("Hot"), default=False)
 
-    # extra
+    # descriptions
     overview = models.TextField(_("Overview"), blank=True)
     history = models.TextField(_("History"), blank=True)
-    seller_name = models.CharField(_("Seller name"), max_length=200, blank=True)
-    seller_meta = models.CharField(_("Seller info"), max_length=200, blank=True)
+
+    # seller basics
+    seller_name  = models.CharField(_("Seller name"), max_length=200, blank=True)
+    seller_meta  = models.CharField(_("Seller info"),  max_length=200, blank=True)
     seller_email = models.EmailField(_("Seller email"), blank=True)
     seller_phone = models.CharField(_("Seller phone"), max_length=32, blank=True)
     seller_image = models.ImageField(upload_to="profiles/", blank=True, null=True)
+
+    # seller location (own fields, NOT linked to Dealer)
+    seller_address = models.CharField(_("Seller address"), max_length=255, blank=True)
+    seller_lat = models.DecimalField(
+        _("Seller latitude"),
+        max_digits=9, decimal_places=6, null=True, blank=True,
+        validators=[MinValueValidator(-90), MaxValueValidator(90)],
+        help_text=_("e.g. 40.712776"),
+    )
+    seller_lng = models.DecimalField(
+        _("Seller longitude"),
+        max_digits=9, decimal_places=6, null=True, blank=True,
+        validators=[MinValueValidator(-180), MaxValueValidator(180)],
+        help_text=_("e.g. -74.005974"),
+    )
+
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-created"]
         verbose_name = _("Car")
         verbose_name_plural = _("Cars")
+        indexes = [
+            models.Index(fields=["seller_lat", "seller_lng"]),
+        ]
 
     def __str__(self):
         return self.title
 
     def get_absolute_url(self):
         return reverse("car_detail", args=[self.pk])
+
+    # helpers for map
+    @property
+    def seller_has_geo(self) -> bool:
+        return self.seller_lat is not None and self.seller_lng is not None
+
+    def seller_point(self):
+        if not self.seller_has_geo:
+            return None
+        return {
+            "name": self.seller_name or "Seller",
+            "address": self.seller_address or self.seller_meta or "",
+            "phone": self.seller_phone or "",
+            "lat": float(self.seller_lat),
+            "lng": float(self.seller_lng),
+        }
 
 class ReviewFeedback(models.Model):
     ACTION_HELPFUL = "helpful"

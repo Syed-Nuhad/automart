@@ -563,14 +563,14 @@ label:hover ~ input:checked ~ label{
   box-shadow:var(--am-shadow);
 }
 
-/* Panes: no fade/hover/transform jitter */
+/* Panes: no fade/hover/transform jitter
 .am-pane{ padding:.25rem 0; }
 .am-pane, .am-pane *{
   transition:none !important;
   animation:none !important;
   transform:none !important;
 }
-
+*/
 /* Muted text inside this block */
 .am-muted{ color:var(--am-muted); }
 .am-muted a,
@@ -761,4 +761,22 @@ label:hover ~ input:checked ~ label{
   height: 70vh;
   min-height: 420px;
   overflow: hidden;
+}
+/* Seller map hardening */
+#seller-map { height: 320px; min-height: 280px; overflow: hidden; }
+
+/* Nuke responsive-img rules that break Leaflet tiles */
+#seller-map .leaflet-container img,
+#seller-map .leaflet-pane img,
+#seller-map img.leaflet-tile,
+.leaflet-container img,
+.leaflet-pane img.leaflet-tile {
+  max-width: none !important;
+  image-rendering: auto !important;
+}
+
+/* Belt-and-suspenders: lock tile box size so no “white squares” */
+#seller-map .leaflet-tile {
+  width: 256px !important;
+  height: 256px !important;
 }

@@ -17,28 +17,26 @@ class CarImageInline(admin.TabularInline):
 
 @admin.register(m.Car)
 class CarAdmin(admin.ModelAdmin):
-    list_display = (
-        "title","make","body_type","price","mileage",
-        "transmission","fuel","is_featured","is_new","is_certified","is_hot",
-        "seller_phone",  # <- optional but handy
-        "created",
-    )
-    list_filter = (
-        "is_featured","is_new","is_certified","is_hot",
-        "make","body_type","transmission","fuel","created",
-    )
-    search_fields = ("title","model_name","seller_name","seller_phone")
-
-    inlines = [CarImageInline]
+    list_display  = ("title", "make", "model_name", "price", "is_featured", "is_new", "is_certified", "is_hot", "created")
+    list_filter   = ("is_featured", "is_new", "is_certified", "is_hot", "make", "body_type", "transmission", "fuel")
+    search_fields = ("title", "model_name", "seller_name", "seller_meta")
+    readonly_fields = ("created",)
 
     fieldsets = (
-        ("Basic Info", {"fields": ("title","make","model_name","body_type")}),
-        ("Specs", {"fields": ("price","mileage","transmission","fuel")}),
-        ("Media", {"fields": ("cover",)}),
-        ("Flags / Badges", {"fields": ("is_featured","is_new","is_certified","is_hot")}),
-        ("Content", {"fields": ("overview","history")}),
-        # ↓↓↓ Add these so you can actually input them in admin
-        ("Seller", {"fields": ("seller_name","seller_meta","seller_phone","seller_email","seller_image")}),
+        ("Basics", {
+            "fields": ("title", "make", "model_name", "body_type", "price", "mileage", "transmission", "fuel", "cover",
+                       "is_featured", "is_new", "is_certified", "is_hot", "created")
+        }),
+        ("Descriptions", {
+            "fields": ("overview", "history"),
+        }),
+        ("Seller", {
+            "fields": ("seller_name", "seller_meta", "seller_email", "seller_phone", "seller_image"),
+        }),
+        ("Seller location (for map)", {
+            "fields": ("seller_address", "seller_lat", "seller_lng"),
+            "description": "Fill these to show a pin on the car detail map.",
+        }),
     )
 
 
