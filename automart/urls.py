@@ -67,6 +67,10 @@ urlpatterns = [
 
     # Marketplace
     path("marketplace/", include("marketplace.urls")),
+
+    #
+    path("dealers/map/", mviews.dealer_map, name="dealer_map"),
+    path("api/dealers.json", mviews.dealers_json, name="dealers_json"),
 ]
 
 if settings.DEBUG:

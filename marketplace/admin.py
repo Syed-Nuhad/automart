@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from .models import CarListing, CarPhoto, SellerProfile, SavedSearch, Seller
+from .models import CarListing, CarPhoto, SellerProfile, SavedSearch, Seller, Dealer
 
 # Admin site titles
 admin.site.site_header = _("Automart Admin")
@@ -104,3 +104,10 @@ class SellerAdmin(admin.ModelAdmin):
     list_filter = ("is_verified",)
     search_fields = ("display_name", "user__username", "user__email")
     actions = [mark_verified, mark_unverified]
+
+
+@admin.register(Dealer)
+class DealerAdmin(admin.ModelAdmin):
+    list_display = ("name", "is_active", "lat", "lng", "phone")
+    search_fields = ("name", "address", "phone", "website")
+    list_filter = ("is_active",)

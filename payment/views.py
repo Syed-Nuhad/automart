@@ -613,10 +613,10 @@ def stripe_webhook(request):
     return HttpResponse(status=200)
 
 def checkout_success(request):
-    return render(request, "checkout_success.html", {"order_id": request.GET.get("order")})
+    return render(request, "payment/success.html", {"order_id": request.GET.get("order")})
 
 def checkout_canceled(request):
-    return render(request, "checkout_canceled.html", {"order_id": request.GET.get("order")})
+    return render(request, "payment/cancel.html", {"order_id": request.GET.get("order")})
 
 # ---------- PayPal ----------
 
@@ -976,7 +976,7 @@ def paypal_return(request):
     else:
         if order:
             order.status = "failed"
-            order.save(update_fields=["status"]))
+            order.save(update_fields=["status"])
         return redirect(reverse("checkout_canceled") + (f"?order_id={order.id}" if order else ""))
 
 

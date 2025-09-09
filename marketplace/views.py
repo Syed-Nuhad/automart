@@ -12,7 +12,7 @@ from django.conf import settings
 
 from payment.cart import _car_to_session_row, add_item, remove_item as cart_remove_item, clear as cart_clear, \
     in_cart as cart_in_cart, total_cents as cart_total_cents, count as cart_count, _car_to_session_row
-from .models import Cart, CartItem
+from .models import Cart, CartItem, Dealer
 from .models import CarListing, SellerProfile, SavedSearch
 from .forms import CarListingForm, PhotoFormSet, SellerProfileForm, CarPhotoFormSet, SellerUserForm, \
     SellerOnboardingForm
@@ -465,6 +465,93 @@ def cart_view(request):
         "total_cents": total_cents,
         "currency": (getattr(settings, "DEFAULT_CURRENCY", "USD")).upper(),
     })
+
+
+
+def dealer_map(request):
+    # default center: USA-ish; change if you want
+    return render(request, "marketplace/dealer_map.html",
+                  {"default_center": [37.0902, -95.7129, 4]})
+
+
+def dealers_json(request):
+    qs = (
+        Dealer.objects
+        .filter(is_active=True)
+        .exclude(lat__isnull=True).exclude(lng__isnull=True)
+        .exclude(lat="").exclude(lng="")
+        .values("id","name","slug","address","lat","lng","phone","website")
+    )
+    return JsonResponse({"items": list(qs)})
+
+
+
+# def dealers_json(request):
+#     """
+#     Returns dealers as [{name, lat, lng, url, phone, meta}]
+#     Priority:
+#       1) Dealer rows with coords and is_active=True
+#       2) Fallback to deriving from Car seller fields (as before)
+#     """
+#     items = []
+#
+#     # 1) Use Dealer if available
+#     used_dealer = False
+#     if Dealer is not None:
+#         qs = Dealer.objects.filter(is_active=True).exclude(lat__isnull=True).exclude(lng__isnull=True)
+#         if qs.exists():
+#             used_dealer = True
+#             for d in qs:
+#                 items.append({
+#                     "name": d.name,
+#                     "lat": float(d.lat),
+#                     "lng": float(d.lng),
+#                     "meta": d.address or "",
+#                     "url": request.build_absolute_uri(f"/marketplace/?dealer={d.slug or d.name}"),
+#                     "phone": d.phone or "",
+#                 })
+#
+#     # 2) Fallback to Car sellers if no Dealer rows present
+#     if not used_dealer and Car is not None:
+#         def _get_lat(obj):
+#             for k in ("seller_lat", "seller_latitude", "lat", "latitude", "location_lat"):
+#                 v = getattr(obj, k, None)
+#                 if v not in (None, ""):
+#                     return float(v)
+#             return None
+#
+#         def _get_lng(obj):
+#             for k in ("seller_lng", "seller_longitude", "lng", "longitude", "location_lng"):
+#                 v = getattr(obj, k, None)
+#                 if v not in (None, ""):
+#                     return float(v)
+#             return None
+#
+#         seen = set()
+#         for c in Car.objects.all():
+#             name = getattr(c, "seller_name", None) or "Dealer"
+#             meta = getattr(c, "seller_meta", "") or ""
+#             lat = _get_lat(c)
+#             lng = _get_lng(c)
+#             if lat is None or lng is None:
+#                 continue
+#             key = (name, meta, round(lat, 6), round(lng, 6))
+#             if key in seen:
+#                 continue
+#             seen.add(key)
+#             items.append({
+#                 "name": name,
+#                 "lat": lat,
+#                 "lng": lng,
+#                 "meta": meta,
+#                 "url": request.build_absolute_uri(f"/marketplace/?dealer={name}"),
+#                 "phone": getattr(c, "seller_phone", "") or "",
+#             })
+#
+#     return JsonResponse({"dealers": items})
+
+
+
 
 
 

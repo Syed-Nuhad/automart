@@ -458,3 +458,24 @@ class OrderItem(models.Model):
     title = models.CharField(max_length=255)
     unit_price_cents = models.PositiveIntegerField()
     qty = models.PositiveIntegerField(default=1)
+
+
+
+class Dealer(models.Model):
+    name = models.CharField(max_length=160, unique=True)
+    slug = models.SlugField(max_length=180, unique=True, blank=True)
+    address = models.CharField(max_length=255, blank=True)
+    lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    phone = models.CharField(max_length=64, blank=True)
+    website = models.URLField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)[:180]
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name

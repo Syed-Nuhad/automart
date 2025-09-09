@@ -751,4 +751,14 @@ label:hover ~ input:checked ~ label{
 .card-actions .btn.btn-icon i{ font-size:1.1rem; line-height:1; }
 
 /* Neutralize any old full-width rule */
-.card-actions .btn-action{ width:auto !important; }
+.card-actions .btn-action{ width:auto !important; }  .map-controls {
+    position:absolute; z-index:1000; right:12px; top:12px;
+    display:flex; gap:.5rem; flex-wrap:wrap;
+  }
+
+
+.dealer-map{
+  height: 70vh;
+  min-height: 420px;
+  overflow: hidden;
+}

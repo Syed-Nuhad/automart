@@ -909,4 +909,58 @@ fetch(form.getAttribute('action'), {
 
 
 
+  document.addEventListener('DOMContentLoaded', function () {
+    const el = document.getElementById('dealerMap');
+    const msg = document.getElementById('dealerMapMsg');
 
+    // Safety: ensure it has height (some global CSS can still override)
+    if (!el.style.height) el.style.height = '70vh';
+
+    // Init map
+    const map = L.map(el);
+    // Basemap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Start centered on USA as a fallback
+    map.setView([37.0902, -95.7129], 4);
+
+    // Load active dealers
+    fetch("{% url 'marketplace:dealers_json' %}")
+      .then(r => r.json())
+      .then(data => {
+        const items = (data && data.items) || [];
+        if (!items.length) {
+          if (msg) msg.textContent = "No active dealers found. Add one with lat/lng and set Is active = true.";
+          return;
+        }
+        const bounds = [];
+        items.forEach(it => {
+          const lat = parseFloat(it.lat);
+          const lng = parseFloat(it.lng);
+          if (!isFinite(lat) || !isFinite(lng)) return;
+
+          const popup = `
+            <div style="min-width:220px">
+              <strong>${it.name || "Dealer"}</strong><br>
+              ${it.address ? `<div>${it.address}</div>` : ""}
+              ${it.phone ? `<div>${it.phone}</div>` : ""}
+              ${it.website ? `<div><a href="${it.website}" target="_blank" rel="noopener">Website</a></div>` : ""}
+            </div>
+          `;
+          L.marker([lat, lng]).addTo(map).bindPopup(popup);
+          bounds.push([lat, lng]);
+        });
+        if (bounds.length) map.fitBounds(bounds, { padding: [30, 30] });
+        if (msg) msg.textContent = `Loaded ${bounds.length} dealer(s).`;
+      })
+      .catch(err => {
+        console.error(err);
+        if (msg) msg.textContent = "Failed to load dealers. Check the console/network tab.";
+      });
+
+    // If this map sits inside a tab/offcanvas, call this when it becomes visible:
+    // setTimeout(() => map.invalidateSize(), 200);
+  });
