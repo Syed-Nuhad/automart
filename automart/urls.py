@@ -71,6 +71,7 @@ urlpatterns = [
     #
     path("dealers/map/", mviews.dealer_map, name="dealer_map"),
     path("api/dealers.json", mviews.dealers_json, name="dealers_json"),
+    path("api/dealers/", mviews.dealers_geojson, name="dealers_geojson"),
 ]
 
 if settings.DEBUG:

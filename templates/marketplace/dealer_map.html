@@ -8,9 +8,7 @@
   </div>
 
   <!-- The #1 reason for a blank map is ZERO HEIGHT: give it a height -->
-  <div id="dealerMap"
-       class="rounded border"
-       style="height: 70vh; min-height: 420px; overflow: hidden;"></div>
+  <div id="dealer-map" class="rounded border" style="height: 70vh; min-height: 420px; overflow: hidden;"></div>
 
   <div id="dealerMapMsg" class="small text-muted mt-2"></div>
 </div>
@@ -20,73 +18,43 @@
 
 
 <script>
-(function(){
-  const defaultCenter = {{ default_center|default:"[37.0902, -95.7129, 4]"|safe }};
-  const note = document.getElementById('map-note');
-  const map = L.map('dealer-map', { scrollWheelZoom: true });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-              { attribution: '&copy; OpenStreetMap' }).addTo(map);
-  map.setView([defaultCenter[0], defaultCenter[1]], defaultCenter[2]);
+document.addEventListener('DOMContentLoaded', function () {
+  const el = document.getElementById('dealer-map');
+  if (!el) return;
+  if (!window.L) { console.error('Leaflet not loaded'); return; }
 
-  // Controls
-  const ctrl = L.control({position: "topleft"});
-  ctrl.onAdd = function(){
-    const c = L.DomUtil.create("div", "map-controls");
-    c.innerHTML = `
-      <button id="btn-locate" class="btn btn-sm btn-primary">Locate me</button>
-      <button id="btn-reset" class="btn btn-sm btn-outline-secondary">Reset</button>
-    `;
-    return c;
-  };
-  ctrl.addTo(map);
+  const map = L.map(el, { zoomControl: true }).setView([39.5, -98.35], 4);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
+  }).addTo(map);
 
-  document.addEventListener("click", (e)=>{
-    if (e.target.id === "btn-locate") {
-      if (!navigator.geolocation) { alert("Geolocation not supported."); return; }
-      navigator.geolocation.getCurrentPosition(
-        (pos)=>{
-          const { latitude, longitude } = pos.coords;
-          map.setView([latitude, longitude], 11);
-          L.circleMarker([latitude, longitude], { radius: 6 }).addTo(map)
-            .bindPopup("You are here").openPopup();
-        },
-        ()=> alert("Could not get your location.")
-      );
-    }
-    if (e.target.id === "btn-reset") {
-      map.setView([defaultCenter[0], defaultCenter[1]], defaultCenter[2]);
-    }
-  });
+  const cluster = L.markerClusterGroup();
+  const esc = s => String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;'}[m]));
 
-  // Markers
-  fetch("{% url 'dealers_json' %}")
+  fetch('/api/dealers/')
     .then(r => r.json())
-    .then(data => {
-      const dealers = (data && data.dealers) || [];
-      if (!dealers.length) {
-        note.style.display = 'block';
-        note.textContent = "No dealer coordinates yet. Add Dealers in admin (with lat/lng) or keep using car seller coords.";
-        return;
-      }
-      const cluster = L.markerClusterGroup({ showCoverageOnHover: false });
+    .then(fc => {
       const bounds = [];
-      dealers.forEach(d => {
-        const m = L.marker([d.lat, d.lng]);
-        const phone = d.phone ? `<div class="mt-1"><small>📞 ${d.phone}</small></div>` : "";
-        const meta  = d.meta  ? `<div class="mt-1"><small>${d.meta}</small></div>` : "";
-        const link  = d.url   ? `<div class="mt-2"><a class="btn btn-sm btn-primary" href="${d.url}">View listings</a></div>` : "";
-        m.bindPopup(`<strong>${d.name}</strong>${meta}${phone}${link}`);
-        cluster.addLayer(m);
-        bounds.push([d.lat, d.lng]);
+      (fc.features || []).forEach(f => {
+        const [lng, lat] = (f.geometry && f.geometry.coordinates) || [];
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+        const p = f.properties || {};
+        const popup = `
+          <div class="small">
+            <strong>${esc(p.name)}</strong><br>
+            ${esc(p.address || '')}<br>
+            ${p.phone ? `<a href="tel:${esc(p.phone)}">${esc(p.phone)}</a><br>` : ''}
+            ${p.website ? `<a href="${esc(p.website)}" target="_blank" rel="noopener">Website</a><br>` : ''}
+            ${p.url ? `<a href="${esc(p.url)}">View dealer</a>` : ''}
+          </div>`;
+        cluster.addLayer(L.marker([lat, lng]).bindPopup(popup, { maxWidth: 260 }));
+        bounds.push([lat, lng]);
       });
       map.addLayer(cluster);
-      if (bounds.length) map.fitBounds(bounds, { padding: [30, 30] });
+      if (bounds.length) map.fitBounds(bounds, { padding: [24, 24] });
     })
-    .catch(err => {
-      console.error(err);
-      note.style.display = 'block';
-      note.textContent = "Could not load dealer markers.";
-    });
-})();
+    .catch(err => console.error('Dealer map load failed:', err));
+});
 </script>
 {% endblock %}
