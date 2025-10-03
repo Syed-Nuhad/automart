@@ -9,7 +9,10 @@
 {% block content %}
 
 <!-- ============================== HERO / PRIMARY SEARCH (Admin-driven Carousel) ============================== -->
-<section class="hero-section position-relative overflow-hidden">
+<section
+  class="hero-section position-relative overflow-hidden"
+  style="font-family:'SF Pro Text','SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans','Liberation Sans',sans-serif !important; font-weight:400 !important;">
+
   <!-- Background Carousel (images managed in Django admin via HeroSlide) -->
   <div id="heroCarousel"
        class="carousel slide carousel-fade position-absolute top-0 start-0 w-100 h-100 z-n1"
@@ -305,14 +308,14 @@
 
               <!-- Inline actions (moved inside .card-body) -->
               <div class="card-actions d-flex gap-2 mt-2">
-                <form method="post" action="{% url 'cart_add' car_id=car.id %}" class="js-add-cart" data-pid="{{ car.id }}">
-                  {% csrf_token %}
-                  <a class="btn btn-outline-primary add-wishlist"
-                         href="{% url 'toggle_wishlist' car.id %}"
-                         data-id="{{ car.id }}">
-                        <i class="bi bi-heart"></i>
-                      </a>
-                </form>
+
+
+              <!-- Wishlist link (separate) -->
+              <a class="btn btn-outline-primary add-wishlist"
+                 href="{% url 'toggle_wishlist' car.id %}"
+                 data-id="{{ car.id }}">
+                <i class="bi bi-heart"></i>
+              </a>
 
                 <form method="post"
                       action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
@@ -396,11 +399,13 @@
 
         <!-- View switch -->
         <div class="btn-group" role="group" aria-label="{% trans 'View switch' %}">
-          <input type="radio" class="btn-check" name="view" id="gridView" autocomplete="off" checked>
+          <input type="radio" class="btn-check" name="view" id="gridView" value="grid" autocomplete="off" checked>
           <label class="btn btn-outline-secondary" for="gridView"><i class="bi bi-grid"></i></label>
-          <input type="radio" class="btn-check" name="view" id="listView" autocomplete="off">
+
+          <input type="radio" class="btn-check" name="view" id="listView" value="list" autocomplete="off">
           <label class="btn btn-outline-secondary" for="listView"><i class="bi bi-list"></i></label>
         </div>
+
       </div>
     </div>
 
@@ -553,7 +558,8 @@
         </div>
       </aside>
       <!--RESULT-->
-      <div class="col-lg-9" id="results">
+      <div class="col-lg-9" id="resultsCol">
+
 
         {# top meta row: count + optional sort #}
         <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
@@ -586,8 +592,8 @@
               <!-- Ribbons -->
               <div class="position-absolute start-0 top-0 m-2 d-flex flex-wrap gap-1 z-3">
                 {% if car.is_featured %}<span class="badge text-bg-warning">{% trans "Featured" %}</span>{% endif %}
-                {% if car.is_new %}<span class="badge text-white badge-new">{% trans "New" %}</span>{% endif %}
-                {% if car.is_hot %}<span class="badge text-white badge-hot">{% trans "Hot" %}</span>{% endif %}
+                {% if car.is_new %}<span class="badge text-bg-primary">{% trans "New" %}</span>{% endif %}
+                {% if car.is_hot %}<span class="badge text-bg-danger">{% trans "Hot" %}</span>{% endif %}
               </div>
 
               <!-- Cover -->

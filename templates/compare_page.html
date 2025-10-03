@@ -1,8 +1,155 @@
 {% extends "base.html" %}
-{% block title %}Compare — AutoMart{% endblock %}
+{% load static i18n %}
+
+{% block title %}{% trans "Compare — AutoMart" %}{% endblock %}
+
 {% block content %}
 <div class="container py-4">
-  <h2>Compare</h2>
-  <p class="text-secondary">Open the compare modal from the navbar or compare drawer.</p>
+
+  <!-- Header + actions -->
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <h2 class="h4 mb-0">{% trans "Compare" %}</h2>
+    <div class="d-flex gap-2">
+      <a href="{% url 'home' %}#results" class="btn btn-outline-secondary">
+        <i class="bi bi-grid"></i> {% trans "Browse listings" %}
+      </a>
+      <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#compareModal">
+        <i class="bi bi-bar-chart"></i> {% trans "Open compare modal" %}
+      </button>
+      {% if cars %}
+        <button id="clearCompare" class="btn btn-outline-danger">
+          <i class="bi bi-x-circle"></i> {% trans "Clear all" %}
+        </button>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if cars %}
+  <!-- Comparison table -->
+  <div class="table-responsive">
+    <table class="table align-middle" id="compareTablePage">
+      <thead>
+        <tr>
+          <th class="w-25">{% trans "Spec" %}</th>
+          {% for c in cars %}
+            <th>
+              <div class="d-flex align-items-center gap-2">
+                {% if c.cover %}
+                  <img src="{{ c.cover.url }}" alt="" style="width:56px;height:40px;object-fit:cover;border-radius:.25rem">
+                {% else %}
+                  <img src="{% static 'img/sample1.jpg' %}" alt="" style="width:56px;height:40px;object-fit:cover;border-radius:.25rem">
+                {% endif %}
+                <div>
+                  <a class="fw-semibold small text-decoration-none" href="{% url 'car_detail' c.id %}">{{ c.title }}</a>
+                  <div class="text-secondary small">#{{ c.id }}</div>
+                </div>
+              </div>
+
+              <!-- Remove (posts to your existing toggle_compare) -->
+              <form method="post" action="{% url 'toggle_compare' c.id %}?next={% url 'compare_page' %}" class="mt-2">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">
+                  <i class="bi bi-x-circle"></i> {% trans "Remove" %}
+                </button>
+              </form>
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+
+      <tbody class="small text-secondary">
+        <tr>
+          <td class="fw-semibold text-dark">{% trans "Price" %}</td>
+          {% for c in cars %}
+            <td>{% if c.price %}${{ c.price|floatformat:0 }}{% else %}—{% endif %}</td>
+          {% endfor %}
+        </tr>
+        <tr>
+          <td class="fw-semibold text-dark">{% trans "Mileage" %}</td>
+          {% for c in cars %}
+            <td>{% if c.mileage %}{{ c.mileage|floatformat:0 }} {% trans "mi" %}{% else %}—{% endif %}</td>
+          {% endfor %}
+        </tr>
+        <tr>
+          <td class="fw-semibold text-dark">{% trans "Fuel" %}</td>
+          {% for c in cars %}
+            <td>
+              {% if c.get_fuel_display %}{{ c.get_fuel_display }}{% elif c.fuel %}{% trans c.fuel %}{% else %}—{% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+        <tr>
+          <td class="fw-semibold text-dark">{% trans "Transmission" %}</td>
+          {% for c in cars %}
+            <td>
+              {% if c.get_transmission_display %}{{ c.get_transmission_display }}
+              {% elif c.transmission %}{% trans c.transmission %}
+              {% else %}—{% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+        <tr>
+          <td class="fw-semibold text-dark">{% trans "Body" %}</td>
+          {% for c in cars %}
+            <td>{{ c.body_type.name|default:"—" }}</td>
+          {% endfor %}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="text-secondary small mt-2">
+    {% trans "Tip: You can add up to 4 vehicles to compare." %}
+  </div>
+
+  {% else %}
+  <!-- Empty state -->
+  <div class="alert alert-light border">
+    {% trans "No vehicles selected yet. Add up to 4 cars using the “Compare” button on a listing, then return here." %}
+  </div>
+  <a href="{% url 'home' %}#results" class="btn btn-primary">
+    <i class="bi bi-search"></i> {% trans "Find cars to compare" %}
+  </a>
+  {% endif %}
 </div>
+
+{% if cars %}
+<!-- Tiny helper to clear all (uses your toggle endpoint + updates navbar badge if present) -->
+<script>
+(function () {
+  const btn = document.getElementById('clearCompare');
+  if (!btn) return;
+
+  const ids = [{% for c in cars %}{{ c.id }}{% if not forloop.last %},{% endif %}{% endfor %}];
+
+  function getCSRF(){
+    const m = document.cookie.match(/(?:^|;\\s*)csrftoken=([^;]+)/);
+    if (m) return decodeURIComponent(m[1]);
+    const i = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    return i ? i.value : '';
+  }
+
+  btn.addEventListener('click', async function (e) {
+    e.preventDefault();
+    for (const id of ids) {
+      try {
+        const res = await fetch(`/compare/${id}/toggle/`, {
+          method: 'POST',
+          headers: { 'X-Requested-With':'XMLHttpRequest', 'X-CSRFToken': getCSRF() },
+          credentials: 'same-origin'
+        });
+        if (res.ok) {
+          const data = await res.json().catch(() => null);
+          if (data && typeof data.count === 'number') {
+            const badge = document.getElementById('compareCount');
+            if (badge) badge.textContent = String(data.count);
+          }
+        }
+      } catch (_) {}
+    }
+    location.reload();
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}

@@ -1,3 +1,13 @@
+// --- COUNTER HELPERS (use everywhere instead of touching a single #wishlistCount) ---
+function setWishlistCount(n){
+  document.querySelectorAll('#wishlistCount, .js-wishlist-count, [data-role="wishlistCount"]')
+    .forEach(el => el.textContent = String(Math.max(0, Number(n)||0)));
+}
+function setCompareCount(n){
+  document.querySelectorAll('#compareCount, .js-compare-count, [data-role="compareCount"]')
+    .forEach(el => el.textContent = String(Math.max(0, Number(n)||0)));
+}
+
 (() => {
   'use strict';
 
@@ -91,26 +101,6 @@
     });
   })();
 
-  /* ---------------- Wishlist (AJAX) ---------------- */
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.add-wishlist');
-    if (!btn || !btn.dataset.id) return;
-
-    e.preventDefault();
-    fetch(`/wishlist/${btn.dataset.id}/toggle/`, {
-      method: 'POST',
-      headers: { 'X-Requested-With':'XMLHttpRequest', 'X-CSRFToken': getCSRF() },
-      credentials: 'same-origin'
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (!data?.ok) return;
-      $('#wishlistCount')?.replaceChildren(document.createTextNode(String(data.count ?? 0)));
-      btn.classList.toggle('btn-success', data.in_wishlist === true);
-      btn.classList.toggle('btn-outline-secondary', !(data.in_wishlist === true));
-    })
-    .catch(console.error);
-  });
 
   /* ---------------- Compare (AJAX + drawer + modal) ---------------- */
   let compareItems = []; // server is the source of truth
@@ -176,8 +166,6 @@
       btn.classList.toggle('btn-outline-primary', !active);
     }catch(err){
       console.error('Compare toggle error:', err);
-      // Fallback: allow hard navigation if you added GET support
-      // window.location.href = url;
     }finally{
       btn.removeAttribute('disabled');
     }
@@ -244,45 +232,22 @@
       const priceEl = $('#detailPrice', modal);
       if (priceEl) priceEl.textContent = priceNum ? money(priceNum) : '—';
 
-      // Small headline specs (if you show them in header)
+      // Small headline specs
       $('.modal-mileage', modal)?.replaceChildren(document.createTextNode(mileage || '—'));
       $('.modal-transmission', modal)?.replaceChildren(document.createTextNode(trans || '—'));
       $('.modal-fuel', modal)?.replaceChildren(document.createTextNode(fuel || '—'));
 
-//      // Tabs content
-//      const tabOverview = $('#tabOverview', modal);
-//      if (tabOverview) tabOverview.innerHTML = `<p class="text-secondary small mb-0">${overview || '—'}</p>`;
-//      const tabHistory  = $('#tabHistory', modal);
-//      if (tabHistory) tabHistory.innerHTML = `<p class="text-secondary small mb-0">${history || '—'}</p>`;
-//      const tabSeller   = $('#tabSeller', modal);
-//      if (tabSeller) {
-//        tabSeller.innerHTML = `
-//          <div class="d-flex align-items-center gap-3">
-//            <div class="rounded-circle wf-skel" style="width:56px;height:56px"></div>
-//            <div>
-//              <div class="fw-semibold" id="sellerName">${sName || 'Seller'}</div>
-//              <div class="small text-secondary" id="sellerMeta">${sMeta || ''}</div>
-//            </div>
-//          </div>
-//          <div class="mt-3 d-flex gap-2">
-//            <a class="btn btn-outline-secondary" id="sellerCallBtn"><i class="bi bi-telephone"></i> Call</a>
-//            <a class="btn btn-primary" id="sellerMsgBtn"><i class="bi bi-envelope"></i> Message</a>
-//          </div>`;
-//      }
-
-      // Build gallery images from data-images JSON, then fallback to cover/card image/static
+      // Build gallery images from data-images JSON, then fallbacks
       let images = [];
       try { images = JSON.parse(t.dataset.images || '[]'); } catch (_) {}
-      if (!images.length && t.dataset.cover) {
-        images = [t.dataset.cover];
-      }
+      if (!images.length && t.dataset.cover) images = [t.dataset.cover];
       if (!images.length) {
         const cardImg = t.closest('.card')?.querySelector('img.card-img-top');
         if (cardImg?.src) images = [cardImg.src];
       }
       if (!images.length) images = ['/static/img/sample1.jpg'];
 
-      // Insert slides into <div class="carousel-inner" id="carModalCarouselInner"> or #cdCarouselInner
+      // Insert slides
       const inner = $('#carModalCarouselInner', modal) || $('#cdCarouselInner', modal) || $('#carousel .carousel-inner', modal);
       if (inner) {
         inner.innerHTML = images.map((src, i) => `
@@ -308,15 +273,10 @@
   $('#primarySearchForm')?.addEventListener('submit', function(){ this.action = location.pathname + '#results'; });
 })();
 
-
-
-
-
 (() => {
   'use strict';
 
   const $ = (sel, root=document) => root.querySelector(sel);
-  const setBadge = (el, n) => { if (el) el.textContent = String(Math.max(0, Number(n)||0)); };
 
   // 1) Counters: pull from backend, and live-update when your toggle code fires
   async function refreshNavCounters() {
@@ -324,22 +284,18 @@
       const res = await fetch('/api/counters/', { credentials: 'same-origin' });
       if (!res.ok) return;
       const data = await res.json();
-      setBadge(document.getElementById('wishlistCount'), data.wishlist ?? 0);
-      setBadge(document.getElementById('compareCount'),  data.compare  ?? 0);
+      setWishlistCount(data.wishlist ?? data.wishlist_count ?? 0);
+      setCompareCount(data.compare ?? data.compare_count ?? 0);
     } catch (_) {}
   }
   document.addEventListener('DOMContentLoaded', refreshNavCounters);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshNavCounters(); });
 
-  // Hook into your existing toggle responses:
-  // After a successful wishlist toggle in your JS, do:
-  // document.dispatchEvent(new CustomEvent('wishlist:updated', { detail: { count: data.count }}));
-  // After a successful compare toggle:
-  // document.dispatchEvent(new CustomEvent('compare:updated',  { detail: { count: data.count  }}));
-  document.addEventListener('wishlist:updated', (e) => setBadge($('#wishlistCount'), e.detail?.count ?? 0));
-  document.addEventListener('compare:updated',  (e) => setBadge($('#compareCount'),  e.detail?.count  ?? 0));
+  // Listen for cross-page updates
+  document.addEventListener('wishlist:updated', (e) => setWishlistCount(e.detail?.count ?? 0));
+  document.addEventListener('compare:updated',  (e) => setCompareCount(e.detail?.count  ?? 0));
 
-  // 2) Search (desktop + mobile) → redirect to home with ?q=... and land on #results
+  // 2) Search (desktop + mobile)
   function wireSearchForm(id){
     const form = document.getElementById(id);
     if (!form) return;
@@ -377,34 +333,6 @@
   }
 })();
 
-document.addEventListener("click", (e) => {
-  const btn = e.target.closest(".add-wishlist");
-  if (!btn) return;
-
-  e.preventDefault();
-  fetch(btn.href, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-    .then(r => r.json())
-    .then(data => {
-      if (data.ok) {
-        document.getElementById("wishlistCount").textContent = data.count;
-        btn.classList.toggle("btn-success", data.in_wishlist);
-        btn.classList.toggle("btn-outline-primary", !data.in_wishlist);
-      }
-    });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  fetch('/api/counters/', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-    .then(r => r.ok ? r.json() : null)
-    .then(data => {
-      if (!data || !data.ok) return;
-      const w = document.getElementById('wishlistCount');
-      const c = document.getElementById('compareCount');
-      if (w) w.textContent = data.wishlist ?? 0;
-      if (c) c.textContent = data.compare ?? 0;
-    })
-    .catch(() => {});
-});
 document.addEventListener('DOMContentLoaded', function () {
   var btn = document.getElementById('start360Btn');
   var el  = document.getElementById('cdCarousel');
@@ -423,8 +351,8 @@ document.addEventListener('DOMContentLoaded', function () {
       btn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Need 2+ images';
       return;
     }
-    if (inst) inst.pause(); // ensure Bootstrap's auto isn't interfering
-    timer = setInterval(function(){ if (inst) inst.next(); }, 400); // speed here
+    if (inst) inst.pause();
+    timer = setInterval(function(){ if (inst) inst.next(); }, 400);
     btn.dataset.playing = "1";
     btn.innerHTML = '<i class="bi bi-pause-circle"></i> Stop 360°';
   }
@@ -440,10 +368,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btn.dataset.playing) { stop(); } else { start(); }
   });
 });
-
-
-
-
 
 (() => {
   const $ = (s, r=document) => r.querySelector(s);
@@ -475,6 +399,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 })();
 
+// SHARE (single copy; fixed IIFE boundary)
 (() => {
   const isLocalhost = () => /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(location.origin);
 
@@ -486,7 +411,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   async function copyToClipboard(text){
-    // Clipboard API (HTTPS or localhost) → fallback to execCommand
     try {
       if (navigator.clipboard && (window.isSecureContext || isLocalhost())) {
         await navigator.clipboard.writeText(text);
@@ -507,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function flashTooltip(btn, text){
-    // Ensure tooltip exists and show temporary status
+    if (!window.bootstrap) return;
     let tip = bootstrap.Tooltip.getInstance(btn);
     if (!tip) tip = new bootstrap.Tooltip(btn, { trigger: 'manual' });
 
@@ -543,94 +467,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Bind + precreate tooltips
   document.querySelectorAll('#shareBtn, #shareBtn2, #shareBtn3, .share-btn, .share-card').forEach(btn => {
     if (!btn.hasAttribute('data-bs-toggle')) btn.setAttribute('data-bs-toggle', 'tooltip');
     if (!btn.hasAttribute('data-bs-title')) btn.setAttribute('data-bs-title', 'Share link');
-    bootstrap.Tooltip.getOrCreateInstance(btn, { trigger: 'manual' });
-    btn.addEventListener('click', onShareClick, { passive: false });
-  });
-})();(() => {
-  const isLocalhost = () => /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(location.origin);
-
-  function getShareData(btn){
-    return {
-      url:   btn.dataset.shareUrl || btn.dataset.url || location.href,
-      title: btn.dataset.shareTitle || btn.dataset.title || document.title
-    };
-  }
-
-  async function copyToClipboard(text){
-    // Clipboard API (HTTPS or localhost) → fallback to execCommand
-    try {
-      if (navigator.clipboard && (window.isSecureContext || isLocalhost())) {
-        await navigator.clipboard.writeText(text);
-        return true;
-      }
-    } catch(_) {}
-    try {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      const ok = document.execCommand('copy');
-      ta.remove();
-      return ok;
-    } catch(_) { return false; }
-  }
-
-  function flashTooltip(btn, text){
-    // Ensure tooltip exists and show temporary status
-    let tip = bootstrap.Tooltip.getInstance(btn);
-    if (!tip) tip = new bootstrap.Tooltip(btn, { trigger: 'manual' });
-
-    const attr = btn.hasAttribute('data-bs-title') ? 'data-bs-title' : 'title';
-    const original = btn.getAttribute(attr) || 'Share link';
-    btn.setAttribute(attr, text);
-    if (tip.setContent) tip.setContent({ '.tooltip-inner': text });
-    tip.show();
-
-    setTimeout(() => {
-      tip.hide();
-      btn.setAttribute(attr, original);
-      if (tip.setContent) tip.setContent({ '.tooltip-inner': original });
-    }, 1200);
-  }
-
-  async function onShareClick(e){
-    e.preventDefault();
-    const btn = e.currentTarget;
-    const { url, title } = getShareData(btn);
-    const canShare = typeof navigator.share === 'function' && (window.isSecureContext || isLocalhost());
-
-    try {
-      if (canShare) {
-        await navigator.share({ title, url });
-        flashTooltip(btn, 'Shared');
-      } else {
-        const ok = await copyToClipboard(url);
-        flashTooltip(btn, ok ? 'Copied!' : 'Copy failed');
-      }
-    } catch(_) {
-      // user canceled → no-op
-    }
-  }
-
-  // Bind + precreate tooltips
-  document.querySelectorAll('#shareBtn, #shareBtn2, #shareBtn3, .share-btn, .share-card').forEach(btn => {
-    if (!btn.hasAttribute('data-bs-toggle')) btn.setAttribute('data-bs-toggle', 'tooltip');
-    if (!btn.hasAttribute('data-bs-title')) btn.setAttribute('data-bs-title', 'Share link');
-    bootstrap.Tooltip.getOrCreateInstance(btn, { trigger: 'manual' });
+    if (window.bootstrap) bootstrap.Tooltip.getOrCreateInstance(btn, { trigger: 'manual' });
     btn.addEventListener('click', onShareClick, { passive: false });
   });
 })();
 
-
-
-
-
+// RATING STARS
 (function(){
   const id   = "{{ car.id }}";
   const wrap = document.getElementById("stars-" + id);
@@ -645,9 +490,9 @@ document.addEventListener('DOMContentLoaded', function () {
   function paint(v){
     icons.forEach((ic, i) => {
       const n = i + 1;
-      ic.className = "fa-regular fa-star";                 // empty
-      if (v >= n)                 ic.className = "fa-solid fa-star on";           // full
-      else if (v >= n - 0.5)      ic.className = "fa-solid fa-star-half-stroke half"; // half
+      ic.className = "fa-regular fa-star";
+      if (v >= n)            ic.className = "fa-solid fa-star on";
+      else if (v >= n - 0.5) ic.className = "fa-solid fa-star-half-stroke half";
     });
     if (hint) hint.textContent = v ? (v + " out of 5") : "";
   }
@@ -659,13 +504,11 @@ document.addEventListener('DOMContentLoaded', function () {
     return n - (isLeftHalf ? 0.5 : 0);
   }
 
-  // Hover preview per icon (mouse)
   btns.forEach(btn => {
     btn.addEventListener("mousemove", e => paint(valFrom(btn, e.clientX)));
   });
   wrap.addEventListener("mouseleave", () => paint(value));
 
-  // Click/tap commit
   function commit(e){
     const btn = e.target.closest(".star");
     if (!btn) return;
@@ -676,13 +519,12 @@ document.addEventListener('DOMContentLoaded', function () {
   wrap.addEventListener("click", commit);
   wrap.addEventListener("pointerdown", commit);
 
-  // Keyboard support (left/right/home/end)
   wrap.tabIndex = 0;
   wrap.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowLeft")      value = Math.max(0.5, (value || 0.5) - 0.5);
-    else if (e.key === "ArrowRight")value = Math.min(5,   (value || 0.5) + 0.5);
-    else if (e.key === "Home")      value = 0.5;
-    else if (e.key === "End")       value = 5;
+    if (e.key === "ArrowLeft")       value = Math.max(0.5, (value || 0.5) - 0.5);
+    else if (e.key === "ArrowRight") value = Math.min(5,   (value || 0.5) + 0.5);
+    else if (e.key === "Home")       value = 0.5;
+    else if (e.key === "End")        value = 5;
     else return;
     hidden.value = value; paint(value); e.preventDefault();
   });
@@ -690,10 +532,8 @@ document.addEventListener('DOMContentLoaded', function () {
   paint(value);
 })();
 
-
-
+// REVIEW ACTIONS
 (function () {
-  // Intercept submits from forms with .js-review-action
   function onActionSubmit(e) {
     const form = e.target.closest('form.js-review-action');
     if (!form) return;
@@ -702,22 +542,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const btn   = form.querySelector('[data-role="btn"]');
     const icon  = form.querySelector('[data-role="icon"]');
     const count = form.querySelector('[data-role="count"]');
-
-    // Guard
     if (!btn || !count) return;
 
-    // figure out current state from aria-pressed
     const pressed = (btn.getAttribute('aria-pressed') === 'true');
     const kind    = form.dataset.kind; // "helpful" or "report"
     const tokenEl = form.querySelector('input[name="csrfmiddlewaretoken"]');
     const csrf    = tokenEl ? tokenEl.value : '';
 
-    // Optimistic UI update
     const current = parseInt(count.textContent.trim(), 10) || 0;
     const nextPressed = !pressed;
     const nextCount   = Math.max(0, current + (nextPressed ? 1 : -1));
 
-    // Toggle styles/icons locally
     if (kind === 'helpful') {
       btn.classList.toggle('btn-success', nextPressed);
       btn.classList.toggle('btn-outline-success', !nextPressed);
@@ -732,10 +567,8 @@ document.addEventListener('DOMContentLoaded', function () {
     btn.setAttribute('aria-pressed', String(nextPressed));
     count.textContent = String(nextCount);
 
-    // Disable while posting
     btn.disabled = true;
 
-    // POST via fetch; we ignore the HTML response and keep optimistic state
     fetch(form.action, {
       method: 'POST',
       headers: {
@@ -743,9 +576,8 @@ document.addEventListener('DOMContentLoaded', function () {
         'X-Requested-With': 'XMLHttpRequest'
       },
       body: new FormData(form),
-      redirect: 'follow' // server may redirect; we don't care about the HTML body
+      redirect: 'follow'
     }).catch(() => {
-      // Revert on error
       if (kind === 'helpful') {
         btn.classList.toggle('btn-success', pressed);
         btn.classList.toggle('btn-outline-success', !pressed);
@@ -769,10 +601,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 })();
 
-
-
-
-
+// 360 SPIN (carSpin)
 document.addEventListener('DOMContentLoaded', function () {
   var btn = document.getElementById('spinBtn');
   var el  = document.getElementById('carSpin');
@@ -794,7 +623,6 @@ document.addEventListener('DOMContentLoaded', function () {
       : '<i class="bi bi-arrows-angle-expand"></i><span>Start 360° View</span>';
   }
 
-  // Need at least 2 slides to “spin”
   if (items.length < 2) {
     btn.disabled = true;
     btn.title = 'Need at least 2 images';
@@ -809,35 +637,21 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
     setBtnSpinning(true);
-    // Advance frames at a steady rate without touching Bootstrap internals
-    timer = setInterval(function(){ inst.next(); }, 500); // adjust speed as you like
+    timer = setInterval(function(){ inst.next(); }, 500);
   });
 
-  // Safety: stop spinning on page unload
   window.addEventListener('beforeunload', function () {
     if (timer) clearInterval(timer);
   });
 });
 
+// Tooltips (single init)
+document.addEventListener('DOMContentLoaded', () => {
+  if (!window.bootstrap) return;
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => bootstrap.Tooltip.getOrCreateInstance(el));
+});
 
-
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => bootstrap.Tooltip.getOrCreateInstance(el));
-  });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Swiper (featured)
 (function() {
   var el = document.getElementById('featuredSwiper');
   if (!el) return;
@@ -856,37 +670,98 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 })();
 
-// Bootstrap 5 tooltips
-(function () {
-  if (!window.bootstrap) return;
-  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
-    new bootstrap.Tooltip(el);
+// === wishlist handler (debounced + stable UI) ===
+const wlPending = new Set();
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.add-wishlist');
+  if (!btn || !btn.dataset.id) return;
+
+  e.preventDefault();
+
+  // Prevent Bootstrap :active/:focus “fill” from sticking visually
+  btn.blur();
+  btn.classList.remove('active');
+
+  const id = String(btn.dataset.id);
+  if (wlPending.has(id)) return;        // already in flight → ignore extra taps
+  wlPending.add(id);
+  btn.classList.add('disabled');        // simple click guard
+
+  const url = btn.dataset.url || btn.href || `/wishlist/${id}/toggle/`;
+
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRFToken':
+        (document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/)?.[1]) ||
+        document.querySelector('input[name="csrfmiddlewaretoken"]')?.value || ''
+    },
+    credentials: 'same-origin'
+  })
+  .then(r => r.ok ? r.json() : Promise.reject(r))
+  .then(data => {
+    if (!data || data.ok === false) return;
+    if (typeof data.count !== 'undefined') setWishlistCount(data.count);
+    document.dispatchEvent(new CustomEvent('wishlist:updated', {
+      detail: { count: data.count, in_wishlist: data.in_wishlist === true }
+    }));
+  })
+  .catch(() => {})
+  .finally(() => {
+    wlPending.delete(id);
+    btn.classList.remove('disabled');
   });
-})();
+});
 
-// Share: copy URL (Web Share API if available, fallback to clipboard)
-(function () {
-  document.querySelectorAll('.share-card').forEach(function (btn) {
-    btn.addEventListener('click', async function () {
-      const url = btn.getAttribute('data-url');
-      const abs = /^https?:\/\//i.test(url) ? url : (location.origin + url);
-      try {
-        if (navigator.share) { await navigator.share({ url: abs }); }
-        else if (navigator.clipboard) { await navigator.clipboard.writeText(abs); }
+/////////////////////////////////////
+// View Switch
+/////////////////////////////////////
+document.addEventListener('DOMContentLoaded', function () {
+  const gridWrap = document.getElementById('cardsGrid');
+  if (!gridWrap) return;
 
-        // quick feedback via tooltip if available
-        if (window.bootstrap) {
-          const tip = bootstrap.Tooltip.getInstance(btn) || new bootstrap.Tooltip(btn);
-          const prev = btn.getAttribute('data-bs-title') || btn.getAttribute('title') || 'Copy link';
-          btn.setAttribute('data-bs-title', 'Copied!');
-          tip.setContent({ '.tooltip-inner': 'Copied!' });
-          tip.show();
-          setTimeout(() => { btn.setAttribute('data-bs-title', prev); tip.hide(); }, 1200);
-        }
-      } catch (e) { /* no-op */ }
+  const cols = Array.from(gridWrap.children);
+  cols.forEach(col => { if (!col.dataset.orig) col.dataset.orig = col.className; });
+
+  const radios = Array.from(document.querySelectorAll('input[name="view"]'));
+  const STORAGE_KEY = 'automart:view';
+
+  function apply(view){
+    const isList = (view === 'list');
+    cols.forEach(col => {
+      if (isList) {
+        col.className = 'col-12';
+      } else {
+        col.className = col.dataset.orig || col.className;
+      }
     });
+    radios.forEach(r => r.checked = (r.value === view));
+    try { localStorage.setItem(STORAGE_KEY, view); } catch(_) {}
+  }
+
+  const initial = (localStorage.getItem(STORAGE_KEY) || (radios.find(r => r.checked)?.value) || 'grid');
+  apply(initial);
+
+  radios.forEach(r => r.addEventListener('change', (e) => {
+    if (e.target.checked) apply(e.target.value);
+  }));
+});
+
+// Compare nav (single copy)
+document.addEventListener('DOMContentLoaded', function () {
+  const btn = document.getElementById('saveComparison');
+  if (!btn) return;
+
+  btn.addEventListener('click', function () {
+    try {
+      const modalEl = document.getElementById('compareModal');
+      if (modalEl && window.bootstrap) {
+        bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+      }
+    } catch (_) {}
+
+    window.location.assign("{% url 'compare_page' %}");
   });
-})();
-
-
-
+});

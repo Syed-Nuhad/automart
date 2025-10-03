@@ -34,212 +34,134 @@
 </head>
 
 <body class="d-flex flex-column min-vh-100">
-  <!-- ============================== NAVBAR ============================== -->
-  <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
-    <div class="container">
+<!-- ============================== NAVBAR ============================== -->
+<nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+  <div class="container">
+
+    <!-- Brand + Search (left side) -->
+    <div class="d-flex align-items-center">
       <!-- Brand -->
-      <a class="navbar-brand brand d-inline-flex align-items-center" href="{% url 'home' %}">
+      <a class="navbar-brand d-inline-flex align-items-center" href="{% url 'home' %}">
         <i class="bi bi-speedometer2 me-2 text-primary"></i> AutoMart
       </a>
 
-      <!-- DESKTOP SEARCH (goes to browse_listings) -->
-      <form class="d-none d-lg-flex ms-3" method="get" action="{% url 'marketplace:browse_listings' %}" role="search">
-
+      <!-- Search -->
+      <form class="ms-3 d-none d-lg-flex" method="get" action="{% url 'marketplace:browse_listings' %}" role="search">
         <div class="input-group input-group-sm">
           <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
           <input name="q" class="form-control" placeholder="Search make, model, keyword…" value="{{ request.GET.q|default:'' }}">
-          <button class="btn btn-outline-secondary" type="submit">Search</button>
-
-          {# Show Save only when there are filters/keywords and user is logged in #}
-          {% if user.is_authenticated and request.GET %}
-            <button class="btn btn-outline-primary" type="submit" form="saveSearchForm">
-              <i class="bi bi-bell"></i> Save
-            </button>
-          {% endif %}
+          <button class="btn btn-primary" type="submit">Search</button>
         </div>
       </form>
-
-      {# Hidden POST form that creates the saved search #}
-      {% if user.is_authenticated and request.GET %}
-      <form id="saveSearchForm" action="{% url 'marketplace:saved_search_create' %}" method="post" class="d-none">
-        {% csrf_token %}
-        <input type="hidden" name="name" value="{{ request.GET.q|default:'My search' }}">
-        {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
-        {% if request.GET.make %}<input type="hidden" name="make" value="{{ request.GET.make }}">{% endif %}
-        {% if request.GET.model_name %}<input type="hidden" name="model_name" value="{{ request.GET.model_name }}">{% endif %}
-        {% if request.GET.body_type %}<input type="hidden" name="body_type" value="{{ request.GET.body_type }}">{% endif %}
-        {% if request.GET.transmission %}<input type="hidden" name="transmission" value="{{ request.GET.transmission }}">{% endif %}
-        {% if request.GET.fuel %}<input type="hidden" name="fuel" value="{{ request.GET.fuel }}">{% endif %}
-        {% if request.GET.price_min %}<input type="hidden" name="price_min" value="{{ request.GET.price_min }}">{% endif %}
-        {% if request.GET.price_max %}<input type="hidden" name="price_max" value="{{ request.GET.price_max }}">{% endif %}
-        {% if request.GET.mileage_max %}<input type="hidden" name="mileage_max" value="{{ request.GET.mileage_max }}">{% endif %}
-        {% if request.GET.is_featured %}<input type="hidden" name="is_featured" value="{{ request.GET.is_featured }}">{% endif %}
-        {% if request.GET.is_new %}<input type="hidden" name="is_new" value="{{ request.GET.is_new }}">{% endif %}
-        {% if request.GET.is_certified %}<input type="hidden" name="is_certified" value="{{ request.GET.is_certified }}">{% endif %}
-        {% if request.GET.is_hot %}<input type="hidden" name="is_hot" value="{{ request.GET.is_hot }}">{% endif %}
-      </form>
-      {% endif %}
-
-      <!-- Mobile toggler -->
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
-              aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <!-- Right side -->
-      <div class="collapse navbar-collapse" id="nav">
-        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-          {% with current=request.resolver_match.url_name %}
-            <li class="nav-item">
-              <a class="nav-link {% if current == 'browse_listings' %}active{% endif %}"
-                 href="{% url 'marketplace:browse_listings' %}">Browse</a>
-            </li>
-
-            {% if user.is_authenticated %}
-              <li class="nav-item">
-                <a class="nav-link {% if current == 'sell_car' %}active{% endif %}"
-                   href="{% url 'marketplace:sell_car' %}"
-                   {% if current == 'sell_car' %}aria-current="page"{% endif %}>
-                  Sell your car
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link {% if current == 'my_listings' %}active{% endif %}"
-                   href="{% url 'marketplace:my_listings' %}"
-                   {% if current == 'my_listings' %}aria-current="page"{% endif %}>
-                  My Listings
-                </a>
-              </li>
-            {% else %}
-              <li class="nav-item">
-                <a class="nav-link" href="/accounts/login/?next={% url 'marketplace:sell_car' %}">Sell your car</a>
-              </li>
-            {% endif %}
-
-            {% if user.is_staff %}
-              <li class="nav-item"><a class="nav-link" href="/admin/">Admin</a></li>
-            {% endif %}
-          {% endwith %}
-
-          <!-- Wishlist -->
-          <li class="nav-item me-lg-2">
-            <a class="btn btn-sm btn-outline-primary position-relative d-inline-flex align-items-center gap-1"
-               href="{% url 'wishlist_page' %}" id="wishlistBtn">
-              <i class="bi bi-heart"></i><span class="d-none d-xl-inline"> Wishlist</span>
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary"
-                    id="wishlistCount">{{ wishlist_count|default:0 }}</span>
-            </a>
-          </li>
-
-          <!-- Compare -->
-          <li class="nav-item me-lg-2">
-            <a class="btn btn-sm btn-outline-primary position-relative d-inline-flex align-items-center gap-1"
-               href="{% url 'compare_page' %}" id="compareBtn">
-              <i class="bi bi-bar-chart"></i><span class="d-none d-xl-inline"> Compare</span>
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary"
-                    id="compareCount">{{ compare_count|default:0 }}</span>
-            </a>
-          </li>
-
-          <!--Cart-->
-          <li>
-            <a href="{% url 'cart' %}" class="btn btn-outline-primary position-relative" aria-label="Cart">
-              <i class="bi bi-cart3"></i>
-              <span id="cart-count">{{ cart_count|default:0 }}</span>
-            </a>
-
-          </li>
-
-
-          <!-- Account -->
-          <li class="nav-item ms-lg-2">
-            {% if user.is_authenticated %}
-              <div class="btn-group">
-                <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="bi bi-person-circle me-1 text-white"></i> {{ user.username }}
-                </button>
-
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'wishlist_page' %}">
-                    <i class="bi bi-heart"></i> My wishlist</a></li>
-                  <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'compare_page' %}">
-                    <i class="bi bi-bar-chart"></i> Compare</a></li>
-                  <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'marketplace:saved_search_list' %}">
-                    <i class="bi bi-bell"></i> Saved searches
-                    {% if has_new_saved_searches %}<span class="badge bg-danger ms-2">●</span>{% endif %}
-                  </a></li>
-                  <li><hr class="dropdown-divider"></li>
-
-                  {# Seller block (single source of truth) #}
-                  {% if is_seller %}
-                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'seller_account_edit' %}">
-                      <i class="bi bi-person-gear"></i> Seller account</a></li>
-                  {% elif is_seller_pending %}
-                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'seller_account_edit' %}">
-                      <i class="bi bi-hourglass-split"></i> Seller (pending review)</a></li>
-                  {% else %}
-                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'seller_become' %}">
-                      <i class="bi bi-briefcase"></i> Become a seller</a></li>
-                  {% endif %}
-
-                  <li><hr class="dropdown-divider"></li>
-                  <li>
-                    <form method="post" action="{% url 'logout' %}" class="m-0">
-                      {% csrf_token %}
-                      <button type="submit" class="dropdown-item d-flex align-items-center gap-2">
-                        <i class="bi bi-box-arrow-right"></i> Log out
-                      </button>
-                    </form>
-                  </li>
-                  <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'settings_page' %}">
-                      <i class="bi bi-gear"></i> Settings</a>
-                  </li>
-                </ul>
-              </div>
-            {% else %}
-              <div class="btn-group">
-                <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="bi bi-person-circle me-1"></i> Account
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-
-                  <li><a class="dropdown-item d-flex align-items-center gap-2"
-                         href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">
-                         <i class="bi bi-box-arrow-in-right"></i> Sign in</a></li>
-
-                  <li><a class="dropdown-item d-flex align-items-center gap-2"
-                         href="{% url 'signup' %}?next={{ request.get_full_path|urlencode }}">
-                         <i class="bi bi-person-plus"></i> Create account</a></li>
-
-                  <li><hr class="dropdown-divider"></li>
-
-                  <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'marketplace:sell_car' %}">
-                    <i class="bi bi-speedometer2"></i> Sell your car</a></li>
-
-
-                </ul>
-              </div>
-            {% endif %}
-          </li>
-        </ul>
-
-        <!-- MOBILE SEARCH (same target as desktop) -->
-        <form class="d-lg-none mt-3" id="globalSearchFormMobile" method="get" action="{% url 'marketplace:browse_listings' %}">
-          <div class="input-group">
-            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-            <input class="form-control" type="search" name="q"
-                   placeholder="Search make, model, keyword…" aria-label="Search"
-                   value="{{ request.GET.q|default:'' }}">
-            <button class="btn btn-outline-primary" type="submit">Go</button>
-            <a class="btn btn-light" href="{% url 'marketplace:saved_search_list' %}">
-              <i class="bi bi-bell"></i>
-            </a>
-          </div>
-        </form>
-      </div>
     </div>
-  </nav>
+
+    <!-- Mobile toggler -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+            aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Right side -->
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+
+        <!-- Browse -->
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'browse_listings' %}active{% endif %}"
+             href="{% url 'marketplace:browse_listings' %}">Browse</a>
+        </li>
+
+        <!-- Sell -->
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'sell_car' %}active{% endif %}"
+               href="{% url 'marketplace:sell_car' %}">Sell your car</a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="/accounts/login/?next={% url 'marketplace:sell_car' %}">Sell your car</a>
+          </li>
+        {% endif %}
+
+      <!-- Wishlist -->
+      <li class="nav-item">
+        <a class="btn btn-sm btn-outline-primary position-relative" href="{% url 'wishlist_page' %}">
+          <i class="bi bi-heart"></i> Wishlist
+          <span id="wishlistCount"
+                aria-live="polite"
+                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary wishlist-badge">
+            {{ wishlist_count|default:0 }}
+          </span>
+        </a>
+      </li>
+
+      <!-- Compare -->
+      <li class="nav-item">
+        <a class="btn btn-sm btn-outline-primary position-relative" href="{% url 'compare_page' %}">
+          <i class="bi bi-bar-chart"></i> Compare
+          <span id="compareCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
+            {{ compare_count|default:0 }}
+          </span>
+        </a>
+      </li>
+
+
+        <!-- Cart -->
+        <li class="nav-item">
+          <a href="{% url 'cart' %}" class="btn btn-sm btn-outline-primary position-relative">
+            <i class="bi bi-cart3"></i>
+            <span id="cart-count">{{ cart_count|default:0 }}</span>
+          </a>
+        </li>
+
+        <!-- Account -->
+        <li class="nav-item">
+          {% if user.is_authenticated %}
+            <div class="btn-group">
+              <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-person-circle me-1 text-white"></i> {{ user.username }}
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{% url 'wishlist_page' %}"><i class="bi bi-heart"></i> My wishlist</a></li>
+                <li><a class="dropdown-item" href="{% url 'compare_page' %}"><i class="bi bi-bar-chart"></i> Compare</a></li>
+                <li><a class="dropdown-item" href="{% url 'marketplace:saved_search_list' %}">
+                  <i class="bi bi-bell"></i> Saved searches</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+                    <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right"></i> Log out</button>
+                  </form>
+                </li>
+              </ul>
+            </div>
+          {% else %}
+            <div class="btn-group">
+              <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-person-circle me-1"></i> Account
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">
+                  <i class="bi bi-box-arrow-in-right"></i> Sign in</a></li>
+                <li><a class="dropdown-item" href="{% url 'signup' %}?next={{ request.get_full_path|urlencode }}">
+                  <i class="bi bi-person-plus"></i> Create account</a></li>
+              </ul>
+            </div>
+          {% endif %}
+        </li>
+      </ul>
+
+      <!-- Mobile search -->
+      <form class="d-lg-none mt-3" method="get" action="{% url 'marketplace:browse_listings' %}">
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+          <input class="form-control" type="search" name="q" placeholder="Search make, model, keyword…" value="{{ request.GET.q|default:'' }}">
+          <button class="btn btn-primary" type="submit">Go</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</nav>
+
 
 
   <!-- ============================== MAIN CONTENT ============================== -->

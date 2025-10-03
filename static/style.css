@@ -32,6 +32,61 @@
     .dropdown-menu { background-color: #fff !important; border: 1px solid #dee2e6; }
     .dropdown-menu .dropdown-item { color: #212529 !important; }
     .dropdown-menu .dropdown-item:hover { background-color: #f8f9fa; }
+  .hero-section, .hero-section * {
+    font-family:'SF Pro Text','SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans','Liberation Sans',sans-serif !important;
+  }
+  .hero-section b, .hero-section strong, .hero-section .fw-bold { font-weight:600 !important; }
+/* ===== SF Pro everywhere (with !important) ===== */
+
+/* 1) Self-hosted SF Pro (put files in /static/fonts/) */
+@font-face { font-family:"SF Pro Text"; src:url("/static/fonts/SFProText-Regular.woff2") format("woff2"); font-weight:400; font-style:normal; font-display:swap; }
+@font-face { font-family:"SF Pro Text"; src:url("/static/fonts/SFProText-Semibold.woff2") format("woff2"); font-weight:600; font-style:normal; font-display:swap; }
+@font-face { font-family:"SF Pro Display"; src:url("/static/fonts/SFProDisplay-Regular.woff2") format("woff2"); font-weight:400; font-style:normal; font-display:swap; }
+@font-face { font-family:"SF Pro Display"; src:url("/static/fonts/SFProDisplay-Semibold.woff2") format("woff2"); font-weight:600; font-style:normal; font-display:swap; }
+
+/* 2) Font stack + Bootstrap variables */
+:root{
+  --am-sf: "SF Pro Text","SF Pro Display",
+           -apple-system, BlinkMacSystemFont,
+           "Segoe UI", Roboto, "Helvetica Neue", Arial,
+           "Noto Sans","Liberation Sans", sans-serif;
+  --am-sf-normal: 400;
+  --am-sf-bold:   600;
+
+  /* custom properties can’t take !important, so we force on elements below */
+  --bs-font-sans-serif: var(--am-sf);
+  --bs-body-font-family: var(--am-sf);
+}
+
+/* 3) Global enforcement */
+html, body {
+  font-family: var(--am-sf) !important;
+  font-weight: var(--am-sf-normal) !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  font-synthesis: none !important;
+}
+
+/* Make bold look “normal bold” (semibold) */
+b, strong { font-weight: var(--am-sf-bold) !important; }
+
+/* Headings + utilities */
+h1, h2, h3, h4, h5, h6 { font-weight: var(--am-sf-bold) !important; }
+.fw-bold, .fw-semibold { font-weight: var(--am-sf-bold) !important; }
+
+/* Catch common Bootstrap text classes */
+.lead, .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+  font-family: var(--am-sf) !important;
+}
+
+/* 4) Nudge previously heavy spots in your CSS */
+.card-title       { font-weight: 600 !important; }
+.price.h5         { font-weight: 700 !important; }
+.brand, .navbar-brand { font-weight: 600 !important; }
+
+/* 5) Nuclear option for stubborn components (optional)
+   Add to <body class="am-font"> in base.html if needed */
+.am-font, .am-font * { font-family: var(--am-sf) !important; }
 /* ---------------- NAVBAR ---------------- */
 .navbar {
   background-color: #ffffff !important; /* solid white */
@@ -779,4 +834,17 @@ label:hover ~ input:checked ~ label{
 #seller-map .leaflet-tile {
   width: 256px !important;
   height: 256px !important;
+}
+
+
+
+.add-wishlist.btn-outline-primary,
+.add-wishlist.btn-outline-primary:hover,
+.add-wishlist.btn-outline-primary:focus,
+.add-wishlist.btn-outline-primary:active,
+.add-wishlist.btn-outline-primary.active {
+  background-color: transparent !important;
+  color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+  box-shadow: none !important;
 }
