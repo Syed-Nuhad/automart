@@ -765,3 +765,9 @@ document.addEventListener('DOMContentLoaded', function () {
     window.location.assign("{% url 'compare_page' %}");
   });
 });
+  document.getElementById('goPayPal').addEventListener('click', function (e) {
+    // Don’t let any rogue handler cancel the click
+    e.stopPropagation();
+    // Force navigation
+    window.location.assign(this.href);
+  }, true); // use capture to run before other handlers

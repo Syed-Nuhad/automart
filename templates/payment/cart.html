@@ -91,10 +91,11 @@
             <hr class="my-3">
             <div class="d-grid gap-2">
               {% if rows %}
-                <form action="{% url 'paypal_start' %}" method="post">
-                  {% csrf_token %}
-                  <button class="btn btn-primary w-100">Proceed to Checkout</button>
-                </form>
+              <a id="goPayPal"
+                 class="btn btn-primary w-100"
+                 href="{% url 'paypal_start' %}">
+                Proceed to Checkout
+              </a>
               {% else %}
                 <button class="btn btn-primary" disabled>Proceed to Checkout</button>
               {% endif %}

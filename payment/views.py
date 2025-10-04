@@ -873,15 +873,51 @@ from django.urls import reverse
 import requests
 from django.conf import settings
 
+
 @login_required
 def paypal_start(request):
     """
     Create a local pending Order + PayPal Order, then redirect the user
     to PayPal's approval URL.
     """
+    # Try your existing util first
     items, total_cents = collect_checkout_items(request)
+
+    # ---- Fallback: build items from your marketplace cart/session ----
     if total_cents <= 0 or not items:
-        # nothing to pay
+        try:
+            # Uses the helper you already have in this file that returns your DB Cart
+            cart = _session_cart(request)
+            tmp_items = []
+            tmp_total = 0
+            for ci in cart.items():
+                name = (
+                    getattr(getattr(ci, "car", None), "title", None)
+                    or getattr(ci, "title", None)
+                    or f"Item {getattr(ci, 'car_id', '')}"
+                )
+                unit_cents = int(
+                    getattr(ci, "unit_price_cents", None)
+                    or getattr(ci, "unit_amount", None)
+                    or getattr(ci, "unit_cents", None)
+                    or 0
+                )
+                qty = int(getattr(ci, "qty", None) or getattr(ci, "quantity", None) or 1)
+                tmp_items.append({
+                    "name": name,
+                    "unit_amount": unit_cents,
+                    "quantity": qty,
+                    "product_id": getattr(ci, "car_id", "") or getattr(ci, "product_id", "") or "",
+                })
+                tmp_total += unit_cents * qty
+
+            items, total_cents = tmp_items, tmp_total
+        except Exception:
+            items, total_cents = [], 0
+
+    # Still empty? Go back to cart with a message
+    if total_cents <= 0 or not items:
+        messages.error(request, "Your cart is empty.")
         return redirect("cart")
 
     # 1) Local pending order
@@ -898,7 +934,7 @@ def paypal_start(request):
             order=order,
             product_id=it.get("product_id", ""),
             product_name=it["name"],
-            unit_amount=int(it["unit_amount"]),  # cents
+            unit_amount=int(it["unit_amount"]),
             quantity=int(it["quantity"]),
         )
 
@@ -907,16 +943,11 @@ def paypal_start(request):
     decimal_total = f"{total_cents/100:.2f}"
     body = {
         "intent": "CAPTURE",
-        "purchase_units": [
-            {
-                "custom_id": str(order.id),
-                "invoice_id": f"am-{order.id}",
-                "amount": {
-                    "currency_code": currency,
-                    "value": decimal_total,
-                },
-            }
-        ],
+        "purchase_units": [{
+            "custom_id": str(order.id),
+            "invoice_id": f"am-{order.id}",
+            "amount": {"currency_code": currency, "value": decimal_total},
+        }],
         "application_context": {
             "shipping_preference": "NO_SHIPPING",
             "return_url": request.build_absolute_uri(reverse("paypal_return")),
@@ -933,20 +964,17 @@ def paypal_start(request):
     )
     res.raise_for_status()
     data = res.json()
+
     pp_id = data.get("id")
     order.external_id = pp_id
     order.save(update_fields=["external_id"])
 
-    # 3) Find approval URL and redirect
-    approve_url = ""
+    # 3) Redirect to PayPal approval
     for link in data.get("links", []):
         if link.get("rel") in ("approve", "payer-action"):
-            approve_url = link.get("href")
-            break
-    if not approve_url:
-        return HttpResponseBadRequest("PayPal approval link missing.")
-    return redirect(approve_url)
+            return redirect(link["href"])
 
+    return HttpResponseBadRequest("PayPal approval link missing.")
 
 @login_required
 def paypal_return(request):
