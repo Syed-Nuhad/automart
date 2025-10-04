@@ -1,0 +1,20 @@
+Order {{ order.display_number }} was marked PAID.
+
+User: {{ order.user|default:"(anonymous)" }}
+Email: {{ order.email|default:"(none)" }}
+Gateway: {{ order.gateway|upper }}
+PayPal Order ID: {{ order.external_id|default:"—" }}
+Capture ID: {{ order.paypal_capture_id|default:"—" }}
+Payer: {{ order.payer_id|default:"—" }} / {{ order.payer_email|default:"—" }}
+
+Items:
+{% for it in items %}
+- {{ it.product_name }} × {{ it.quantity }} — {{ money(it.unit_amount, order.currency) }}
+{% endfor %}
+
+Total: {{ money(order.total_amount, order.currency) }}
+
+{% if show_raw and order.gateway_response %}
+Raw gateway JSON:
+{{ order.gateway_response }}
+{% endif %}

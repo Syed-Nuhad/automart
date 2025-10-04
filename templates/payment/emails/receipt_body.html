@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <body style="font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;">
+    <h2 style="margin:0 0 12px">Thanks for your purchase!</h2>
+    <p style="margin:0 0 16px">Here are your order details:</p>
+
+    <table role="presentation" cellpadding="6" cellspacing="0" style="border-collapse:collapse;background:#f8f9fa;border:1px solid #e9ecef">
+      <tr><td><strong>Order:</strong></td><td>{{ order.display_number }}</td></tr>
+      <tr><td><strong>Placed:</strong></td><td>{{ order.created_at|date:"Y-m-d H:i" }}</td></tr>
+      <tr><td><strong>Status:</strong></td><td>{{ order.status|title }}</td></tr>
+    </table>
+
+    <h3 style="margin:18px 0 8px">Items</h3>
+    <ul style="margin:0 0 12px">
+      {% for it in items %}
+        <li>{{ it.product_name }} × {{ it.quantity }} — {{ money(it.unit_amount, order.currency) }}</li>
+      {% endfor %}
+    </ul>
+
+    <p style="font-weight:600">Total: {{ money(order.total_amount, order.currency) }}</p>
+
+    <p style="margin-top:18px">Questions? Reply to this email or contact {{ support_email }}.</p>
+    <p style="color:#6c757d">{{ site_name }}</p>
+  </body>
+</html>

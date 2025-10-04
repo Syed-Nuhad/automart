@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <body style="font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;">
+    <h2 style="margin:0 0 12px">New paid order {{ order.display_number }}</h2>
+
+    <table role="presentation" cellpadding="6" cellspacing="0" style="border-collapse:collapse;background:#f8f9fa;border:1px solid #e9ecef">
+      <tr><td><strong>User</strong></td><td>{{ order.user|default:"(anonymous)" }}</td></tr>
+      <tr><td><strong>Email</strong></td><td>{{ order.email|default:"(none)" }}</td></tr>
+      <tr><td><strong>Gateway</strong></td><td>{{ order.gateway|upper }}</td></tr>
+      <tr><td><strong>PayPal Order</strong></td><td>{{ order.external_id|default:"—" }}</td></tr>
+      <tr><td><strong>Capture ID</strong></td><td>{{ order.paypal_capture_id|default:"—" }}</td></tr>
+      <tr><td><strong>Payer</strong></td><td>{{ order.payer_id|default:"—" }} / {{ order.payer_email|default:"—" }}</td></tr>
+    </table>
+
+    <h3 style="margin:18px 0 8px">Items</h3>
+    <ul style="margin:0 0 12px">
+      {% for it in items %}
+      <li>{{ it.product_name }} × {{ it.quantity }} — {{ money(it.unit_amount, order.currency) }}</li>
+      {% endfor %}
+    </ul>
+
+    <p style="font-weight:600">Total: {{ money(order.total_amount, order.currency) }}</p>
+
+    {% if show_raw and order.gateway_response %}
+    <details style="margin-top:10px">
+      <summary>Raw gateway JSON</summary>
+      <pre style="white-space:pre-wrap">{{ order.gateway_response }}</pre>
+    </details>
+    {% endif %}
+  </body>
+</html>

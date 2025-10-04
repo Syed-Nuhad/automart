@@ -1,0 +1,16 @@
+{{ site_name }} — Receipt {{ order.display_number|default:("#"|add:order.id|stringformat:"s") }}
+
+Status: {{ order.status|upper }}
+Placed: {{ order.created_at|date:"Y-m-d H:i" }}{% if order.paid_at %}
+Paid: {{ order.paid_at|date:"Y-m-d H:i" }}{% endif %}
+
+Items:
+{% for it in items %}- {{ it.product_name }}  x{{ it.quantity }}  = {{ fmt(it.unit_amount|add:0 * it.quantity, order.currency) }}
+{% endfor %}
+
+Total: {{ fmt(order.total_amount, order.currency) }}
+
+PayPal Order: {{ order.external_id|default:"—" }}
+Capture ID: {{ order.paypal_capture_id|default:"—" }}
+
+Thanks for your purchase!

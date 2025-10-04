@@ -1,0 +1,18 @@
+Hi,
+
+Thanks for your purchase! Here are your order details:
+
+Order: {{ order.display_number }}
+Placed: {{ order.created_at|date:"Y-m-d H:i" }}
+Status: {{ order.status|title }}
+
+Items:
+{% for it in items %}
+- {{ it.product_name }} × {{ it.quantity }} — {{ money(it.unit_amount, order.currency) }}
+{% endfor %}
+
+Total: {{ money(order.total_amount, order.currency) }}
+
+If you have any questions, reply to this email or contact {{ support_email }}.
+
+— {{ site_name }}

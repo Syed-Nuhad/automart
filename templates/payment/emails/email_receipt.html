@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+  <body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin:0; padding:24px; background:#f7f7f9;">
+    <div style="max-width:640px; margin:0 auto; background:#fff; border:1px solid #eee; border-radius:8px; overflow:hidden;">
+      <div style="padding:16px 20px; border-bottom:1px solid #eee;">
+        <h1 style="margin:0; font-size:18px;">{{ site_name }} — Receipt
+          <span style="color:#6c757d;">{{ order.display_number|default:("#"|add:order.id|stringformat:"s") }}</span>
+        </h1>
+        <div style="color:#6c757d; font-size:13px; margin-top:4px;">
+          Status: <strong>{{ order.status|upper }}</strong> ·
+          Placed: {{ order.created_at|date:"Y-m-d H:i" }}{% if order.paid_at %} ·
+          Paid: {{ order.paid_at|date:"Y-m-d H:i" }}{% endif %}
+        </div>
+      </div>
+
+      <div style="padding:16px 20px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th align="left" style="padding:8px 0; border-bottom:1px solid #eee; font-size:13px; color:#6c757d;">Item</th>
+              <th align="right" style="padding:8px 0; border-bottom:1px solid #eee; font-size:13px; color:#6c757d;">Qty</th>
+              <th align="right" style="padding:8px 0; border-bottom:1px solid #eee; font-size:13px; color:#6c757d;">Unit</th>
+              <th align="right" style="padding:8px 0; border-bottom:1px solid #eee; font-size:13px; color:#6c757d;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for it in items %}
+            <tr>
+              <td style="padding:10px 0; border-bottom:1px solid #f1f3f5;">{{ it.product_name }}</td>
+              <td align="right" style="padding:10px 0; border-bottom:1px solid #f1f3f5;">{{ it.quantity }}</td>
+              <td align="right" style="padding:10px 0; border-bottom:1px solid #f1f3f5;">{{ fmt(it.unit_amount, order.currency) }}</td>
+              <td align="right" style="padding:10px 0; border-bottom:1px solid #f1f3f5;">{{ fmt(it.unit_amount|add:0 * it.quantity, order.currency) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" align="right" style="padding:12px 0; font-weight:600;">Total</td>
+              <td align="right" style="padding:12px 0; font-weight:700;">{{ fmt(order.total_amount, order.currency) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div style="margin-top:16px; font-size:12px; color:#6c757d;">
+          PayPal Order: {{ order.external_id|default:"—" }}<br>
+          Capture ID: {{ order.paypal_capture_id|default:"—" }}
+        </div>
+      </div>
+
+      <div style="padding:14px 20px; background:#f8f9fa; color:#6c757d; font-size:12px;">
+        Thanks for your purchase!
+      </div>
+    </div>
+  </body>
+</html>

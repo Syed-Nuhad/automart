@@ -1,0 +1,1 @@
+{{ site_name }} receipt — Order {{ order.display_number }}

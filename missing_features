@@ -1,50 +1,74 @@
-Must-have (stability & correctness)
+Product Overview
 
-Store gateway evidence
-Save PayPal capture_id, payer_id, email, and raw response JSON on Order for audits & support.
+AutoMart is a full-stack car marketplace with secure checkout, seller tools, and modern order management. It’s built on Django with Bootstrap UI, ready for launch or customization.
 
-Verify webhooks cryptographically
-Validate PayPal webhook signatures (Transmission-Id/Time/Signature) instead of trusting raw posts.
+Key Capabilities
+Shopping & Discovery
 
-Double-sell protection for cars
-On capture: re-check car availability inside a DB transaction; mark car sold and hide listing; remove it from other carts/wishlists.
+Home & vehicle detail pages with specs, photos, reviews, and sharing.
 
-Idempotency everywhere
-Prevent duplicate orders/captures if user double-clicks or refreshes (you partly do this—extend it on return URL & webhook).
+Wishlist & compare: save cars, compare side-by-side.
 
-Price integrity
-Recompute totals from DB prices at create/capture time (not session), and fail if mismatch.
+Saved searches with a personal list for quick re-use.
 
-Should-have (UX & operations)
+Dealer map & geo APIs to explore inventory by location.
 
-Order emails
-Send confirmation email on paid (and failure/cancel). Include order summary and support contact.
+Seller Tools
 
-Refunds / cancellations
-Admin-triggered partial/full refunds via PayPal Refund API; mirror status locally (refunded, partially_refunded).
+List a car for sale with photos and details.
 
-Terms/consent checkbox at checkout
-Store a boolean + timestamp on Order (regulatory/chargeback protection).
+Owner dashboard to edit, publish/unpublish, and manage listings.
 
-Better order list UX
-Pagination, search by status/date, and clearer amounts (you’re close—just add paging & filters).
+Staff moderation routes for safe, curated inventory.
 
-Loading/disabled states on buttons
-Prevents accidental resubmits; small JS tweak on “Proceed to Checkout”.
+Cart & Checkout
 
-Nice-to-have (business & scaling)
+Add to cart / edit / remove items.
 
-Deposits vs full payment
-Allow paying a reservation deposit; track remaining balance and a “Pay remaining” flow.
+Proceed to checkout with a clear order summary (items, tax/fees, totals).
 
-Promo/discount support
-Simple fixed/percent discounts with code redemption and audit trail.
+PayPal checkout (redirect flow) in sandbox/live, with robust server-side creation & capture.
 
-Geo taxes/fees
-Compute tax per region instead of a static rate; store tax breakdown per line.
+Automatic cart clearing on successful payment to prevent duplicate purchases.
 
-Admin order dashboard
-Export CSV, status timeline (created → pending → paid → refunded), and quick links to PayPal.
+Orders & Receipts
 
-Analytics & logging
-Structured logs for payment events + basic dashboards (success/fail rates, revenue).
+Order list & detail pages for buyers (“My Orders”).
+
+Human-friendly order numbers (e.g., AM-000123).
+
+Stored payment evidence on each order:
+
+PayPal Order ID & Capture ID
+
+Payer ID and payer email (when available)
+
+Full gateway response JSON (for audit/troubleshooting)
+
+Payment timestamp (paid_at)
+
+Success/Cancel pages with clear status.
+
+Internationalization & Preferences
+
+Multi-language ready (English, বাংলা, العربية).
+
+Session currency selector for display currency (payments processed in configured base currency).
+
+Admin & Operations
+
+Django Admin integration for Orders and Listings.
+
+Email (SMTP) configured for transactional mail (uses Gmail App Password or your SMTP).
+
+Context counters for nav badges (e.g., cart count).
+
+Technical Foundations
+
+Django 5, SQLite (switchable), Bootstrap-based templates.
+
+Clean URL structure with named routes.
+
+Extensible payment architecture (Stripe scaffolding present but disabled; PayPal is live).
+
+Secure server-side order creation & capture, idempotency headers, and webhook endpoint (with reconciliation logic).

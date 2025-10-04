@@ -3,7 +3,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.timezone import localtime
-
+from .emails import send_order_emails
 import json
 import uuid
 import hashlib
@@ -462,6 +462,10 @@ def paypal_return(request):
         if order:
             # Persist all evidence and mark paid (idempotent helper you wrote)
             order.mark_paid(evidence=(data or {}))
+            try:
+                send_order_emails(order)
+            except Exception:
+                pass
             # Clear both session and DB carts (idempotent)
             _clear_user_carts(request)
 
