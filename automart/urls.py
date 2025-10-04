@@ -54,6 +54,8 @@ urlpatterns = [
     path("webhooks/paypal/",        payment_views.paypal_webhook,           name="paypal_webhook"),
     path("checkout/success/",       payment_views.checkout_success,         name="checkout_success"),
     path("checkout/canceled/",      payment_views.checkout_cancel,          name="checkout_canceled"),
+    path("orders/", payment_views.order_list, name="order_list"),
+    path("orders/<int:pk>/", payment_views.order_detail, name="order_detail"),
 
     # Auth + prefs
     path("accounts/login/",  auth_views.LoginView.as_view(template_name="auth/login.html"), name="login"),
@@ -73,6 +75,9 @@ urlpatterns = [
     path("api/dealers.json", mviews.dealers_json, name="dealers_json"),
     path("api/dealers/", mviews.dealers_geojson, name="dealers_geojson"),
     path("car/<int:pk>/geo.json", v.car_geo, name="car_geo"),
+
+    # automart/urls.py  (import payment_views already exists)
+    path("orders/<int:pk>/refund/", payment_views.order_refund, name="order_refund"),
 ]
 
 if settings.DEBUG:

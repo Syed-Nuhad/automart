@@ -13,6 +13,8 @@ DEBUG = True
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", os.getenv("HOST", "")]
 
 INSTALLED_APPS = [
+    "django.contrib.humanize",
+
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -120,8 +122,14 @@ DEFAULT_FROM_EMAIL = "AutoMart <syedpcfirm@gmail.com>"
 # uanv icbn xrum vqww
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 LOGOUT_REDIRECT_URL = "home"
-
+SITE_NAME = "AutoMart"
+SUPPORT_EMAIL = "syedpcfirm@gmail.com"
 BASE_DIR = Path(__file__).resolve().parent.parent
+ORDER_NOTIFICATION_EMAIL = "syedpcfirm@gmail.com"
+SITE_DOMAIN = "http://127.0.0.1:8000"
+EMAIL_TIMEOUT = 10
+EMAIL_SUBJECT_PREFIX = "[AutoMart] "
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Payments
 

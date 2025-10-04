@@ -1,19 +1,18 @@
 {% extends "base.html" %}
-{% load money %}
-
-{% block title %}Payment Success{% endblock %}
-
 {% block content %}
 <div class="container py-5">
-  <div class="alert alert-success">
-    <h4 class="mb-2">Payment Successful 🎉</h4>
-    {% if order %}
-      <p>Order #{{ order.id }} is <strong>{{ order.status }}</strong>. Gateway: {{ order.gateway|title }}</p>
-      <p>Total: {{ order.total_amount|cents_to_money }} {{ order.currency|upper }}</p>
-    {% else %}
-      <p>Thanks for your purchase.</p>
-    {% endif %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h3 class="mb-3">Payment successful 🎉</h3>
+      {% if order %}
+        <p class="text-muted mb-4">Order #{{ order.id }} • Status: <span class="badge bg-success">{{ order.status|upper }}</span></p>
+        <a class="btn btn-primary" href="{% url 'order_detail' order.id %}">View Order Details</a>
+        <a class="btn btn-outline-secondary ms-2" href="{% url 'home' %}">Continue browsing</a>
+      {% else %}
+        <p class="text-muted mb-4">Your payment was successful.</p>
+        <a class="btn btn-primary" href="{% url 'home' %}">Back to home</a>
+      {% endif %}
+    </div>
   </div>
-  <a class="btn btn-primary" href="/">Back to Home</a>
 </div>
 {% endblock %}

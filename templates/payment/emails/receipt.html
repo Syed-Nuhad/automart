@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+  <body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.4;">
+    <h2 style="margin:0 0 12px;">{{ site_name }} – Receipt {{ order.display_number }}</h2>
+    <p>Thanks for your purchase.</p>
+
+    <p>
+      <strong>Order</strong>: {{ order.display_number }}<br>
+      <strong>Status</strong>: {{ order.status|title }}<br>
+      <strong>Placed</strong>: {{ order.created_at|date:"Y-m-d H:i" }}{% if order.paid_at %}<br>
+      <strong>Paid</strong>: {{ order.paid_at|date:"Y-m-d H:i" }}{% endif %}
+    </p>
+
+    <table width="100%" cellpadding="6" cellspacing="0" style="border-collapse:collapse;border:1px solid #e5e7eb;">
+      <thead>
+        <tr style="background:#f8fafc;">
+          <th align="left">Item</th>
+          <th align="center">Qty</th>
+          <th align="right">Unit</th>
+          <th align="right">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for it in items %}
+        <tr style="border-top:1px solid #e5e7eb;">
+          <td>{{ it.product_name }}</td>
+          <td align="center">{{ it.quantity }}</td>
+          <td align="right">
+            {% with c=it.unit_amount|stringformat:"02d" %}{{ order.currency|upper }} {{ c|slice:":-2"|default:"0" }}.{{ c|slice:"-2:" }}{% endwith %}
+          </td>
+          <td align="right">
+            {% with c=it.subtotal|stringformat:"02d" %}{{ order.currency|upper }} {{ c|slice:":-2"|default:"0" }}.{{ c|slice:"-2:" }}{% endwith %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr style="border-top:2px solid #e5e7eb;">
+          <th colspan="3" align="right">Total</th>
+          <th align="right">
+            {% with c=order.total_amount|stringformat:"02d" %}{{ order.currency|upper }} {{ c|slice:":-2"|default:"0" }}.{{ c|slice:"-2:" }}{% endwith %}
+          </th>
+        </tr>
+      </tfoot>
+    </table>
+
+    <p style="margin-top:16px;">
+      <a href="{{ site_domain }}{% url 'order_detail' order.id %}">View your order</a>
+    </p>
+
+    <p>— {{ site_name }}</p>
+  </body>
+</html>

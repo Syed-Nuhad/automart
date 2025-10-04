@@ -1,0 +1,50 @@
+Must-have (stability & correctness)
+
+Store gateway evidence
+Save PayPal capture_id, payer_id, email, and raw response JSON on Order for audits & support.
+
+Verify webhooks cryptographically
+Validate PayPal webhook signatures (Transmission-Id/Time/Signature) instead of trusting raw posts.
+
+Double-sell protection for cars
+On capture: re-check car availability inside a DB transaction; mark car sold and hide listing; remove it from other carts/wishlists.
+
+Idempotency everywhere
+Prevent duplicate orders/captures if user double-clicks or refreshes (you partly do this—extend it on return URL & webhook).
+
+Price integrity
+Recompute totals from DB prices at create/capture time (not session), and fail if mismatch.
+
+Should-have (UX & operations)
+
+Order emails
+Send confirmation email on paid (and failure/cancel). Include order summary and support contact.
+
+Refunds / cancellations
+Admin-triggered partial/full refunds via PayPal Refund API; mirror status locally (refunded, partially_refunded).
+
+Terms/consent checkbox at checkout
+Store a boolean + timestamp on Order (regulatory/chargeback protection).
+
+Better order list UX
+Pagination, search by status/date, and clearer amounts (you’re close—just add paging & filters).
+
+Loading/disabled states on buttons
+Prevents accidental resubmits; small JS tweak on “Proceed to Checkout”.
+
+Nice-to-have (business & scaling)
+
+Deposits vs full payment
+Allow paying a reservation deposit; track remaining balance and a “Pay remaining” flow.
+
+Promo/discount support
+Simple fixed/percent discounts with code redemption and audit trail.
+
+Geo taxes/fees
+Compute tax per region instead of a static rate; store tax breakdown per line.
+
+Admin order dashboard
+Export CSV, status timeline (created → pending → paid → refunded), and quick links to PayPal.
+
+Analytics & logging
+Structured logs for payment events + basic dashboards (success/fail rates, revenue).

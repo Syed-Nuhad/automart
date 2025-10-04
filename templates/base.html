@@ -132,6 +132,16 @@
                     <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right"></i> Log out</button>
                   </form>
                 </li>
+                {% if request.user.is_authenticated %}
+                  {% with current=request.resolver_match.url_name|default:'' %}
+                  <li class="nav-item">
+                    <a class="nav-link{% if current == 'order_list' or current == 'order_detail' %} active{% endif %}"
+                       href="{% url 'order_list' %}">
+                      <i class="bi bi-receipt"></i> My Orders
+                    </a>
+                  </li>
+                  {% endwith %}
+                {% endif %}
               </ul>
             </div>
           {% else %}
@@ -165,10 +175,11 @@
 
 
   <!-- ============================== MAIN CONTENT ============================== -->
+<main class="flex-grow-1">
   {% block content %}{% endblock %}
-
+</main>
   <!-- ============================== FOOTER ============================== -->
-  <footer class="bg-light text-dark py-5">
+  <footer class="bg-light text-dark py-5 mt-auto ">
     <div class="container">
       <div class="row g-4">
 

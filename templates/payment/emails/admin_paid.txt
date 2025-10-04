@@ -1,0 +1,10 @@
+Paid order {{ order.display_number }}
+
+User: {{ order.user|default:"(anonymous)" }}
+Email: {{ order.email }}
+
+Total: {{ order.currency|upper }} {{ order.total_amount|stringformat:"d"|slice:":-2"|default:"0" }}.{{ order.total_amount|stringformat:"02d"|slice:"-2:" }}
+Gateway: {{ order.gateway|title }}
+External ID: {{ order.external_id }}
+
+View in site: {{ site_domain }}{% url 'order_detail' order.id %}

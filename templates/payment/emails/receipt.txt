@@ -1,0 +1,20 @@
+{{ site_name }} – Receipt {{ order.display_number }}
+
+Hi,
+Thanks for your purchase. Here are your order details:
+
+Order: {{ order.display_number }}
+Status: {{ order.status|title }}
+Placed: {{ order.created_at|date:"Y-m-d H:i" }}{% if order.paid_at %}
+Paid: {{ order.paid_at|date:"Y-m-d H:i" }}{% endif %}
+
+Items:
+{% for it in items %}
+- {{ it.product_name }}  x{{ it.quantity }}  @ {{ order.currency|upper }} {{ it.unit_amount|stringformat:"d"|slice:":-2"|default:"0" }}.{{ it.unit_amount|stringformat:"02d"|slice:"-2:" }} = {{ order.currency|upper }} {{ it.subtotal|stringformat:"d"|slice:":-2"|default:"0" }}.{{ it.subtotal|stringformat:"02d"|slice:"-2:" }}
+{% endfor %}
+
+Total: {{ order.currency|upper }} {{ order.total_amount|stringformat:"d"|slice:":-2"|default:"0" }}.{{ order.total_amount|stringformat:"02d"|slice:"-2:" }}
+
+View your order: {{ site_domain }}{% url 'order_detail' order.id %}
+
+— {{ site_name }}
