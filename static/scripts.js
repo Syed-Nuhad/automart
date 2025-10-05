@@ -771,3 +771,93 @@ document.addEventListener('DOMContentLoaded', function () {
     // Force navigation
     window.location.assign(this.href);
   }, true); // use capture to run before other handlers
+
+  (function(){
+  // CSRF helper (Django sets "csrftoken" cookie)
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? m.pop() : '';
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  function showTransientTooltip(btn, text) {
+    // Keep a persistent title to restore afterwards
+    const restore = btn.getAttribute('data-bs-title') || '';
+    btn.setAttribute('data-restore-title', restore);
+
+    let tip = bootstrap.Tooltip.getInstance(btn);
+    if (!tip) tip = new bootstrap.Tooltip(btn, { trigger: 'manual' });
+
+    if (tip.setContent) {
+      tip.setContent({'.tooltip-inner': text});
+    } else {
+      btn.setAttribute('data-bs-original-title', text);
+    }
+    tip.show();
+
+    setTimeout(function(){
+      tip.hide();
+      const restoreText = btn.getAttribute('data-restore-title') || '';
+      if (tip.setContent) {
+        tip.setContent({'.tooltip-inner': restoreText});
+      } else {
+        btn.setAttribute('data-bs-original-title', restoreText);
+      }
+    }, 1200);
+  }
+
+  function updateBadge(count) {
+    const badge = document.getElementById('js-compare-count');
+    if (!badge) return;
+    badge.textContent = count;
+    badge.style.display = (count > 0) ? '' : 'none';
+  }
+
+  // Intercept compare forms
+  document.addEventListener('submit', function(e){
+    const form = e.target.closest('form.compare-form');
+    if (!form) return;
+    e.preventDefault();
+
+    const url = form.getAttribute('action');
+    const btn = form.querySelector('button[type="submit"]');
+    if (!btn) return;
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': csrftoken,
+      },
+    })
+    .then(async (r) => {
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok || !data) throw data;
+
+      // Toggle classes based on new state
+      const inList = !!data.in_list;
+      btn.classList.toggle('btn-primary', inList);
+      btn.classList.toggle('btn-outline-primary', !inList);
+
+      // Long-lived tooltip/ar ia-label
+      const longTitle = inList ? 'Remove from Compare' : 'Add to Compare';
+      btn.setAttribute('data-bs-title', longTitle);
+      btn.setAttribute('aria-label', longTitle);
+
+      // Transient feedback: "Added to Compare" / "Removed from Compare"
+      showTransientTooltip(btn, inList ? 'Added to Compare' : 'Removed from Compare');
+
+      // Update navbar badge
+      if (typeof data.count === 'number') updateBadge(data.count);
+    })
+    .catch((err) => {
+      // Max reached or other error
+      const max = (err && err.max) ? err.max : null;
+      const msg = (err && err.reason === 'max' && max)
+        ? ('Max ' + max + ' reached')
+        : 'Something went wrong';
+      showTransientTooltip(btn, msg);
+      console.error('Compare toggle failed:', err);
+    });
+  });
+})();

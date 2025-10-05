@@ -1,0 +1,12 @@
+<form method="post" action="{% url 'toggle_compare' car.id %}" class="d-inline">
+  {% csrf_token %}
+  <button
+    class="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center px-3 py-2 rounded-3
+           {% if car.id in compare_ids %}btn-primary{% endif %}"
+    {% if car.id not in compare_ids and compare_count >= compare_max %}disabled{% endif %}
+    aria-label="{% if car.id in compare_ids %}Remove from Compare{% else %}Add to Compare{% endif %}"
+    title="{% if car.id in compare_ids %}Remove from Compare{% else %}Add to Compare{% endif %}"
+  >
+    <i class="bi bi-plus-slash-minus fs-5 lh-1"></i>
+  </button>
+</form>

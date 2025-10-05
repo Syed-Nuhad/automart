@@ -12,7 +12,8 @@ from django.conf import settings
 
 from payment.cart import _car_to_session_row, add_item, remove_item as cart_remove_item, clear as cart_clear, \
     in_cart as cart_in_cart, total_cents as cart_total_cents, count as cart_count, _car_to_session_row
-from .models import Cart, CartItem, Dealer
+from .compare_session import get_ids, set_ids
+from .models import Cart, CartItem, Dealer, SavedComparison, SavedComparisonItem
 from .models import CarListing, SellerProfile, SavedSearch
 from .forms import CarListingForm, PhotoFormSet, SellerProfileForm, CarPhotoFormSet, SellerUserForm, \
     SellerOnboardingForm
@@ -506,3 +507,92 @@ def dealers_geojson(request):
     return JsonResponse({"type": "FeatureCollection", "features": feats})
 
 # ENDING!🔚
+
+
+
+
+
+# COMPARE THING
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_http_methods
+from django.contrib import messages
+from django.urls import reverse
+
+# remove @login_required if you want guests to compare (recommended)
+# from django.contrib.auth.decorators import login_required
+
+from models.models import Car  # adjust import if your Car path differs
+
+COMPARE_SESSION_KEY = "compare_ids"
+MAX_COMPARE = 4
+
+
+def _get_compare_ids(request) -> list[int]:
+    """Read compare list (ids) from session."""
+    ids = request.session.get(COMPARE_SESSION_KEY, [])
+    if not isinstance(ids, list):
+        ids = []
+    try:
+        return [int(x) for x in ids]
+    except Exception:
+        return []
+
+
+def _set_compare_ids(request, ids: list[int]) -> None:
+    """Persist compare list in session."""
+    request.session[COMPARE_SESSION_KEY] = ids
+    request.session.modified = True
+
+
+# ---------- PAGES ----------
+
+def compare_page(request):
+    ids = get_ids(request)
+    qs = Car.objects.filter(id__in=ids)
+    # preserve insertion order
+    cars = sorted(qs, key=lambda c: ids.index(c.id))
+    return render(request, "marketplace/compare.html", {"cars": cars, "max_compare": MAX_COMPARE})
+
+
+@require_http_methods(["POST", "GET"])
+def toggle_compare(request, pk: int):
+    """
+    Add/remove a car id in the session compare list.
+    Normal flow: redirect back to the referring page (no AJAX).
+    """
+    car = get_object_or_404(Car, pk=pk)
+    ids = _get_compare_ids(request)
+    pk = int(pk)
+
+    if pk in ids:
+        ids.remove(pk)
+        _set_compare_ids(request, ids)
+        messages.info(request, f'Removed “{getattr(car, "title", "Car")}” from comparison.')
+    else:
+        if len(ids) >= MAX_COMPARE:
+            messages.warning(request, f"You can compare up to {MAX_COMPARE} cars.")
+        else:
+            ids.append(pk)
+            _set_compare_ids(request, ids)
+            messages.success(request, f'Added “{getattr(car, "title", "Car")}” to comparison.')
+
+    return redirect(request.META.get("HTTP_REFERER") or reverse("car_detail", args=[pk]))
+
+
+@require_http_methods(["POST", "GET"])
+def compare_remove(request, pk: int):
+    ids = _get_compare_ids(request)
+    pk = int(pk)
+    if pk in ids:
+        ids.remove(pk)
+        _set_compare_ids(request, ids)
+        messages.info(request, "Removed from comparison.")
+    return redirect(request.META.get("HTTP_REFERER") or reverse("compare_page"))
+
+
+@require_http_methods(["POST", "GET"])
+def compare_clear(request):
+    _set_compare_ids(request, [])
+    messages.success(request, "Comparison cleared.")
+    return redirect(request.META.get("HTTP_REFERER") or reverse("compare_page"))

@@ -34,3 +34,35 @@ def nav_counts(request):
     except Exception:
         count = 0
     return {"cart_count": count}
+
+
+
+# models/context_processors.py
+from typing import List
+
+COMPARE_SESSION_KEY = "compare_ids"
+MAX_COMPARE = 4
+
+def compare_context(request):
+    ids = request.session.get(COMPARE_SESSION_KEY, [])
+    if not isinstance(ids, list):
+        ids = []
+    try:
+        ids = [int(x) for x in ids]
+    except Exception:
+        ids = []
+    return {
+        "compare_ids": ids,              # list of car IDs in compare
+        "compare_count": len(ids),       # count badge for navbar
+        "compare_max": MAX_COMPARE,
+    }
+# marketplace/context_processors.py
+from .compare_session import get_ids, MAX_COMPARE
+
+def compare_meta(request):
+    ids = get_ids(request)
+    return {
+        "compare_ids": ids,
+        "compare_count": len(ids),
+        "compare_max": MAX_COMPARE,
+    }

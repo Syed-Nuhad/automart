@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h4 mb-0"><i class="bi bi-layers"></i> Compare Cars</h1>
+
+    <div class="d-flex gap-2">
+      {% if cars %}
+      <form method="post" action="{% url 'compare_clear' %}">
+        {% csrf_token %}
+        <button class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-trash"></i> Clear
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if not cars %}
+    <div class="alert alert-info">
+      Your comparison is empty. Go to a car and click <strong>Add to Compare</strong>.
+    </div>
+  {% else %}
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="min-width: 180px;">Spec</th>
+            {% for c in cars %}
+              <th class="text-center">
+                <div class="d-flex flex-column align-items-center">
+                  {% if c.cover and c.cover.url %}
+                    <img src="{{ c.cover.url }}" alt="{{ c.title }}" class="img-fluid rounded mb-2" style="max-height: 80px;">
+                  {% endif %}
+                  <div class="fw-semibold text-wrap text-center">{{ c.title|default:"Car" }}</div>
+                  <div class="small text-muted">
+                    {% if c.price %}${{ c.price|floatformat:0|intcomma }}{% else %}—{% endif %}
+                  </div>
+                  <form method="post" action="{% url 'compare_remove' c.id %}" class="mt-2">
+                    {% csrf_token %}
+                    <button class="btn btn-outline-danger btn-sm">
+                      <i class="bi bi-x-circle"></i> Remove
+                    </button>
+                  </form>
+                </div>
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <th class="text-muted">Make / Model</th>
+            {% for c in cars %}
+              <td class="text-center">
+                {{ c.make|default:"—" }} {{ c.model_name|default:"" }}
+              </td>
+            {% endfor %}
+          </tr>
+
+          <tr>
+            <th class="text-muted">Year</th>
+            {% for c in cars %}
+              <td class="text-center">{{ c.year|default:"—" }}</td>
+            {% endfor %}
+          </tr>
+
+          <tr>
+            <th class="text-muted">Mileage</th>
+            {% for c in cars %}
+              <td class="text-center">
+                {% if c.mileage %}{{ c.mileage|intcomma }}{% else %}—{% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+
+          <tr>
+            <th class="text-muted">Transmission</th>
+            {% for c in cars %}
+              <td class="text-center">{{ c.transmission|default:"—" }}</td>
+            {% endfor %}
+          </tr>
+
+          <tr>
+            <th class="text-muted">Fuel</th>
+            {% for c in cars %}
+              <td class="text-center">{{ c.fuel_type|default:"—" }}</td>
+            {% endfor %}
+          </tr>
+
+          <tr>
+            <th class="text-muted">Body</th>
+            {% for c in cars %}
+              <td class="text-center">{{ c.body_type|default:"—" }}</td>
+            {% endfor %}
+          </tr>
+
+          <tr>
+            <th class="text-muted">Color</th>
+            {% for c in cars %}
+              <td class="text-center">{{ c.color|default:"—" }}</td>
+            {% endfor %}
+          </tr>
+
+          <tr>
+            <th class="text-muted">Price</th>
+            {% for c in cars %}
+              <td class="text-center">
+                {% if c.price %}${{ c.price|floatformat:0|intcomma }}{% else %}—{% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

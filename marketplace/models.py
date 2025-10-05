@@ -555,3 +555,48 @@ class Dealer(models.Model):
 
     def __str__(self):
         return self.name
+
+
+
+# Compare
+
+class SavedComparison(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="saved_comparisons",
+    )
+    name = models.CharField(max_length=120)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} ({self.user})"
+
+    def car_ids(self):
+        return list(
+            self.items.order_by("position").values_list("car_id", flat=True)
+        )
+
+
+class SavedComparisonItem(models.Model):
+    comparison = models.ForeignKey(
+        "marketplace.SavedComparison",
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+    car = models.ForeignKey(
+        "models.Car",  # your Car model lives in app "models"
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
+    position = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = [("comparison", "car")]
+        ordering = ["position"]
+
+    def __str__(self):
+        return f"{self.comparison_id} → Car {self.car_id} (@{self.position})"

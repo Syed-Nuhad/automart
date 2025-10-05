@@ -4,6 +4,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from marketplace.views import compare_remove, toggle_compare, compare_clear
 from models import views as v
 from marketplace import views as mviews
 from django.contrib.auth import views as auth_views
@@ -78,6 +79,11 @@ urlpatterns = [
 
     # automart/urls.py  (import payment_views already exists)
     path("orders/<int:pk>/refund/", payment_views.order_refund, name="order_refund"),
+    path("compare/<int:pk>/toggle/", v.toggle_compare, name="toggle_compare"),
+    path("compare/", v.compare_page, name="compare_page"),
+    path("compare/clear/", compare_clear, name="compare_clear"),
+    path("compare/<int:pk>/remove/", compare_remove, name="compare_remove"),
+    # ...
 
 ]
 

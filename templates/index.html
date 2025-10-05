@@ -307,35 +307,52 @@
               </div>
 
               <!-- Inline actions (moved inside .card-body) -->
-              <div class="card-actions d-flex gap-2 mt-2">
+                <div class="card-actions d-flex gap-2 mt-2">
 
+                  <!-- Wishlist -->
+                  <a class="btn btn-outline-primary add-wishlist"
+                     href="{% url 'toggle_wishlist' car.id %}"
+                     data-id="{{ car.id }}"
+                     data-bs-toggle="tooltip"
+                     data-bs-placement="top"
+                     data-bs-title="{% trans 'Toggle Wishlist' %}"
+                     title="{% trans 'Toggle Wishlist' %}">
+                    <i class="bi bi-heart"></i>
+                    <span class="visually-hidden">{% trans "Toggle Wishlist" %}</span>
+                  </a>
 
-              <!-- Wishlist link (separate) -->
-              <a class="btn btn-outline-primary add-wishlist"
-                 href="{% url 'toggle_wishlist' car.id %}"
-                 data-id="{{ car.id }}">
-                <i class="bi bi-heart"></i>
-              </a>
+                  {# Compare (icon-only) #}
+                  <form method="post" action="{% url 'toggle_compare' car.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button
+                      type="submit"
+                      class="btn {% if car.id in compare_ids %}btn-primary{% else %}btn-outline-primary{% endif %}"
+                      {% if car.id not in compare_ids and compare_count >= compare_max %}disabled{% endif %}
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      data-bs-title="{% if car.id in compare_ids %}{% trans 'Remove from Compare' %}{% else %}{% trans 'Add to Compare' %}{% endif %}"
+                      title="{% if car.id in compare_ids %}{% trans 'Remove from Compare' %}{% else %}{% trans 'Add to Compare' %}{% endif %}"
+                      aria-label="{% if car.id in compare_ids %}{% trans 'Remove from Compare' %}{% else %}{% trans 'Add to Compare' %}{% endif %}"
+                    >
+                      <i class="bi bi-plus-slash-minus"></i>
+                      <span class="visually-hidden">
+                        {% if car.id in compare_ids %}{% trans 'Remove from Compare' %}{% else %}{% trans 'Add to Compare' %}{% endif %}
+                      </span>
+                    </button>
+                  </form>
 
-                <form method="post"
-                      action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
-                      class="d-inline compare-form">
-                  {% csrf_token %}
-                  <button type="submit"
-                          class="btn btn-outline-primary add-compare"
-                          data-id="{{ car.id }}"
-                          data-href="{% url 'toggle_compare' car.id %}">
-                    <i class="bi bi-plus-square"></i>
-                  </button>
-                </form>
+                  <!-- Test drive (you already had tooltip here) -->
+                  <a class="btn btn-sm btn-outline-primary btn-icon"
+                     href="{% url 'test_drive' car.id %}"
+                     data-bs-toggle="tooltip"
+                     data-bs-placement="top"
+                     data-bs-title="{% trans 'Request A Test Drive' %}"
+                     title="{% trans 'Request A Test Drive' %}">
+                    <i class="bi bi-car-front-fill"></i>
+                    <span class="visually-hidden">{% trans "Request A Test Drive" %}</span>
+                  </a>
+                </div>
 
-                <a class="btn btn-sm btn-outline-primary btn-icon"
-                   href="{% url 'test_drive' car.id %}"
-                   data-bs-toggle="tooltip"
-                   data-bs-title="{% trans 'Request A Test Drive' %}">
-                  <i class="bi bi-car-front-fill"></i>
-                </a>
-              </div>
             </div> <!-- /card-body -->
 
             <div class="card-footer bg-white border-0 ">
@@ -642,111 +659,80 @@
 
                   <div class="card-actions">
 
-                    <!-- CART -->
-                    <form method="post"
-                          action="{% url 'cart_add' car_id=car.id %}"
-                          class="js-add-cart"
-                          data-pid="{{ car.id }}">
-                      {% csrf_token %}
-                      <button type="submit"
-                              class="btn btn-sm btn-outline-primary btn-icon"
-                              data-bs-toggle="tooltip"
-                              data-bs-title="{% trans 'Add to cart' %}">
-                        <i class="bi bi-cart-plus"></i>
+                      {# CART #}
+                      <form method="post"
+                            action="{% url 'cart_add' car_id=car.id %}"
+                            class="d-inline js-add-cart"
+                            data-pid="{{ car.id }}">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn btn-sm btn-outline-primary btn-icon"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                data-bs-title="{% trans 'Add to cart' %}"
+                                aria-label="{% trans 'Add to cart' %}">
+                          <i class="bi bi-cart-plus"></i>
+                        </button>
+                      </form>
+
+                      <!--Compare-->
+
+                      <form method="post" action="{% url 'toggle_compare' car.id %}" class="d-inline">
+                        {% csrf_token %}
+                        {% if car.id in compare_ids %}
+                          <button type="submit"
+                                  class="btn btn-sm btn-primary btn-icon"
+                                  data-bs-toggle="tooltip"
+                                  data-bs-title="{% trans 'Remove from Compare' %}"
+                                  aria-label="{% trans 'Remove from Compare' %}">
+                            <i class="bi bi-plus-slash-minus"></i>
+                            <span class="visually-hidden">{% trans 'Remove from Compare' %}</span>
+                          </button>
+                        {% else %}
+                          <button type="submit"
+                                  class="btn btn-sm btn-outline-primary btn-icon"
+                                  data-bs-toggle="tooltip"
+                                  data-bs-title="{% trans 'Add to Compare' %}"
+                                  aria-label="{% trans 'Add to Compare' %}">
+                            <i class="bi bi-plus-slash-minus"></i>
+                            <span class="visually-hidden">{% trans 'Add to Compare' %}</span>
+                          </button>
+                        {% endif %}
+                      </form>
+                      {# SHARE / COPY LINK (kept as-is, tooltip already present) #}
+                      <button
+                        id="copyLinkBtn-{{ car.id }}"
+                        type="button"
+                        class="btn btn-sm btn-outline-primary btn-icon"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        data-bs-title="{% trans 'Copy link' %}"
+                        data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'car_detail' car.id %}"
+                        onclick="(function(b){
+                          var url=b.dataset.url||location.href;
+                          function showTip(msg){
+                            var tip=bootstrap.Tooltip.getInstance(b);
+                            if(!tip){ tip=new bootstrap.Tooltip(b,{trigger:'manual'}); }
+                            if(tip.setContent){ tip.setContent({'.tooltip-inner':msg}); } else { b.setAttribute('data-bs-original-title',msg); }
+                            tip.show(); setTimeout(function(){ tip.hide();
+                              var orig=b.getAttribute('data-bs-title')||'{{ _('Copy link') }}';
+                              if(tip.setContent){ tip.setContent({'.tooltip-inner':orig}); } else { b.setAttribute('data-bs-original-title',orig); }
+                            },1500);
+                          }
+                          function done(){ b.classList.remove('btn-outline-primary'); b.classList.add('btn-primary','text-white');
+                            b.innerHTML='<i class=&quot;bi bi-clipboard-check am-icon&quot;></i>'; showTip('{{ _("Link copied!") }}');
+                            setTimeout(function(){ b.classList.remove('btn-primary','text-white'); b.classList.add('btn-outline-primary');
+                              b.innerHTML='<i class=&quot;bi bi-clipboard am-icon&quot;></i>'; },1600);
+                          }
+                          function fallback(){ try{ var i=document.createElement('input'); i.value=url; document.body.appendChild(i);
+                            i.select(); document.execCommand('copy'); document.body.removeChild(i); done(); }catch(e){ console.error(e); } }
+                          if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done,fallback); } else { fallback(); }
+                        })(this)">
+                        <i class="bi bi-clipboard am-icon" aria-hidden="true"></i>
+                        <span class="visually-hidden">{% trans "Copy link" %}</span>
                       </button>
-                    </form>
 
-                    <!-- Compare -->
-                    <form method="post"
-                            action="{% url 'toggle_compare' car.id %}?next={% url 'compare_page' %}"
-                            class="d-inline compare-form">
-                      {% csrf_token %}
-                      <button type="submit"
-                              class="btn btn-sm btn-outline-primary btn-icon add-compare"
-                              data-bs-toggle="tooltip"
-                              data-id="{{ car.id }}"
-                              data-href="{% url 'toggle_compare' car.id %}"
-                              data-bs-title="{% trans 'Compare' %}"
-                              aria-label="{% trans 'Compare' %}">
-                        <i class="bi bi-plus-square"></i>
-                      </button>
-                    </form>
-
-
-
-                    <!-- Share / Copy link -->
-                    <button
-                      id="copyLinkBtn-{{ car.id }}"
-                      type="button"
-                      class="btn btn-sm btn-outline-primary btn-icon"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      data-bs-title="Copy link"
-                      data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'car_detail' car.id %}"
-                      onclick="(function(b){
-                        var url = b.dataset.url || location.href;
-
-                        function showTip(msg){
-                          var tip = bootstrap.Tooltip.getInstance(b);
-                          if(!tip){
-                            tip = new bootstrap.Tooltip(b, { trigger:'manual' });
-                          }
-                          // Update tooltip content, show, then restore after a moment
-                          if (tip.setContent) {
-                            tip.setContent({'.tooltip-inner': msg});
-                          } else {
-                            // Fallback for older Bootstrap 5 builds
-                            b.setAttribute('data-bs-original-title', msg);
-                          }
-                          tip.show();
-                          setTimeout(function(){
-                            tip.hide();
-                            var orig = b.getAttribute('data-bs-title') || 'Copy link';
-                            if (tip.setContent) {
-                              tip.setContent({'.tooltip-inner': orig});
-                            } else {
-                              b.setAttribute('data-bs-original-title', orig);
-                            }
-                          }, 1500);
-                        }
-
-                        function done(){
-                          // Visual feedback
-                          b.classList.remove('btn-outline-primary');
-                          b.classList.add('btn-primary','text-white');
-                          b.innerHTML = '<i class=&quot;bi bi-clipboard-check am-icon&quot;></i>';
-
-                          showTip('Link copied!');
-
-                          setTimeout(function(){
-                            b.classList.remove('btn-primary','text-white');
-                            b.classList.add('btn-outline-primary');
-                            b.innerHTML = '<i class=&quot;bi bi-clipboard am-icon&quot;></i>';
-                          }, 1600);
-                        }
-
-                        function fallbackCopy(){
-                          try{
-                            var i=document.createElement('input');
-                            i.value=url; document.body.appendChild(i); i.select();
-                            document.execCommand('copy');
-                            document.body.removeChild(i);
-                            done();
-                          }catch(e){
-                            console.error('Copy failed:', e);
-                          }
-                        }
-
-                        if(navigator.clipboard && navigator.clipboard.writeText){
-                          navigator.clipboard.writeText(url).then(done, fallbackCopy);
-                        } else {
-                          fallbackCopy();
-                        }
-                      })(this)">
-                      <i class="bi bi-clipboard am-icon" aria-hidden="true"></i>
-                    </button>
-
-                  </div>
+                    </div>
 
                   <div class="d-grid mt-2">
                     <a href="{{ car.get_absolute_url|default:'#' }}" class="btn btn-sm btn-outline-primary">
@@ -872,42 +858,42 @@
 
 
 <!-- ============================== COMPARE MODAL ============================== -->
-<div class="modal fade" id="compareModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">{% trans "Compare Vehicles" %}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
-      </div>
-      <div class="modal-body">
-        <div class="table-responsive">
-          <table class="table align-middle" id="compareTable">
-            <thead>
-              <tr>
-                <th>{% trans "Spec" %}</th>
-                <th>{% trans "Vehicle 1" %}</th>
-                <th>{% trans "Vehicle 2" %}</th>
-                <th>{% trans "Vehicle 3" %}</th>
-                <th>{% trans "Vehicle 4" %}</th>
-              </tr>
-            </thead>
-            <tbody class="small text-secondary">
-              <tr><td>{% trans "Price" %}</td><td data-spec="price-1">—</td><td data-spec="price-2">—</td><td data-spec="price-3">—</td><td data-spec="price-4">—</td></tr>
-              <tr><td>{% trans "Mileage" %}</td><td data-spec="mileage-1">—</td><td data-spec="mileage-2">—</td><td data-spec="mileage-3">—</td><td data-spec="mileage-4">—</td></tr>
-              <tr><td>{% trans "Fuel" %}</td><td data-spec="fuel-1">—</td><td data-spec="fuel-2">—</td><td data-spec="fuel-3">—</td><td data-spec="fuel-4">—</td></tr>
-              <tr><td>{% trans "Transmission" %}</td><td data-spec="trans-1">—</td><td data-spec="trans-2">—</td><td data-spec="trans-3">—</td><td data-spec="trans-4">—</td></tr>
-              <tr><td>{% trans "Body" %}</td><td data-spec="body-1">—</td><td data-spec="body-2">—</td><td data-spec="body-3">—</td><td data-spec="body-4">—</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
-        <button class="btn btn-primary" id="saveComparison">{% trans "Save Comparison" %}</button>
-      </div>
-    </div>
-  </div>
-</div>
+<!--<div class="modal fade" id="compareModal" tabindex="-1" aria-hidden="true">-->
+<!--  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">-->
+<!--    <div class="modal-content">-->
+<!--      <div class="modal-header">-->
+<!--        <h5 class="modal-title">{% trans "Compare Vehicles" %}</h5>-->
+<!--        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>-->
+<!--      </div>-->
+<!--      <div class="modal-body">-->
+<!--        <div class="table-responsive">-->
+<!--          <table class="table align-middle" id="compareTable">-->
+<!--            <thead>-->
+<!--              <tr>-->
+<!--                <th>{% trans "Spec" %}</th>-->
+<!--                <th>{% trans "Vehicle 1" %}</th>-->
+<!--                <th>{% trans "Vehicle 2" %}</th>-->
+<!--                <th>{% trans "Vehicle 3" %}</th>-->
+<!--                <th>{% trans "Vehicle 4" %}</th>-->
+<!--              </tr>-->
+<!--            </thead>-->
+<!--            <tbody class="small text-secondary">-->
+<!--              <tr><td>{% trans "Price" %}</td><td data-spec="price-1">—</td><td data-spec="price-2">—</td><td data-spec="price-3">—</td><td data-spec="price-4">—</td></tr>-->
+<!--              <tr><td>{% trans "Mileage" %}</td><td data-spec="mileage-1">—</td><td data-spec="mileage-2">—</td><td data-spec="mileage-3">—</td><td data-spec="mileage-4">—</td></tr>-->
+<!--              <tr><td>{% trans "Fuel" %}</td><td data-spec="fuel-1">—</td><td data-spec="fuel-2">—</td><td data-spec="fuel-3">—</td><td data-spec="fuel-4">—</td></tr>-->
+<!--              <tr><td>{% trans "Transmission" %}</td><td data-spec="trans-1">—</td><td data-spec="trans-2">—</td><td data-spec="trans-3">—</td><td data-spec="trans-4">—</td></tr>-->
+<!--              <tr><td>{% trans "Body" %}</td><td data-spec="body-1">—</td><td data-spec="body-2">—</td><td data-spec="body-3">—</td><td data-spec="body-4">—</td></tr>-->
+<!--            </tbody>-->
+<!--          </table>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--      <div class="modal-footer">-->
+<!--        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>-->
+<!--        <button class="btn btn-primary" id="saveComparison">{% trans "Save Comparison" %}</button>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
 
 <!-- ============================== SELL MODAL ============================== -->
 <div class="modal fade" id="sellModal" tabindex="-1" aria-hidden="true">

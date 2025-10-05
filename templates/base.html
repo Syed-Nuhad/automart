@@ -97,11 +97,15 @@
 
       <!-- Compare -->
       <li class="nav-item">
-        <a class="btn btn-sm btn-outline-primary position-relative" href="{% url 'compare_page' %}">
-          <i class="bi bi-bar-chart"></i> Compare
-          <span id="compareCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
-            {{ compare_count|default:0 }}
-          </span>
+        <a href="{% url 'compare_page' %}"
+           class="btn btn-outline-primary btn-sm position-relative ms-2">
+          <i class="bi bi-layers"></i> Compare
+          {% if compare_count %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
+              {{ compare_count }}
+              <span class="visually-hidden">items in compare</span>
+            </span>
+          {% endif %}
         </a>
       </li>
 
